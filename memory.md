@@ -7,10 +7,10 @@ Last updated: 2026-09-21 23:18
 - **Hero Component** ([src/components/Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx)):
   - Full viewport hero (`h-screen min-h-[500px] flex flex-col justify-between select-none bg-[#000000]`).
   - Symmetrical vertical framing: `px-3 sm:px-5 md:px-7 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6`.
-  - Brand wordmark: `"MAGNM"` top-left in `Familjen Grotesk` (`text-[clamp(3.5rem,14.5vw,13.5rem)] leading-[0.8] tracking-[-0.04em]`) with `pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5` to counterbalance tight cap-height.
+  - Brand wordmark & Header Nav: `<header className="w-full flex justify-between items-center">` containing `"MAGNM"` top-left in `Familjen Grotesk` (`text-[clamp(3.5rem,14.5vw,13.5rem)] leading-[0.8] tracking-[-0.04em]`) and exactly 2 options on the right side: `"CONTACT"` and `"MENU"` in `Martian Mono Light` (`z-20 pointer-events-auto`), centrally aligned vertically on the same centerline as `MAGNM`.
   - Tagline bottom-right: Inverted dynamic/static hierarchy. Line 1 cycles dynamic phrases every 3.8s (`"Translating bold vision"`, `"Choreographing pure motion"`, `"Sculpting digital form"`, `"Engineering aesthetics"`) via random in-place blur reveal, resolving into a static, anchored Line 2 (`"into lasting impact."`).
   - Bottom-left options: `"DISCUSS YOUR PROJECT"` and `"BOOK A 30-MINUTE CALL"` set in `Martian Mono Light` (`fonts/MartianMono_Light-s.p.0htes.s6weu9-.woff2`).
-  - Micro-interaction: Clean typographic layout without heavy pills or badges, featuring a subtle geometric `+` in `#666666` that rotates 90° on hover. Silent on hover (no audio).
+  - Micro-interaction: Clean typographic layout without heavy pills or badges, featuring a subtle geometric `+` in `#666666` that rotates 90° on hover across both header and bottom actions.
   - 3D letter roll: Integrated `Letter3DSwap` component ([src/components/ui/letter-3d-swap.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/letter-3d-swap.tsx)) with spring physics (`damping: 25`, `stiffness: 300`) and uniform `#cccccc` tone across front and back faces (no color flash).
 
 - **3D Kinetic Centerpiece** ([src/components/originkit/ui/xylophone-helix.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/originkit/ui/xylophone-helix.tsx)):

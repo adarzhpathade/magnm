@@ -104,10 +104,10 @@ Last updated: 2026-09-21
 
 ---
 
-### Letter3DSwap / Bottom-Left Hero Options
+### Letter3DSwap / Navigation & Interactive Options
 
 File: `src/components/ui/letter-3d-swap.tsx`, `src/components/Hero.tsx`  
-Last updated: 2026-09-21  
+Last updated: 2026-09-22  
 
 | Property         | Class / Value                                |
 | ---------------- | -------------------------------------------- |

@@ -28,9 +28,9 @@ export default function Hero() {
 
   return (
     <section className="relative w-full h-screen min-h-[500px] bg-[#000000] text-[#cccccc] overflow-hidden flex flex-col justify-between px-3 sm:px-5 md:px-7 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6 select-none">
-      {/* Top Left Brand Wordmark (Layered Under 3D Element) */}
-      <div className="relative z-0 w-full flex justify-start items-start pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5 pointer-events-none">
-        <div className="pointer-events-auto">
+      {/* Top Header: Brand Wordmark (Left) & Nav Options (Right) */}
+      <header className="relative w-full flex justify-between items-center pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5 pointer-events-none">
+        <div className="pointer-events-auto relative z-0">
           <BlurText
             text="MAGNM"
             animateBy="letters"
@@ -41,7 +41,57 @@ export default function Hero() {
             className="text-[clamp(3.5rem,14.5vw,13.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
           />
         </div>
-      </div>
+
+        {/* Right Side Nav: CONTACT and MENU Centrally Aligned with MAGNM */}
+        <nav
+          className="pointer-events-auto relative z-20 flex items-center gap-5 sm:gap-7 md:gap-9"
+          aria-label="Main Navigation"
+        >
+          <button
+            type="button"
+            className="group relative cursor-pointer flex items-center gap-2 py-1.5 focus:outline-none text-left"
+            aria-label="Contact"
+          >
+            <span className="font-['Martian_Mono',monospace] text-[0.68rem] text-[#666666] group-hover:text-[#cccccc] transition-transform duration-300 group-hover:rotate-90 inline-block select-none">
+              +
+            </span>
+            <Letter3DSwap
+              as="span"
+              rotateDirection="top"
+              staggerDuration={0.018}
+              staggerFrom="first"
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              mainClassName="flex-nowrap whitespace-nowrap [perspective:800px] font-['Martian_Mono',monospace] font-light text-[clamp(0.68rem,0.85vw,0.82rem)] tracking-[0.06em] text-[#cccccc] select-none"
+              frontFaceClassName="text-[#cccccc]"
+              secondFaceClassName="text-[#cccccc]"
+            >
+              CONTACT
+            </Letter3DSwap>
+          </button>
+
+          <button
+            type="button"
+            className="group relative cursor-pointer flex items-center gap-2 py-1.5 focus:outline-none text-left"
+            aria-label="Menu"
+          >
+            <span className="font-['Martian_Mono',monospace] text-[0.68rem] text-[#666666] group-hover:text-[#cccccc] transition-transform duration-300 group-hover:rotate-90 inline-block select-none">
+              +
+            </span>
+            <Letter3DSwap
+              as="span"
+              rotateDirection="top"
+              staggerDuration={0.018}
+              staggerFrom="first"
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              mainClassName="flex-nowrap whitespace-nowrap [perspective:800px] font-['Martian_Mono',monospace] font-light text-[clamp(0.68rem,0.85vw,0.82rem)] tracking-[0.06em] text-[#cccccc] select-none"
+              frontFaceClassName="text-[#cccccc]"
+              secondFaceClassName="text-[#cccccc]"
+            >
+              MENU
+            </Letter3DSwap>
+          </button>
+        </nav>
+      </header>
 
       {/* Bottom Row: Bottom-Left Options & Bottom-Right Tagline */}
       <div className="relative w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-5 md:gap-4 pointer-events-none">
