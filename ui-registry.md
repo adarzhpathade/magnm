@@ -146,7 +146,7 @@ Last updated: 2026-09-22
 | Color            | `text-[#cccccc]`                             |
 | Leading          | `leading-[1.25]`, `tracking-[-0.012em]`      |
 | Copy             | `Websites, AI products, brands, and systems built for clarity, scale and impact.` |
-| Layout           | Desktop: Top-right quadrant (`hidden md:flex`), aligned with top of `MAGNM`. Mobile: Bottom-right quadrant (`flex md:hidden self-end ml-auto`) |
+| Layout           | Desktop: Top-right quadrant (`hidden md:flex`), centered vertically on the exact horizontal centerline of the `MAGNM` display wordmark (`items-center`). Mobile: Bottom-right quadrant (`flex md:hidden self-end ml-auto`) |
 
 ---
 

@@ -50,104 +50,107 @@ export default function Hero() {
   return (
     <section className="relative w-full h-screen min-h-[500px] bg-[#000000] text-[#cccccc] overflow-hidden flex flex-col justify-between px-3 sm:px-5 md:px-7 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6 select-none">
       {/* Top Header: Brand Wordmark & Tagline (Left) & Narrative Statement (Right) */}
-      <header className="relative w-full flex justify-between items-start pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5 pointer-events-none">
-        <div className="pointer-events-auto relative z-0 flex flex-col items-start text-left">
-          <BlurText
-            text="MAGNM"
-            animateBy="letters"
-            direction="none"
-            randomize={true}
-            delay={80}
-            stepDuration={0.45}
-            className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
-          />
-
-          {/* Tagline Part (Placed Under MAGNM text - only the last word switches) */}
-          <div className="mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-0.5 sm:space-y-1">
-            {/* Line 1: Static permanent statement */}
-            <div className="min-h-[1.15em] flex justify-start">
-              <BlurText
-                text={TAGLINE_LINE_1}
-                animateBy="words"
-                direction="none"
-                randomize={false}
-                delay={90}
-                stepDuration={0.4}
-                className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
-              />
-            </div>
-
-            {/* Line 2: Static prefix + dynamic rotating last word */}
-            <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
-              <BlurText
-                text={TAGLINE_LINE_2_PREFIX}
-                animateBy="words"
-                direction="none"
-                randomize={false}
-                delay={140}
-                stepDuration={0.45}
-                className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
-              />
-              <span className="inline-block relative ml-[0.28em] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={wordIndex}
-                    initial={{
-                      filter: 'blur(16px)',
-                      opacity: 0,
-                      y: 8,
-                    }}
-                    animate={{
-                      filter: ['blur(16px)', 'blur(7px)', 'blur(0px)'],
-                      opacity: [0, 0.6, 1],
-                      y: [8, 2, 0],
-                    }}
-                    exit={{
-                      filter: ['blur(0px)', 'blur(7px)', 'blur(16px)'],
-                      opacity: [1, 0.4, 0],
-                      y: [0, -2, -8],
-                    }}
-                    transition={{
-                      duration: 0.48,
-                      times: [0, 0.45, 1],
-                      ease: [0.22, 1, 0.36, 1],
-                    }}
-                    style={{
-                      display: 'inline-block',
-                      willChange: 'transform, filter, opacity',
-                    }}
-                  >
-                    {DYNAMIC_TAGLINE_WORDS[wordIndex]}
-                  </motion.span>
-                </AnimatePresence>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Top-Right: Logo Emblem + Thin Line Divider + Narrative Statement */}
-        <div className="pointer-events-auto relative z-20 hidden md:flex items-center gap-3 sm:gap-3.5 md:gap-4 max-w-[390px] pt-1 sm:pt-1.5 md:pt-2">
-          {/* MAGNM Metallic Logo Emblem */}
-          <div className="relative shrink-0 flex items-center justify-center">
-            <Image
-              src="/magnm light.png"
-              alt="MAGNM Emblem"
-              width={1536}
-              height={1024}
-              className="h-8 sm:h-9 md:h-10 w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
-              priority
+      <header className="relative w-full flex flex-col pointer-events-none pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5">
+        {/* Top Row: MAGNM Wordmark (Left) and Emblem Narrative Unit (Right) - Centered Vertically */}
+        <div className="w-full flex justify-between items-center">
+          <div className="pointer-events-auto relative z-0 flex items-center">
+            <BlurText
+              text="MAGNM"
+              animateBy="letters"
+              direction="none"
+              randomize={true}
+              delay={80}
+              stepDuration={0.45}
+              className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
             />
           </div>
 
-          {/* Thin Vertical Dividing Line */}
-          <div className="w-[1px] h-8 sm:h-9 md:h-10 bg-white/20 shrink-0" aria-hidden="true" />
+          {/* Top-Right: Logo Emblem + Thin Line Divider + Narrative Statement (Centered Vertically with MAGNM) */}
+          <div className="pointer-events-auto relative z-20 hidden md:flex items-center gap-3 sm:gap-3.5 md:gap-4 max-w-[390px]">
+            {/* MAGNM Metallic Logo Emblem */}
+            <div className="relative shrink-0 flex items-center justify-center">
+              <Image
+                src="/magnm light.png"
+                alt="MAGNM Emblem"
+                width={1536}
+                height={1024}
+                className="h-8 sm:h-9 md:h-10 w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
+                priority
+              />
+            </div>
 
-          {/* Narrative Statement */}
-          <p className="font-['Familjen_Grotesk',sans-serif] text-[0.75rem] sm:text-[0.8rem] md:text-[0.86rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]">
-            Websites, AI products, brands,<br />
-            and systems built for clarity,<br />
-            scale and impact.
-          </p>
+            {/* Thin Vertical Dividing Line */}
+            <div className="w-[1px] h-8 sm:h-9 md:h-10 bg-white/20 shrink-0" aria-hidden="true" />
+
+            {/* Narrative Statement */}
+            <p className="font-['Familjen_Grotesk',sans-serif] text-[0.75rem] sm:text-[0.8rem] md:text-[0.86rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]">
+              Websites, AI products, brands,<br />
+              and systems built for clarity,<br />
+              scale and impact.
+            </p>
+          </div>
+        </div>
+
+        {/* Tagline Part (Placed Under MAGNM text - only the last word switches) */}
+        <div className="pointer-events-auto relative z-0 mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-0.5 sm:space-y-1">
+          {/* Line 1: Static permanent statement */}
+          <div className="min-h-[1.15em] flex justify-start">
+            <BlurText
+              text={TAGLINE_LINE_1}
+              animateBy="words"
+              direction="none"
+              randomize={false}
+              delay={90}
+              stepDuration={0.4}
+              className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
+            />
+          </div>
+
+          {/* Line 2: Static prefix + dynamic rotating last word */}
+          <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
+            <BlurText
+              text={TAGLINE_LINE_2_PREFIX}
+              animateBy="words"
+              direction="none"
+              randomize={false}
+              delay={140}
+              stepDuration={0.45}
+              className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
+            />
+            <span className="inline-block relative ml-[0.28em] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={wordIndex}
+                  initial={{
+                    filter: 'blur(16px)',
+                    opacity: 0,
+                    y: 8,
+                  }}
+                  animate={{
+                    filter: ['blur(16px)', 'blur(7px)', 'blur(0px)'],
+                    opacity: [0, 0.6, 1],
+                    y: [8, 2, 0],
+                  }}
+                  exit={{
+                    filter: ['blur(0px)', 'blur(7px)', 'blur(16px)'],
+                    opacity: [1, 0.4, 0],
+                    y: [0, -2, -8],
+                  }}
+                  transition={{
+                    duration: 0.48,
+                    times: [0, 0.45, 1],
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  style={{
+                    display: 'inline-block',
+                    willChange: 'transform, filter, opacity',
+                  }}
+                >
+                  {DYNAMIC_TAGLINE_WORDS[wordIndex]}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+          </div>
         </div>
       </header>
 

@@ -24,7 +24,7 @@ Last updated: 2026-09-22 09:05
     - 1px vertical divider line (`w-[1px] h-9 bg-white/20`).
     - 2-line studio narrative statement in `Familjen Grotesk` (`text-[11px] sm:text-xs text-white/60 tracking-tight leading-tight font-medium`):
       `"Websites, AI products, brands,"` / `"and high impact motion experiences"`.
-  - **Desktop Placement** (`>=768px`): Rendered in the top-right quadrant (`hidden md:flex items-center gap-3.5 mr-4 lg:mr-8`), harmonizing with the `"CONTACT"` and `"MENU"` nav links.
+  - **Desktop Placement** (`>=768px`): Rendered in the top-right quadrant (`hidden md:flex items-center gap-3 sm:gap-3.5 md:gap-4`), centered vertically on the exact horizontal centerline of the `"MAGNM"` display wordmark (`items-center`).
   - **Mobile Placement** (`<768px`): Rendered in the bottom-right corner (`flex md:hidden self-end ml-auto items-center gap-3.5 z-20 pointer-events-auto`), anchoring the bottom corner without crowding the screen.
 - **Bottom Section & Interactive Actions**:
   - Bottom bar container: `<div className="w-full flex justify-between items-end relative z-20">`.
