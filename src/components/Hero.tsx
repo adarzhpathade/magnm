@@ -23,10 +23,8 @@ const DYNAMIC_TAGLINE_WORDS = [
 export default function Hero() {
   const [wordIndex, setWordIndex] = React.useState(0);
   const [wheelScale, setWheelScale] = React.useState(90);
-  const isFirstMount = React.useRef(true);
 
   React.useEffect(() => {
-    isFirstMount.current = false;
     const timer = setInterval(() => {
       setWordIndex((prev) => (prev + 1) % DYNAMIC_TAGLINE_WORDS.length);
     }, 3200);
@@ -95,26 +93,29 @@ export default function Hero() {
                   <motion.span
                     key={wordIndex}
                     initial={{
-                      filter: 'blur(8px)',
+                      filter: 'blur(16px)',
                       opacity: 0,
-                      y: isFirstMount.current ? 0 : 6,
+                      y: 8,
                     }}
                     animate={{
-                      filter: 'blur(0px)',
-                      opacity: 1,
-                      y: 0,
+                      filter: ['blur(16px)', 'blur(7px)', 'blur(0px)'],
+                      opacity: [0, 0.6, 1],
+                      y: [8, 2, 0],
                     }}
                     exit={{
-                      filter: 'blur(8px)',
-                      opacity: 0,
-                      y: -6,
+                      filter: ['blur(0px)', 'blur(7px)', 'blur(16px)'],
+                      opacity: [1, 0.4, 0],
+                      y: [0, -2, -8],
                     }}
                     transition={{
-                      duration: isFirstMount.current ? 0.45 : 0.35,
-                      delay: isFirstMount.current ? 0.22 : 0,
+                      duration: 0.48,
+                      times: [0, 0.45, 1],
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className="inline-block will-change-[transform,filter,opacity]"
+                    style={{
+                      display: 'inline-block',
+                      willChange: 'transform, filter, opacity',
+                    }}
                   >
                     {DYNAMIC_TAGLINE_WORDS[wordIndex]}
                   </motion.span>
