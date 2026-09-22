@@ -24,7 +24,7 @@ Last updated: 2026-09-21
 **Pattern notes:**
 - Full viewport height (`h-screen min-h-[500px] flex flex-col justify-between`).
 - Typography strictly powered by `Familjen Grotesk` (`FamiljenGroteskVariable_Regular-s.p.04jxz-d23sc_e.woff2`).
-- Brand display wordmark: `"MAGNM"` sized to `clamp(4.25rem, 16vw, 15.5rem)` with ultra-compact `leading-[0.8]` and `tracking-[-0.04em]`.
+- Brand display wordmark: `"MAGNM"` sized to `clamp(4.25rem, 16vw, 15.5rem)` with ultra-compact `leading-[0.8]`, negative tracking (`tracking-[-0.04em]`), and optical negative left margin (`-ml-[0.08em]`) compensating for uppercase glyph side-bearings to ensure its left vertical stem sits flush on the exact same vertical axis as the tagline below it.
 - Tagline: Permanent anchor phrase (`"Translating bold vision"` / `"into lasting"`) with only the final word rotating dynamically (`"impact."`, `"clarity."`, `"motion."`, `"scale."`, `"reality."`, `"form."`) every 3.2s via `<AnimatePresence mode="wait">` with blur and subtle vertical drift (`y: 6 -> 0 -> -6`). Placed directly under the `"MAGNM"` wordmark with calibrated breathing room (`mt-3.5 sm:mt-4 md:mt-5`), left-aligned (`items-start text-left justify-start`), sized to `clamp(1.15rem, 2.4vw, 2.25rem)` with tight grotesque leading (`leading-[1.05]`, `tracking-[-0.035em]`).
 - Integrated with `<BlurText />` motion component for atmospheric entrance animations.
 - 3D layer: Integrated `<XylophoneHelix />` with alpha transparency layered ABOVE typography (`z-10`). Responsively scaled (`scale={48}` on mobile <640px, `70` on tablet, `90` on desktop) and centered without vertical offset on mobile (`translate-y-0 md:translate-y-7 lg:translate-y-9`) to ensure it is centered on the mobile screen without obstructing actions or taglines.

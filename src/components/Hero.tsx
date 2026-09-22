@@ -61,7 +61,7 @@ export default function Hero() {
               randomize={true}
               delay={80}
               stepDuration={0.45}
-              className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
+              className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap -ml-[0.08em]"
             />
           </div>
 

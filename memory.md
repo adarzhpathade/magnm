@@ -10,7 +10,7 @@ Last updated: 2026-09-22 09:05
   - Symmetrical vertical and horizontal framing padding: `px-3 sm:px-5 md:px-7 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6`.
 - **Top Brand Header & Navigation**:
   - Top header row: `<header className="w-full flex justify-between items-center z-20 pointer-events-none">`.
-  - Brand wordmark top-left: `"MAGNM"` rendered in `Familjen Grotesk`, scaled to `text-[clamp(4.25rem,16vw,15.5rem)]` with ultra-tight grotesque leading (`leading-[0.8]`) and negative tracking (`tracking-[-0.04em]`).
+  - Brand wordmark top-left: `"MAGNM"` rendered in `Familjen Grotesk`, scaled to `text-[clamp(4.25rem,16vw,15.5rem)]` with ultra-tight grotesque leading (`leading-[0.8]`), negative tracking (`tracking-[-0.04em]`), and optical negative left margin (`-ml-[0.08em]`) flush-aligning the left vertical stem with the tagline below.
   - Dynamic Tagline Sub-unit: Positioned directly beneath the `"MAGNM"` wordmark with calibrated spacing (`mt-3.5 sm:mt-4 md:mt-5`), left-aligned (`items-start text-left justify-start`), sized to `clamp(1.15rem, 2.4vw, 2.25rem)` with leading `leading-[1.05]` and tracking `tracking-[-0.035em]`.
     - Line 1: Anchored permanent phrase (`"Translating bold vision"`).
     - Line 2: Anchored prefix (`"into lasting"`) followed by dynamically rotating last word (`"impact."`, `"clarity."`, `"motion."`, `"scale."`, `"reality."`, `"form."`) switching every 3.2s with `<AnimatePresence mode="wait">` blur and subtle vertical drift (`y: 6 -> 0 -> -6`).
