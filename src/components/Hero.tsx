@@ -6,23 +6,30 @@ import BlurText from './BlurText';
 import XylophoneHelix from './originkit/ui/xylophone-helix';
 import { Letter3DSwap } from './ui/letter-3d-swap';
 
-const DYNAMIC_TAGLINE_PREFIXES = [
-  'Translating bold vision',
-  'Choreographing pure motion',
-  'Sculpting digital form',
-  'Engineering aesthetics',
+import { AnimatePresence, motion } from 'motion/react';
+
+const TAGLINE_LINE_1 = 'Translating bold vision';
+const TAGLINE_LINE_2_PREFIX = 'into lasting';
+
+const DYNAMIC_TAGLINE_WORDS = [
+  'impact.',
+  'clarity.',
+  'motion.',
+  'scale.',
+  'reality.',
+  'form.',
 ];
 
-const STATIC_TAGLINE_SUFFIX = 'into lasting impact.';
-
 export default function Hero() {
-  const [phraseIndex, setPhraseIndex] = React.useState(0);
+  const [wordIndex, setWordIndex] = React.useState(0);
   const [wheelScale, setWheelScale] = React.useState(90);
+  const isFirstMount = React.useRef(true);
 
   React.useEffect(() => {
+    isFirstMount.current = false;
     const timer = setInterval(() => {
-      setPhraseIndex((prev) => (prev + 1) % DYNAMIC_TAGLINE_PREFIXES.length);
-    }, 3800);
+      setWordIndex((prev) => (prev + 1) % DYNAMIC_TAGLINE_WORDS.length);
+    }, 3200);
     return () => clearInterval(timer);
   }, []);
 
@@ -57,23 +64,25 @@ export default function Hero() {
             className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
           />
 
-          {/* Tagline Part (Placed Under MAGNM text) */}
+          {/* Tagline Part (Placed Under MAGNM text - only the last word switches) */}
           <div className="mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-0.5 sm:space-y-1">
+            {/* Line 1: Static permanent statement */}
             <div className="min-h-[1.15em] flex justify-start">
               <BlurText
-                key={phraseIndex}
-                text={DYNAMIC_TAGLINE_PREFIXES[phraseIndex]}
+                text={TAGLINE_LINE_1}
                 animateBy="words"
                 direction="none"
-                randomize={true}
+                randomize={false}
                 delay={90}
                 stepDuration={0.4}
                 className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
               />
             </div>
-            <div>
+
+            {/* Line 2: Static prefix + dynamic rotating last word */}
+            <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
               <BlurText
-                text={STATIC_TAGLINE_SUFFIX}
+                text={TAGLINE_LINE_2_PREFIX}
                 animateBy="words"
                 direction="none"
                 randomize={false}
@@ -81,6 +90,36 @@ export default function Hero() {
                 stepDuration={0.45}
                 className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
               />
+              <span className="inline-block relative ml-[0.28em] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={wordIndex}
+                    initial={{
+                      filter: 'blur(8px)',
+                      opacity: 0,
+                      y: isFirstMount.current ? 0 : 6,
+                    }}
+                    animate={{
+                      filter: 'blur(0px)',
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    exit={{
+                      filter: 'blur(8px)',
+                      opacity: 0,
+                      y: -6,
+                    }}
+                    transition={{
+                      duration: isFirstMount.current ? 0.45 : 0.35,
+                      delay: isFirstMount.current ? 0.22 : 0,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="inline-block will-change-[transform,filter,opacity]"
+                  >
+                    {DYNAMIC_TAGLINE_WORDS[wordIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
             </div>
           </div>
         </div>

@@ -12,8 +12,8 @@ Last updated: 2026-09-22 09:05
   - Top header row: `<header className="w-full flex justify-between items-center z-20 pointer-events-none">`.
   - Brand wordmark top-left: `"MAGNM"` rendered in `Familjen Grotesk`, scaled to `text-[clamp(4.25rem,16vw,15.5rem)]` with ultra-tight grotesque leading (`leading-[0.8]`) and negative tracking (`tracking-[-0.04em]`).
   - Dynamic Tagline Sub-unit: Positioned directly beneath the `"MAGNM"` wordmark with calibrated spacing (`mt-3.5 sm:mt-4 md:mt-5`), left-aligned (`items-start text-left justify-start`), sized to `clamp(1.15rem, 2.4vw, 2.25rem)` with leading `leading-[1.05]` and tracking `tracking-[-0.035em]`.
-    - Line 1: Cycles dynamic phrases every 3.8s (`"Translating bold vision"`, `"Choreographing pure motion"`, `"Sculpting digital form"`, `"Engineering aesthetics"`) via `<BlurText />` random in-place blur reveal (`direction="none"`, `randomize={true}`).
-    - Line 2: Anchored static line (`"into lasting impact."`) set in `text-[#cccccc]`.
+    - Line 1: Anchored permanent phrase (`"Translating bold vision"`).
+    - Line 2: Anchored prefix (`"into lasting"`) followed by dynamically rotating last word (`"impact."`, `"clarity."`, `"motion."`, `"scale."`, `"reality."`, `"form."`) switching every 3.2s with `<AnimatePresence mode="wait">` blur and subtle vertical drift (`y: 6 -> 0 -> -6`).
   - Desktop Navigation options top-right (`hidden md:flex items-center gap-8 md:gap-12 lg:gap-16 pointer-events-auto`):
     - Two interactive links: `"CONTACT"` and `"MENU"`, set in `Martian Mono Light` (`text-[10px] md:text-[11px] lg:text-[12px] uppercase tracking-[0.14em] text-[#cccccc]`).
     - Centered vertically on the exact centerline of the `"MAGNM"` wordmark.
