@@ -171,5 +171,29 @@ Last updated: 2026-09-22
 - Word-level scroll scrubbing with combined opacity, blur, and subtle container rotation.
 - Ready for integration in upcoming content/manifesto sections upon user instruction.
 
+---
+
+### ElasticLine
+
+File: `src/components/fancy/physics/elastic-line.tsx`  
+Hooks: `src/hooks/use-mouse-position.ts`, `src/hooks/use-dimensions.ts`, `src/hooks/use-elastic-line-events.ts`  
+Last updated: 2026-09-22  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Stroke           | Inherits `currentColor` (e.g. `text-white/20`, `text-[#4D4D4D]`, `text-[#CCCCCC]`) |
+| Stroke width     | `strokeWidth={1}` (Default 1px hair line)    |
+| Orientation      | Horizontal (`isVertical={false}`) or Vertical (`isVertical={true}`) |
+| Motion Library   | `motion/react` (`useAnimationFrame`, `useMotionValue`, `animate`) |
+| Interaction      | Spring-loaded cursor grab within `grabThreshold` and release physics |
+| Spring Config    | `stiffness: 300`, `damping: 5` (Default)     |
+
+**Pattern notes:**
+- Imported from Fancy Components.
+- Interactive SVG quadratic curve (`Q` control point calculation with requestAnimationFrame loop).
+- Sized via parent container bounding dimensions (`useDimensions`).
+- Supports both mouse and touch input.
+- Ready for section dividers or interactive navigational borders on standby.
+
 
 
