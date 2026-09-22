@@ -148,5 +148,28 @@ Last updated: 2026-09-22
 | Copy             | `Websites, AI products, brands, and systems built for clarity, scale and impact.` |
 | Layout           | Desktop: Top-right quadrant (`hidden md:flex`), aligned with top of `MAGNM`. Mobile: Bottom-right quadrant (`flex md:hidden self-end ml-auto`) |
 
+---
+
+### ScrollReveal
+
+File: `src/components/ScrollReveal.tsx`  
+Last updated: 2026-09-22  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Background       | Transparent / container inherited           |
+| Border           | None                                         |
+| Text — primary   | Inherits container or passed via `textClassName` |
+| Motion Library   | GSAP + ScrollTrigger                         |
+| Typography       | `clamp(1.6rem, 4vw, 3rem)`, `leading-[1.5]`  |
+| Blur Support     | Configurable via `enableBlur` and `blurStrength` |
+| Rotation Support | Starting container rotation via `baseRotation` (scrubbed to 0) |
+| Scrub / Triggers | Scoped via `gsap.context()` for clean React 19 lifecycle management |
+
+**Pattern notes:**
+- Imported from React Bits.
+- Word-level scroll scrubbing with combined opacity, blur, and subtle container rotation.
+- Ready for integration in upcoming content/manifesto sections upon user instruction.
+
 
 
