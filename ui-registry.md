@@ -24,9 +24,11 @@ Last updated: 2026-09-21
 **Pattern notes:**
 - Full viewport height (`h-screen min-h-[500px] flex flex-col justify-between`).
 - Typography strictly powered by `Familjen Grotesk` (`FamiljenGroteskVariable_Regular-s.p.04jxz-d23sc_e.woff2`).
-- Bottom-right tagline: Dynamic rotating starting line (`"Translating bold vision"`, `"Choreographing pure motion"`, `"Sculpting digital form"`, `"Engineering aesthetics"`) cycling every 3.8s using random in-place blur reveal, resolving into a static permanent anchor line: `"into lasting impact."`. Tight grotesque leading (`leading-[1.02]`, `tracking-[-0.035em]`).
+- Brand display wordmark: `"MAGNM"` sized to `clamp(4.25rem, 16vw, 15.5rem)` with ultra-compact `leading-[0.8]` and `tracking-[-0.04em]`.
+- Tagline: Dynamic rotating starting line (`"Translating bold vision"`, `"Choreographing pure motion"`, `"Sculpting digital form"`, `"Engineering aesthetics"`) cycling every 3.8s using random in-place blur reveal, resolving into a static permanent anchor line: `"into lasting impact."`. Placed directly under the `"MAGNM"` wordmark with calibrated breathing room (`mt-3.5 sm:mt-4 md:mt-5`), left-aligned (`items-start text-left justify-start`), sized to `clamp(1.15rem, 2.4vw, 2.25rem)` with tight grotesque leading (`leading-[1.05]`, `tracking-[-0.035em]`).
 - Integrated with `<BlurText />` motion component for atmospheric entrance animations.
-- 3D layer: Integrated `<XylophoneHelix />` with alpha transparency centered in viewport and layered ABOVE the typography (`z-10` canvas over `z-0` text), allowing the 3D bars to physically cross over the text while maintaining full user drag and inertia interaction.
+- 3D layer: Integrated `<XylophoneHelix />` with alpha transparency layered ABOVE typography (`z-10`). Responsively scaled (`scale={48}` on mobile <640px, `70` on tablet, `90` on desktop) and centered without vertical offset on mobile (`translate-y-0 md:translate-y-7 lg:translate-y-9`) to ensure it is centered on the mobile screen without obstructing actions or taglines.
+
 
 ---
 
@@ -127,4 +129,24 @@ Last updated: 2026-09-22
 **Pattern notes:**
 - Minimal, clean typographic treatment without heavy capsule borders, numbers, or glowing dots.
 - Monochromatic text remains uniformly `#cccccc` across both 3D flip faces.
-- Rotating geometric `+` provides a crisp architectural touch without visual clutter.
+- Rotating geometric `+` provides a crisp architectural touch without visual clutter on bottom actions (`DISCUSS YOUR PROJECT`, `BOOK A 30-MINUTE CALL`).
+- Hidden on mobile view (`<768px`, `hidden md:flex`) to keep the mobile hero layout minimal, focused on the centered 3D kinetic centerpiece and bottom-right tagline.
+
+### Top-Right Logo Emblem & Narrative Statement
+
+File: `src/components/Hero.tsx`  
+Last updated: 2026-09-22  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Emblem Asset     | `/magnm light.png` (High-res metallic origami "M" emblem) |
+| Emblem Sizing    | Mobile: `h-9 sm:h-10`. Desktop: `h-8 sm:h-9 md:h-10 w-auto object-contain` |
+| Divider          | Mobile: `w-[1px] h-9 sm:h-10 bg-white/20`. Desktop: `w-[1px] h-8 sm:h-9 md:h-10 bg-white/20` |
+| Typography       | `Familjen Grotesk`, `text-[0.75rem] - [0.86rem]` |
+| Color            | `text-[#cccccc]`                             |
+| Leading          | `leading-[1.25]`, `tracking-[-0.012em]`      |
+| Copy             | `Websites, AI products, brands, and systems built for clarity, scale and impact.` |
+| Layout           | Desktop: Top-right quadrant (`hidden md:flex`), aligned with top of `MAGNM`. Mobile: Bottom-right quadrant (`flex md:hidden self-end ml-auto`) |
+
+
+

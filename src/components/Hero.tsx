@@ -1,11 +1,10 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import BlurText from './BlurText';
-import ParticleSaturn from './originkit/ui/particle-saturn';
 import XylophoneHelix from './originkit/ui/xylophone-helix';
 import { Letter3DSwap } from './ui/letter-3d-swap';
-import { TextRepel } from './ui/text-repel';
 
 const DYNAMIC_TAGLINE_PREFIXES = [
   'Translating bold vision',
@@ -18,6 +17,7 @@ const STATIC_TAGLINE_SUFFIX = 'into lasting impact.';
 
 export default function Hero() {
   const [phraseIndex, setPhraseIndex] = React.useState(0);
+  const [wheelScale, setWheelScale] = React.useState(90);
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -26,11 +26,27 @@ export default function Hero() {
     return () => clearInterval(timer);
   }, []);
 
+  React.useEffect(() => {
+    const updateWheelScale = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setWheelScale(48);
+      } else if (width < 1024) {
+        setWheelScale(70);
+      } else {
+        setWheelScale(90);
+      }
+    };
+    updateWheelScale();
+    window.addEventListener('resize', updateWheelScale);
+    return () => window.removeEventListener('resize', updateWheelScale);
+  }, []);
+
   return (
     <section className="relative w-full h-screen min-h-[500px] bg-[#000000] text-[#cccccc] overflow-hidden flex flex-col justify-between px-3 sm:px-5 md:px-7 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6 select-none">
-      {/* Top Header: Brand Wordmark (Left) & Nav Options (Right) */}
-      <header className="relative w-full flex justify-between items-center pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5 pointer-events-none">
-        <div className="pointer-events-auto relative z-0">
+      {/* Top Header: Brand Wordmark & Tagline (Left) & Narrative Statement (Right) */}
+      <header className="relative w-full flex justify-between items-start pt-1 sm:pt-1.5 md:pt-2 lg:pt-2.5 pointer-events-none">
+        <div className="pointer-events-auto relative z-0 flex flex-col items-start text-left">
           <BlurText
             text="MAGNM"
             animateBy="letters"
@@ -38,65 +54,67 @@ export default function Hero() {
             randomize={true}
             delay={80}
             stepDuration={0.45}
-            className="text-[clamp(3.5rem,14.5vw,13.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
+            className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] uppercase justify-start flex-nowrap"
           />
+
+          {/* Tagline Part (Placed Under MAGNM text) */}
+          <div className="mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-0.5 sm:space-y-1">
+            <div className="min-h-[1.15em] flex justify-start">
+              <BlurText
+                key={phraseIndex}
+                text={DYNAMIC_TAGLINE_PREFIXES[phraseIndex]}
+                animateBy="words"
+                direction="none"
+                randomize={true}
+                delay={90}
+                stepDuration={0.4}
+                className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
+              />
+            </div>
+            <div>
+              <BlurText
+                text={STATIC_TAGLINE_SUFFIX}
+                animateBy="words"
+                direction="none"
+                randomize={false}
+                delay={140}
+                stepDuration={0.45}
+                className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Right Side Nav: CONTACT and MENU Centrally Aligned with MAGNM */}
-        <nav
-          className="pointer-events-auto relative z-20 flex items-center gap-5 sm:gap-7 md:gap-9"
-          aria-label="Main Navigation"
-        >
-          <button
-            type="button"
-            className="group relative cursor-pointer flex items-center gap-2 py-1.5 focus:outline-none text-left"
-            aria-label="Contact"
-          >
-            <span className="font-['Martian_Mono',monospace] text-[0.68rem] text-[#666666] group-hover:text-[#cccccc] transition-transform duration-300 group-hover:rotate-90 inline-block select-none">
-              +
-            </span>
-            <Letter3DSwap
-              as="span"
-              rotateDirection="top"
-              staggerDuration={0.018}
-              staggerFrom="first"
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              mainClassName="flex-nowrap whitespace-nowrap [perspective:800px] font-['Martian_Mono',monospace] font-light text-[clamp(0.68rem,0.85vw,0.82rem)] tracking-[0.06em] text-[#cccccc] select-none"
-              frontFaceClassName="text-[#cccccc]"
-              secondFaceClassName="text-[#cccccc]"
-            >
-              CONTACT
-            </Letter3DSwap>
-          </button>
+        {/* Top-Right: Logo Emblem + Thin Line Divider + Narrative Statement */}
+        <div className="pointer-events-auto relative z-20 hidden md:flex items-center gap-3 sm:gap-3.5 md:gap-4 max-w-[390px] pt-1 sm:pt-1.5 md:pt-2">
+          {/* MAGNM Metallic Logo Emblem */}
+          <div className="relative shrink-0 flex items-center justify-center">
+            <Image
+              src="/magnm light.png"
+              alt="MAGNM Emblem"
+              width={1536}
+              height={1024}
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
+              priority
+            />
+          </div>
 
-          <button
-            type="button"
-            className="group relative cursor-pointer flex items-center gap-2 py-1.5 focus:outline-none text-left"
-            aria-label="Menu"
-          >
-            <span className="font-['Martian_Mono',monospace] text-[0.68rem] text-[#666666] group-hover:text-[#cccccc] transition-transform duration-300 group-hover:rotate-90 inline-block select-none">
-              +
-            </span>
-            <Letter3DSwap
-              as="span"
-              rotateDirection="top"
-              staggerDuration={0.018}
-              staggerFrom="first"
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              mainClassName="flex-nowrap whitespace-nowrap [perspective:800px] font-['Martian_Mono',monospace] font-light text-[clamp(0.68rem,0.85vw,0.82rem)] tracking-[0.06em] text-[#cccccc] select-none"
-              frontFaceClassName="text-[#cccccc]"
-              secondFaceClassName="text-[#cccccc]"
-            >
-              MENU
-            </Letter3DSwap>
-          </button>
-        </nav>
+          {/* Thin Vertical Dividing Line */}
+          <div className="w-[1px] h-8 sm:h-9 md:h-10 bg-white/20 shrink-0" aria-hidden="true" />
+
+          {/* Narrative Statement */}
+          <p className="font-['Familjen_Grotesk',sans-serif] text-[0.75rem] sm:text-[0.8rem] md:text-[0.86rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]">
+            Websites, AI products, brands,<br />
+            and systems built for clarity,<br />
+            scale and impact.
+          </p>
+        </div>
       </header>
 
-      {/* Bottom Row: Bottom-Left Options & Bottom-Right Tagline */}
-      <div className="relative w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-5 md:gap-4 pointer-events-none">
-        {/* Bottom Left Options (Minimal Typographic with 3D Letter Swap) */}
-        <div className="pointer-events-auto relative z-20 flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8 md:gap-10 pb-0.5 sm:pb-1">
+      {/* Bottom Row: Bottom-Left Options */}
+      <div className="relative w-full flex justify-between items-end pointer-events-none">
+        {/* Bottom Left Options (Hidden on Mobile View, Visible on Desktop/Tablet) */}
+        <div className="pointer-events-auto relative z-20 hidden md:flex flex-row items-center gap-6 sm:gap-8 md:gap-10 pb-0.5 sm:pb-1">
           <button
             type="button"
             className="group relative cursor-pointer flex items-center gap-2 py-1.5 focus:outline-none text-left"
@@ -142,36 +160,34 @@ export default function Hero() {
           </button>
         </div>
 
-        {/* Bottom Right Tagline (Dynamic Changing Prefix, Static Suffix) */}
-        <div className="pointer-events-auto relative z-0 flex flex-col items-start md:items-end text-left md:text-right space-y-0.5 sm:space-y-1">
-          <div className="min-h-[1.15em] flex justify-start md:justify-end">
-            <BlurText
-              key={phraseIndex}
-              text={DYNAMIC_TAGLINE_PREFIXES[phraseIndex]}
-              animateBy="words"
-              direction="none"
-              randomize={true}
-              delay={90}
-              stepDuration={0.4}
-              className="text-[clamp(1.5rem,3.8vw,3.25rem)] font-normal tracking-[-0.035em] leading-[1.02] text-[#cccccc] justify-start md:justify-end text-left md:text-right"
+        {/* Mobile View: Logo Emblem + Thin Line Divider + Narrative Statement (Bottom-Right) */}
+        <div className="pointer-events-auto relative z-20 flex md:hidden items-center gap-3 sm:gap-3.5 max-w-[310px] sm:max-w-[340px] self-end ml-auto pb-1">
+          {/* MAGNM Metallic Logo Emblem */}
+          <div className="relative shrink-0 flex items-center justify-center">
+            <Image
+              src="/magnm light.png"
+              alt="MAGNM Emblem"
+              width={1536}
+              height={1024}
+              className="h-9 sm:h-10 w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
+              priority
             />
           </div>
-          <div>
-            <BlurText
-              text={STATIC_TAGLINE_SUFFIX}
-              animateBy="words"
-              direction="none"
-              randomize={false}
-              delay={140}
-              stepDuration={0.45}
-              className="text-[clamp(1.5rem,3.8vw,3.25rem)] font-normal tracking-[-0.035em] leading-[1.02] text-[#cccccc] justify-start md:justify-end text-left md:text-right"
-            />
-          </div>
+
+          {/* Thin Vertical Dividing Line */}
+          <div className="w-[1px] h-9 sm:h-10 bg-white/20 shrink-0" aria-hidden="true" />
+
+          {/* Narrative Statement */}
+          <p className="font-['Familjen_Grotesk',sans-serif] text-[0.68rem] sm:text-[0.74rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]">
+            Websites, AI products, brands,<br />
+            and systems built for clarity,<br />
+            scale and impact.
+          </p>
         </div>
       </div>
 
-      {/* Interactive 3D Canvas (Layered ABOVE Text) - Xylophone Helix Wheel */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-auto translate-y-5 sm:translate-y-7 md:translate-y-9">
+      {/* Interactive 3D Canvas (Layered ABOVE Text) - Responsive Scaled & Centered Wheel */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-auto translate-y-0 sm:translate-y-3 md:translate-y-7 lg:translate-y-9">
         <XylophoneHelix
           soundMode="glockenspiel"
           background="transparent"
@@ -180,7 +196,7 @@ export default function Hero() {
           shape="wheel"
           speed={59}
           drag={100}
-          scale={90}
+          scale={wheelScale}
           metal={{ reflect: 100, polish: 100 }}
           hover={{ colors: ['#D8782B'], strength: 0, tint: 0, glow: 0 }}
           camera={{ tilt: 36, sideTilt: -35 }}
