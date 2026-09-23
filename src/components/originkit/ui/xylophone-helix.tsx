@@ -1277,6 +1277,7 @@ export interface XylophoneHelixProps {
     metal?: MetalProps
     hover?: HoverProps
     camera?: CameraProps
+    cameraControllerRef?: React.RefObject<{ tilt: number; sideTilt: number; scale?: number } | null>
 
     width?: number | string
     height?: number | string
@@ -1343,6 +1344,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         metal,
         hover,
         camera,
+        cameraControllerRef,
         width = "100%",
         height = "100%",
         className,
@@ -2204,6 +2206,14 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
             if (nextRampKey !== rampKey) {
                 rampKey = nextRampKey
                 writeRampTexture(gl, gradientTexture, live.current.hoverColors)
+            }
+
+            if (cameraControllerRef?.current) {
+                live.current.tiltRad = (cameraControllerRef.current.tilt * Math.PI) / 180
+                live.current.rollRad = (cameraControllerRef.current.sideTilt * Math.PI) / 180
+                if (cameraControllerRef.current.scale !== undefined) {
+                    live.current.scaleFactor = Math.max(1, cameraControllerRef.current.scale) / 100
+                }
             }
 
             groupScale = fitScale * live.current.scaleFactor

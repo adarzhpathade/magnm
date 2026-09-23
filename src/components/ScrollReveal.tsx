@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useMemo, type ReactNode, type RefObject } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { cn } from '@/lib/utils';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -19,6 +20,7 @@ export interface ScrollRevealProps {
   textClassName?: string;
   rotationEnd?: string;
   wordAnimationEnd?: string;
+  skipInternalTrigger?: boolean;
 }
 
 const ScrollReveal: React.FC<ScrollRevealProps> = ({
@@ -31,7 +33,8 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
   containerClassName = '',
   textClassName = '',
   rotationEnd = 'bottom bottom',
-  wordAnimationEnd = 'bottom bottom'
+  wordAnimationEnd = 'bottom bottom',
+  skipInternalTrigger = false,
 }) => {
   const containerRef = useRef<HTMLHeadingElement>(null);
 
@@ -40,14 +43,26 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
     return text.split(/(\s+)/).map((word, index) => {
       if (word.match(/^\s+$/)) return word;
       return (
-        <span className="inline-block word" key={index}>
+        <span
+          className="inline-block word will-change-[opacity,filter]"
+          key={index}
+          style={
+            skipInternalTrigger
+              ? {
+                  opacity: baseOpacity,
+                  filter: enableBlur ? `blur(${blurStrength}px)` : 'none',
+                }
+              : undefined
+          }
+        >
           {word}
         </span>
       );
     });
-  }, [children]);
+  }, [children, skipInternalTrigger, baseOpacity, enableBlur, blurStrength]);
 
   useEffect(() => {
+    if (skipInternalTrigger) return;
     const el = containerRef.current;
     if (!el) return;
 
@@ -115,8 +130,8 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
   }, [scrollContainerRef, enableBlur, baseRotation, baseOpacity, rotationEnd, wordAnimationEnd, blurStrength]);
 
   return (
-    <h2 ref={containerRef} className={`my-5 ${containerClassName}`}>
-      <p className={`text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] font-semibold ${textClassName}`}>{splitText}</p>
+    <h2 ref={containerRef} className={cn('my-0', containerClassName)}>
+      <p className={cn('text-[clamp(1.6rem,4vw,3rem)] leading-[1.03] font-normal', textClassName)}>{splitText}</p>
     </h2>
   );
 };

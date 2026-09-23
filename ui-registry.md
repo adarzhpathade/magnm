@@ -193,7 +193,32 @@ Last updated: 2026-09-22
 - Interactive SVG quadratic curve (`Q` control point calculation with requestAnimationFrame loop).
 - Sized via parent container bounding dimensions (`useDimensions`).
 - Supports both mouse and touch input.
-- Ready for section dividers or interactive navigational borders on standby.
+---
+
+### Counter (Preloader)
+
+File: `src/components/Counter.tsx`  
+Last updated: 2026-09-23  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Background       | Transparent                                  |
+| Motion Library   | `motion/react` (`useSpring`, `useTransform`) |
+| Font Family      | Inherited (`Martian Mono`)                   |
+| Font Size        | `13px`                                       |
+| Font Weight      | `300` (Light)                                |
+| Text Color       | `#CCCCCC`                                    |
+| Places           | `[100, 10, 1]` (Fixed 3-place zero-jitter)   |
+| Gap              | `1px`                                        |
+| Padding          | `5px` vertical padding                       |
+| Gradient Overlay | `3px` top & bottom fading to `#000000`       |
+| Position         | `translate-y-[76px] sm:translate-y-[84px]`   |
+
+**Pattern notes:**
+- Imported from React Bits.
+- Smooth cylindrical rolling digit transitions driven by physics springs (`useSpring`).
+- Sits centered directly beneath the 20% scale 3D wheel during initial site load.
+- Seamlessly fades and slides down upon reaching 100% before the Hero section unveils.
 
 
 

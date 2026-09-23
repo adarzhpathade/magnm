@@ -1,0 +1,20 @@
+{
+  "$schema": "https://vault.hyperiux.com/schema.json",
+  "framework": "next",
+  "router": "app",
+  "tailwind": {
+    "config": null,
+    "css": "src/app/globals.css"
+  },
+  "aliases": {
+    "components": "@/components",
+    "effects": "@/components/effects",
+    "hooks": "@/hooks",
+    "lib": "@/lib"
+  },
+  "installedEffects": {
+    "parallax-strip-slider": {
+      "installedAt": "2026-09-23T06:43:58.806Z"
+    }
+  }
+}

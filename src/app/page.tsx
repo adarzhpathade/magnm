@@ -1,9 +1,9 @@
-import Hero from "@/components/Hero";
+import MainExperience from "@/components/MainExperience";
 
 export default function Home() {
   return (
     <main className="w-full min-h-screen bg-[#000000]">
-      <Hero />
+      <MainExperience />
     </main>
   );
 }

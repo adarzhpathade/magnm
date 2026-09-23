@@ -8,6 +8,7 @@ type BlurTextProps = {
   delay?: number;
   startDelay?: number;
   className?: string;
+  spanClassName?: string;
   animateBy?: 'words' | 'letters';
   direction?: 'top' | 'bottom' | 'none';
   randomize?: boolean;
@@ -18,6 +19,7 @@ type BlurTextProps = {
   easing?: Easing | Easing[];
   onAnimationComplete?: () => void;
   stepDuration?: number;
+  trigger?: boolean;
 };
 
 const buildKeyframes = (
@@ -38,6 +40,7 @@ const BlurText: React.FC<BlurTextProps> = ({
   delay = 200,
   startDelay = 0,
   className = '',
+  spanClassName = '',
   animateBy = 'words',
   direction = 'none',
   randomize = false,
@@ -45,9 +48,10 @@ const BlurText: React.FC<BlurTextProps> = ({
   rootMargin = '0px',
   animationFrom,
   animationTo,
-  easing = (t: number) => t,
+  easing = [0.22, 1, 0.36, 1],
   onAnimationComplete,
-  stepDuration = 0.35
+  stepDuration = 0.35,
+  trigger,
 }) => {
   const elements = animateBy === 'words' ? text.split(' ') : text.split('');
   const [inView, setInView] = useState(false);
@@ -73,25 +77,25 @@ const BlurText: React.FC<BlurTextProps> = ({
 
   const defaultFrom = useMemo<Record<string, string | number>>(() => {
     if (direction === 'none') {
-      return { filter: 'blur(14px)', opacity: 0, y: 0 };
+      return { filter: 'blur(18px)', opacity: 0, y: 0 };
     }
     return direction === 'top'
-      ? { filter: 'blur(10px)', opacity: 0, y: -50 }
-      : { filter: 'blur(10px)', opacity: 0, y: 50 };
+      ? { filter: 'blur(14px)', opacity: 0, y: -40 }
+      : { filter: 'blur(14px)', opacity: 0, y: 40 };
   }, [direction]);
 
   const defaultTo = useMemo<Array<Record<string, string | number>>>(() => {
     if (direction === 'none') {
       return [
-        { filter: 'blur(6px)', opacity: 0.5, y: 0 },
+        { filter: 'blur(8px)', opacity: 0.55, y: 0 },
         { filter: 'blur(0px)', opacity: 1, y: 0 }
       ];
     }
     return [
       {
-        filter: 'blur(5px)',
-        opacity: 0.5,
-        y: direction === 'top' ? 5 : -5
+        filter: 'blur(6px)',
+        opacity: 0.55,
+        y: direction === 'top' ? 4 : -4
       },
       { filter: 'blur(0px)', opacity: 1, y: 0 }
     ];
@@ -122,6 +126,8 @@ const BlurText: React.FC<BlurTextProps> = ({
   const totalDuration = stepDuration * (stepCount - 1);
   const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
 
+  const isTriggered = trigger !== undefined ? trigger : inView;
+
   return (
     <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
       {elements.map((segment, index) => {
@@ -137,8 +143,9 @@ const BlurText: React.FC<BlurTextProps> = ({
         return (
           <motion.span
             key={index}
+            className="inline-block"
             initial={fromSnapshot}
-            animate={inView ? animateKeyframes : fromSnapshot}
+            animate={isTriggered ? animateKeyframes : fromSnapshot}
             transition={spanTransition}
             onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
             style={{
@@ -146,8 +153,13 @@ const BlurText: React.FC<BlurTextProps> = ({
               willChange: 'transform, filter, opacity'
             }}
           >
-            {segment === ' ' ? '\u00A0' : segment}
-            {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+            <span
+              className={`inline-block ${spanClassName}`}
+              style={{ willChange: 'filter, opacity' }}
+            >
+              {segment === ' ' ? '\u00A0' : segment}
+              {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
+            </span>
           </motion.span>
         );
       })}

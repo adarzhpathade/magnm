@@ -1,0 +1,11 @@
+{
+  "components": {
+    "parallax-strip-slider": {
+      "version": "1.0.0",
+      "installedAt": "2026-09-23T06:43:58.804Z",
+      "files": {
+        "src/components/effects/parallax-strip-slider/index.tsx": "sha256:7898c324c10de5d188396d8805b00f1f4cf149f59682ae20e42d4ec8b0decef7"
+      }
+    }
+  }
+}
