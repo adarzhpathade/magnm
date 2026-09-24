@@ -220,5 +220,51 @@ Last updated: 2026-09-23
 - Sits centered directly beneath the 20% scale 3D wheel during initial site load.
 - Seamlessly fades and slides down upon reaching 100% before the Hero section unveils.
 
+---
+
+### LiquidGlassCarousel
+
+File: `src/components/originkit/ui/liquid-glass-carousel.tsx`  
+Last updated: 2026-09-23  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Background       | Configurable (default `#000000`)             |
+| Shaders          | WebGL custom lens with chromatic dispersion, glow, shimmer, rim wave |
+| Motion Library   | Internal high-precision RAF physics & Three.js WebGL |
+| Controls         | Drag, mouse wheel, click-to-focus            |
+| Card Dimensions  | `cardWidth` (default `340px`), `cardHeight` (default `450px`), `gap` (default `12px`) |
+| Sizing Modes     | `same`, `alternate`, `random`, `image`       |
+| Monochromatic Fit| Adapts to dark/light surfaces with customizable ring, lens glow, and cards |
+
+**Pattern notes:**
+- Imported from Originkit for project showcase in Section 3.
+- Features real-time fluid lens refraction, chromatic dispersion (RGB split), dynamic rim waves, and spring physics card glide.
+- Kept unmounted until ready for Section 3 integration.
+
+---
+
+### OurWork / Services Showcase
+
+File: `src/components/OurWork.tsx`, `src/components/originkit/ui/hover-image-reveal.tsx`  
+Last updated: 2026-09-24  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Background       | Transparent (revealed on `#cccccc` light surface via ParallaxStripTransition) |
+| Position         | Center top, `pt-12 sm:pt-14 md:pt-16 lg:pt-20` below fixed Navbar |
+| Section Heading  | `Familjen Grotesk`, `text-lg sm:text-xl md:text-2xl lg:text-3xl`, `tracking-[-0.025em]`, `#171717` |
+| List Typography  | `Familjen Grotesk` (`--font-familjen`), `font-normal`, uppercase |
+| List Font Size   | `clamp(1.65rem, 3.4vw, 3.25rem)`, `leading-[1.04em]`, `tracking-[-0.035em]` |
+| Text Color       | `#171717` (Active/Normal), `rgba(23, 23, 23, 0.22)` (Dimmed on hover) |
+| Floating Card    | Responsive `imageWidth` (220-320px), `imageHeight` (280-420px), `rounded: 14` |
+| Motion Library   | Framer Motion (`useSpring`, `useMotionValue`), GSAP ScrollTrigger |
+
+**Pattern notes:**
+- Imported Originkit `HoverImageReveal` for interactive services presentation on the light `#cccccc` canvas.
+- Features smooth cursor-following floating image cards with spring dynamics and vertical roll text animation on hover.
+- Sized responsively across desktop, tablet, and mobile breakpoints.
+
+
 
 

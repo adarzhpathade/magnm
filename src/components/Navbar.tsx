@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Letter3DSwap } from './ui/letter-3d-swap';
 
 interface NavbarProps {
   headerRef?: React.RefObject<HTMLElement | null>;
@@ -33,57 +32,11 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
         </button>
       </div>
 
-      {/* Right Slot: Nav Options (styled in the same design system as the Hero buttons) */}
+      {/* Right Slot: Nav Options (reserved for future options) */}
       <div
         ref={navActionsRef}
         className="pointer-events-auto flex items-center gap-2 sm:gap-3 min-h-[44px] h-[44px] opacity-0"
-      >
-        {/* Discuss Your Project / Contact Button */}
-        <button
-          type="button"
-          className="nav-action-btn group relative cursor-pointer flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/15 bg-black/60 hover:border-white/40 hover:bg-white/[0.08] transition-all duration-300 backdrop-blur-md focus:outline-none select-none shadow-[0_4px_20px_rgba(0,0,0,0.6)]"
-          aria-label="Discuss your project"
-        >
-          <span className="font-['Martian_Mono',monospace] text-[0.62rem] sm:text-[0.68rem] text-[#666666] group-hover:text-[#ffffff] transition-transform duration-300 group-hover:rotate-90 inline-block select-none">
-            +
-          </span>
-          <Letter3DSwap
-            as="span"
-            rotateDirection="top"
-            staggerDuration={0.015}
-            staggerFrom="first"
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            mainClassName="flex-nowrap whitespace-nowrap [perspective:800px] font-['Martian_Mono',monospace] font-light text-[0.64rem] sm:text-[0.74rem] tracking-[0.06em] text-[#cccccc] select-none"
-            frontFaceClassName="text-[#cccccc]"
-            secondFaceClassName="text-[#ffffff]"
-          >
-            DISCUSS YOUR PROJECT
-          </Letter3DSwap>
-        </button>
-
-        {/* Menu Button */}
-        <button
-          type="button"
-          className="nav-action-btn group relative cursor-pointer flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full border border-white/15 bg-black/60 hover:border-white/40 hover:bg-white/[0.08] transition-all duration-300 backdrop-blur-md focus:outline-none select-none shadow-[0_4px_20px_rgba(0,0,0,0.6)]"
-          aria-label="Toggle menu"
-        >
-          <Letter3DSwap
-            as="span"
-            rotateDirection="top"
-            staggerDuration={0.015}
-            staggerFrom="first"
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            mainClassName="flex-nowrap whitespace-nowrap [perspective:800px] font-['Martian_Mono',monospace] font-light text-[0.64rem] sm:text-[0.74rem] tracking-[0.06em] text-[#cccccc] select-none"
-            frontFaceClassName="text-[#cccccc]"
-            secondFaceClassName="text-[#ffffff]"
-          >
-            MENU
-          </Letter3DSwap>
-          <span className="font-['Martian_Mono',monospace] text-[0.65rem] sm:text-[0.72rem] text-[#777777] group-hover:text-[#ffffff] transition-transform duration-300 group-hover:rotate-90 inline-block select-none ml-0.5">
-            =
-          </span>
-        </button>
-      </div>
+      />
     </header>
   );
 };

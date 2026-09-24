@@ -24,6 +24,12 @@ const ppEditorialNew = localFont({
   display: "swap",
 });
 
+const martianMono = localFont({
+  src: "../fonts/MartianMono_Light-s.p.0htes.s6weu9-.woff2",
+  variable: "--font-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "MAGNM — Creative Studio",
   description: "Turning vision into visual language.",
@@ -43,6 +49,7 @@ export default function RootLayout({
         familjenGrotesk.variable,
         neueHaasDisplay.variable,
         ppEditorialNew.variable,
+        martianMono.variable,
         "font-sans",
         geist.variable
       )}
