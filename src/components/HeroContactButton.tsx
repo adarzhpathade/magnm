@@ -7,6 +7,7 @@ export interface HeroContactButtonProps {
   onClick?: () => void;
   ariaLabel?: string;
   className?: string;
+  theme?: 'dark' | 'light';
 }
 
 export const HeroContactButton: React.FC<HeroContactButtonProps> = ({
@@ -14,6 +15,7 @@ export const HeroContactButton: React.FC<HeroContactButtonProps> = ({
   onClick,
   ariaLabel,
   className = '',
+  theme = 'dark',
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const words = text.split(' ');
@@ -27,13 +29,17 @@ export const HeroContactButton: React.FC<HeroContactButtonProps> = ({
       onFocus={() => setIsHovered(true)}
       onBlur={() => setIsHovered(false)}
       aria-label={ariaLabel || text}
-      className={`group relative cursor-pointer flex flex-col items-start pt-1.5 pb-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 text-left select-none pointer-events-auto ${className}`}
+      className={`group relative cursor-pointer flex flex-col items-start pt-1.5 pb-1 focus:outline-none focus-visible:ring-1 ${
+        theme === 'light' ? 'focus-visible:ring-black/40' : 'focus-visible:ring-white/40'
+      } text-left select-none pointer-events-auto ${className}`}
     >
       {/* Top Row: Left Plus (on hover), Words, Right Plus (at rest) */}
       <div className="relative flex items-center">
         {/* Left Plus: Slides in & rotates on hover */}
         <span
-          className="font-['Martian_Mono',monospace] text-[0.72rem] text-white select-none absolute left-0 top-1/2 inline-block pointer-events-none"
+          className={`font-['Martian_Mono',monospace] text-[0.72rem] select-none absolute left-0 top-1/2 inline-block pointer-events-none ${
+            theme === 'light' ? 'text-[#171717]' : 'text-white'
+          }`}
           style={{
             transform: isHovered
               ? 'translateY(-50%) translateX(0px) rotate(90deg)'
@@ -50,7 +56,9 @@ export const HeroContactButton: React.FC<HeroContactButtonProps> = ({
         <span
           className="inline-flex items-center gap-1.5 font-['Martian_Mono',monospace] font-light text-[clamp(0.68rem,0.85vw,0.82rem)] tracking-[0.06em] select-none"
           style={{
-            color: isHovered ? '#ffffff' : '#cccccc',
+            color: theme === 'light'
+              ? (isHovered ? '#000000' : '#171717')
+              : (isHovered ? '#ffffff' : '#cccccc'),
             transition: 'color 0.3s ease',
           }}
         >
@@ -75,7 +83,9 @@ export const HeroContactButton: React.FC<HeroContactButtonProps> = ({
         <span
           className="leave-blur-item font-['Martian_Mono',monospace] text-[0.72rem] select-none relative ml-3 inline-block will-change-[transform,filter,opacity]"
           style={{
-            color: isHovered ? '#ffffff' : '#666666',
+            color: theme === 'light'
+              ? (isHovered ? '#000000' : '#666666')
+              : (isHovered ? '#ffffff' : '#666666'),
             transform: isHovered
               ? 'translateX(10px) rotate(90deg)'
               : 'translateX(0px) rotate(0deg)',
@@ -92,13 +102,19 @@ export const HeroContactButton: React.FC<HeroContactButtonProps> = ({
       <div
         className="leave-blur-item relative w-full h-[1px] mt-2 overflow-hidden will-change-[filter,opacity]"
         style={{
-          backgroundColor: isHovered ? 'rgba(255, 255, 255, 0.35)' : 'rgba(255, 255, 255, 0.2)',
+          backgroundColor: theme === 'light'
+            ? (isHovered ? 'rgba(23, 23, 23, 0.4)' : 'rgba(23, 23, 23, 0.18)')
+            : (isHovered ? 'rgba(255, 255, 255, 0.35)' : 'rgba(255, 255, 255, 0.2)'),
           transition: 'background-color 0.3s ease',
         }}
       >
         {/* Active line sweep: draws from left-to-right on hover, exits to right on unhover */}
         <div
-          className="absolute inset-0 bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+          className={`absolute inset-0 ${
+            theme === 'light'
+              ? 'bg-[#171717] shadow-[0_0_6px_rgba(23,23,23,0.25)]'
+              : 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]'
+          }`}
           style={{
             transform: isHovered ? 'scaleX(1)' : 'scaleX(0)',
             transformOrigin: isHovered ? 'left' : 'right',

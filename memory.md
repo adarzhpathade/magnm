@@ -1,92 +1,118 @@
-# Memory — MAGNM Landing Page: Section 3 Rebuild & Scroll-Driven Services Wheel
+# Memory — MAGNM Landing Page
 
-Last updated: 2026-09-24 17:02
+Last updated: 2026-09-25 07:46
 
 ## What was built
 
-### 1. Section 3 "We provide" Sentence & OptionWheel Showcase ([src/components/OurWork.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OurWork.tsx))
-- **Sentence Architecture**:
-  - Replaced former list and hover-image-reveal with a unified editorial sentence composition: **"We provide"** (left display text in `Familjen Grotesk`, display scale `text-3xl sm:text-4xl md:text-5xl lg:text-[3.75rem] xl:text-[4.15rem]`) paired with a dynamic 3D cylindrical **OptionWheel** (right).
-  - Centered horizontally and vertically in the pinned viewport (`max-w-6xl mx-auto`).
-- **Dynamic 2-Line Paragraph with Signature Optical Blur Reveal**:
-  - Positioned directly underneath "We provide" (`md:absolute md:top-full md:left-0`).
-  - Utilizes `<BlurText>` with `randomize={true}`, `animateBy="words"`, `direction="none"`, `delay={24}`, and `stepDuration={0.2}` for MAGNM's signature randomized optical blur reveal (`blur(18px) -> blur(8px) -> blur(0px)` without any jarring vertical y-translation).
-  - Shortened all 6 service descriptions to punchy, 2-line statements:
-    1. **Strategy & Direction**: *Defining creative trajectories to transform vision into actionable roadmaps.*
-    2. **Digital Products & Websites**: *Engineering bespoke flagships built for fluid interaction and performance.*
-    3. **3D & Motion Design**: *Crafting kinetic identities and spatial 3D experiences with depth.*
-    4. **AI Systems & Interfaces**: *Architecting generative interfaces that turn intelligent logic into intuitive tools.*
-    5. **Brand Identity & Systems**: *Formulating typographic systems and design tokens built to scale.*
-    6. **Creative Engineering**: *Bridging avant-garde aesthetics with robust architecture and custom shaders.*
-  - Wrapped in Framer Motion `<AnimatePresence mode="wait">` with blur exit for seamless service transitions.
-- **OptionWheel Integration ([src/components/OptionWheel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OptionWheel.tsx))**:
-  - Adapted React Bits cylindrical wheel for MAGNM's monochromatic design system (`#171717` active, `rgba(23, 23, 23, 0.28)` inactive, `#cccccc` background).
-  - Configured with Title Case items, responsive font sizing (`1.85rem` to `3.75rem`), perspective curve (`0.82`), and tilt (`5deg`).
-  - Zero-latency mechanical audio tick via Web Audio API (`AudioContext`, decoded `AudioBuffer` from `/audio/hover-sound.mp3`, with tactile oscillator fallback).
-  - Exposes imperative methods via `forwardRef<OptionWheelHandle>`: `setTarget` and `setPositionDirect`.
+### 1. Master Experience & Timeline Phasing ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))
+- **Unified Pinned Stage (`h-screen overflow-hidden`)**:
+  - Pinned by GSAP `ScrollTrigger` with `pin: true`, `scrub: 0.15`, `anticipatePin: 1`, and extended total scroll height of `+=860%`.
+  - Coordinates all 4 sequential sections (Hero, About Manifesto, Our Work / Services Wheel, and Project Showcase Orbit Ring) and 2 parallax strip transitions into a cohesive, uninterrupted motion journey.
+- **Precision Phasing & Math**:
+  - `0.00 → 0.11` (Phase 1): Huge "MAGNM" display wordmark scales and docks seamlessly into Navbar; secondary elements wipe out with randomized optical blur (`filter: blur(20px)`, `opacity: 0`).
+  - `0.08 → 0.15` (Phase 2): Navbar actions and Section 2 Manifesto container smoothly emerge (`opacity: 0 → 1`, `y: 16 → 0`).
+  - `0.00 → 0.18` (Phase 3): 3D Wheel rotates from hero orientation (tilt 36°, sideTilt -35°) into an upright kinetic circular ring in the viewport center (tilt 90°, sideTilt 0°, scale * 0.74, opacity 0.42).
+  - `0.10 → 0.20` (Phase 4): Section 2 Manifesto words illuminate progressively (`filter: blur(0px)`, `opacity: 1`, stagger `0.006`).
+  - `0.22 → 0.28` (Phase 5): Section 2 to Section 3 transition via 12-strip horizontal parallax wipe (left-to-right) into light `#cccccc` canvas; 3D wheel fades cleanly; single-element brand handoff at progress `0.27`; Navbar inverts to dark `#171717`.
+  - `0.28 → 0.58` (Phase 6): Pinned Services Wheel (`servicesScrollObj.index: 0 → 5`) with 6 discrete snap points, mechanical audio tick, and 2-line optical blur descriptions.
+  - `0.58 → 0.68` (Phase 7): Section 3 to Section 4 transition via 12-strip horizontal parallax wipe (right-to-left) into dark `#000000` canvas; Section 3 blurs and lifts out; Navbar re-inverts to light `#cccccc`.
+  - `0.68 → 0.98` (Phase 8): Pinned Project Showcase 3D Ring Orbit progression (`showcaseScrollObj.progress: 0 → 1`) driving ring rotation offset across 14 curated studio projects.
+- **Dynamic Pointer Events Delegation**:
+  - Strict progress boundaries ensure non-active sections cannot intercept hover, click, or drag events:
+    - `progress <= 0.08`: Hero active (`pointerEvents = 'auto'`).
+    - `0.08 < progress < 0.22`: About Manifesto active.
+    - `0.25 < progress < 0.60`: Our Work active.
+    - `progress > 0.60`: Project Showcase active.
 
-### 2. Scroll Orchestration & Synchronization ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))
-- **Extended Pinned Timeline**:
-  - Pinned stage scroll length extended to `+=520%` to give the user ample scroll distance to experience all 6 services.
-- **Signature Optical Blur Section Entrance**:
-  - Section 3 reveals smoothly via pure optical blur (`filter: blur(16px) -> blur(0px)`, `opacity: 0 -> 1`, `y: 0`, duration 0.08, `ease: 'power2.out'`) as the 12-strip vertical parallax transition finishes.
-- **Scroll-Driven Services Sequence (Phase 6: 0.44 -> 0.98)**:
-  - GSAP timeline tween interpolates `servicesScrollObj.index` from 0 to 5 across scroll progress 0.44 -> 0.98.
-  - On update, calls `ourWorkHandleRef.current?.setPositionDirect(servicesScrollObj.index)`.
-- **Discrete Service Scroll Snapping**:
-  - Implemented custom `snap.snapTo` in ScrollTrigger strictly scoped to the services range (`progress >= 0.42`).
-  - Calculates 5 equal increments between `0.44` and `0.98` (`0.108` per service), smoothly locking the scroll (`ease: 'power2.inOut'`, `duration: 0.35s`, `delay: 0.08s`) onto the exact integer option so the wheel never rests midway between services.
-  - Leaves earlier phases (0.0 -> 0.42) completely unaffected with freeform continuous scroll.
+---
 
-### 3. Elimination of Scroll Desync & Double Smoothing
-- Standard OptionWheel applies an internal `requestAnimationFrame` exponential smoothing loop (`tau = smoothing / 1000`).
-- Because GSAP ScrollTrigger already applies scrub easing (`scrub: 0.15`), combining both caused significant input lag and desynchronization.
-- Solved by implementing `setPositionDirect()` which bypasses the rAF easing loop during scroll-driven playback, updating DOM transforms and firing selection change triggers synchronously with the GSAP scrub position.
+### 2. Universal Navbar & Brand Docking Architecture ([src/components/Navbar.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Navbar.tsx))
+- **Universal Stacking (`z-[100]`)**:
+  - Fixed Navbar permanently floats above all pinned layers, 3D canvases, and transition slats.
+- **Zero-Ghosting Brand Docking**:
+  - `heroMagnmRef` acts as the single physical wordmark animating from hero scale down to exact pixel coordinates of `navBrandRef`.
+  - At scroll progress `0.27` (hidden behind the slat wipe), executes an instantaneous handoff (`scrollTl.set(heroMagnmRef, { opacity: 0 })` and `scrollTl.set(navBrandRef, { opacity: 1 })`).
+- **Bidirectional Contrast Inversion**:
+  - Dark surfaces (Hero, About Manifesto, Project Showcase): text `#cccccc`, buttons `rgba(255, 255, 255, 0.08)` with border `rgba(255, 255, 255, 0.18)`.
+  - Light surface (Our Work): text `#171717`, buttons `rgba(23, 23, 23, 0.06)` with border `rgba(23, 23, 23, 0.18)`.
+  - Transitions are 100% reversible when scrolling backward.
+
+---
+
+### 3. Parallax Strip Transitions ([src/components/ParallaxStripTransition.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ParallaxStripTransition.tsx))
+- **Directional Support**:
+  - `direction="horizontal"`: Left-to-right wipe (`clipPath: inset(0 100% 0 0) → inset(0 0% 0 0)`), stagger from `0`. Used for Section 2 → Section 3 into light `#cccccc` canvas (`zIndex: 30`).
+  - `direction="horizontal-reverse"`: Right-to-left wipe (`clipPath: inset(0 0 0 100%) → inset(0 0 0 0%)`), stagger from `'end'`. Used for Section 3 → Section 4 into dark `#000000` canvas (`zIndex: 40`).
+- **Parallax Slat Zooming**:
+  - Internal surfaces scale from `1.15` down to `1.0` during the wipe, creating physical depth and tactile motion.
+
+---
+
+### 4. Section 4: Project Showcase — Orbit Flip Ring ([src/components/ProjectShowcase.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ProjectShowcase.tsx), [src/components/effects/orbit-flip-slider/OrbitFlipSliderComp.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/effects/orbit-flip-slider/OrbitFlipSliderComp.tsx))
+- **Installed Hyperiux Orbit Flip Slider**:
+  - Added via `npx hyperiux add -y orbit-flip-slider`.
+  - Locked permanently into the **"ring"** geometry preset (`ringRotateX: 31`, `ringRotateY: 56`, `ringRotateZ: -25`, `ringRadiusX: 1.5`, `ringRadiusY: 0.65`, `ringScale: 0.6`).
+- **Minimalist Styling (No Pills & No Overlay Text)**:
+  - Mode selector pills completely disabled (`showModeControls={false}`).
+  - Project inspector / overlay text (`[01] AURA MONOLITH`) omitted per user instruction.
+  - Subtle top badge: `[ 04 / SELECTED WORKS ]` in monospace.
+- **Scroll-Driven Orbit & Ambient Lifecycle**:
+  - Exposes `ProjectShowcaseHandle` (`setScrollProgress(progress)`).
+  - Scrolling through Section 4 actively scrubs the ring's 3D rotation offset via master GSAP timeline.
+  - Ambient rotation on `requestAnimationFrame` continues smoothly when resting and pauses on card hover.
+  - Interactive 3D perspective flip on card hover (`perspective: 500px`, `rotateY: 160deg`, `y: -12px`).
+- **14 Curated Studio Projects**:
+  - High-resolution architectural and 3D imagery hosted on Cloudflare R2 vault storage.
+
+---
+
+### 5. Section 3: Our Work & Services Wheel ([src/components/OurWork.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OurWork.tsx), [src/components/OptionWheel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OptionWheel.tsx))
+- **Interactive 3D Services Wheel**:
+  - Cylindrical 3D wheel rendering 6 studio disciplines in `OptionWheel`.
+  - Driven directly by master timeline scroll via `setPositionDirect(index)`.
+- **Zero-Latency Audio Tick**:
+  - Synthesized mechanical impulse using Web Audio API (`AudioContext`).
+  - Capped to prevent audio stutter during fast scrubs.
+- **2-Line Optical Blur Reveals**:
+  - Editorial description and service tags animate via `BlurText` with signature optical blur on each discrete transition.
+
+---
+
+### 6. Section 1 & 2: Hero & About Manifesto ([src/components/Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx), [src/components/AboutManifesto.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutManifesto.tsx))
+- **Persistent 3D Wheel (`XylophoneHelix`)**:
+  - 44-bar metallic kinetic wheel with glockenspiel acoustic mode.
+  - Dynamically resizes across viewports (scale: 90 desktop, 70 tablet, 48 mobile).
+  - Rotates seamlessly from hero perspective into Section 2 center background.
+  - Root div has `pointerEvents: "auto"` allowing interactive swing and sound trigger.
+- **About Manifesto**:
+  - Editorial statement: *"We architect digital flagships, kinetic identities, and generative software that transcend convention."*
+  - Progressive illumination of individual words driven by scroll progress.
 
 ---
 
 ## Decisions made
 
-1. **Sentence Composition ("We provide" + Wheel)**:
-   - Formatted the section as a grammatical statement rather than a disconnected header and list.
-   - Text rendered in Title Case rather than all-caps for modern editorial elegance.
-2. **Signature Optical Blur without Y-Translation**:
-   - Adhered strictly to the user guideline: no vertical sliding/displacement for text or section reveals. All reveals use the studio's signature optical blur (`blur(18px) -> blur(0px)`).
-3. **Direct Positioning for Scroll Sync**:
-   - Single source of truth for motion smoothing: GSAP controls the scrub physics while OptionWheel renders synchronously.
-4. **Scoped Snapping**:
-   - Snapping only activates within the services scroll phase (`0.44 -> 0.98`) to avoid hijacking free scroll during Hero and About manifesto transitions.
-
----
-
-## Problems solved
-
-1. **Scroll-Wheel Desync**:
-   - Fixed lag where wheel movement trailed user scroll. Eliminated internal rAF exponential decay during scroll updates via `setPositionDirect`.
-2. **Fractional Service Stopping**:
-   - Fixed wheel resting between two service titles when the user released the scrollbar. Added dynamic `snapTo` calculation snapping to the nearest whole service index.
-3. **Paragraph Length & Layout Fitting**:
-   - Descriptions originally ran into 3-4 wrapped lines, looking crowded. Shortened to 8-10 words each so they consistently occupy 2 lines with balanced whitespace.
+1. **Ring Shape Mode Lock**:
+   - Locked Orbit Flip Slider to `"ring"` mode with tilted perspective geometry for maximum depth.
+2. **Minimalist Presentation**:
+   - Stripped all pill buttons (`Flat`, `Tilt`, `Ring`, `Gallery`) and removed text overlays. Pure visual focus on the kinetic orbiting cards.
+3. **Master Scroll-Driven Scrub**:
+   - Master GSAP timeline advances the ring's orbit rotation during Phase 8 (`0.68 → 0.98`), blending physical scroll control with continuous ambient drift.
+4. **Mirrored Transition Symmetry**:
+   - Section 2 → Section 3: Left-to-right horizontal wipe into light surface.
+   - Section 3 → Section 4: Right-to-left horizontal wipe into dark surface.
 
 ---
 
 ## Current state
 
-- **Section 1 (Hero)**: Complete with 3D wheel, dynamic tagline, and wordmark docking.
-- **Section 2 (About Manifesto)**: Complete with centered typography over the upright kinetic wheel backdrop.
-- **Transition**: 12-strip vertical wipe smoothly transitions into the light `#cccccc` canvas.
-- **Section 3 (Our Work / Services)**: **Complete & Polished**. "We provide" + OptionWheel sentence, zero-latency mechanical audio tick, 2-line randomized blur reveal descriptions, direct scroll-sync, and discrete snapping.
-- **Dev Server**: Running on `http://localhost:3000`.
-
----
-
-## Next session starts with
-
-- Section 4 development: Next section after the pinned services experience (e.g., Selected Works / Case Studies / Project Grid).
-- Finalize top-right Navbar actions/menu triggers if needed.
-
----
-
-## Open questions
-
-- What should be the transition or layout for Section 4 following the pinned services?
+- **Section 1 (Hero)**: Complete with 3D wheel, tagline, single-element wordmark docking, and interactive buttons.
+- **Section 2 (About Manifesto)**: Complete with centered typography over upright kinetic wheel backdrop.
+- **Section 2 → 3 Transition**: 12-strip horizontal parallax wipe (left-to-right) into light `#cccccc` canvas.
+- **Section 3 (Our Work / Services Wheel)**: Complete & polished with 3D OptionWheel, mechanical audio tick, optical blur reveals, and 6 discrete snap points.
+- **Section 3 → 4 Transition**: 12-strip horizontal parallax wipe (right-to-left) into dark `#000000` canvas.
+- **Section 4 (Project Showcase)**: Complete with Hyperiux Orbit Flip Slider locked in ring formation, 14 curated project cards, perspective hover flip, scroll-sync, and clean minimal HUD.
+- **Universal Navbar**: Elevated at `z-[100]` with automatic bidirectional contrast inversion.
+- **Codebase Health**:
+  - `npx tsc --noEmit` compiles cleanly with 0 errors.
+  - Dev server running on `http://localhost:3000` (HTTP 200 OK).

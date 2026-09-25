@@ -12,7 +12,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 w-full z-50 pointer-events-none px-4 sm:px-6 md:px-8 lg:px-10 pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6 md:pb-7 flex justify-between items-center transition-colors duration-300"
+      className="fixed top-0 left-0 w-full z-[100] pointer-events-none px-4 sm:px-6 md:px-8 lg:px-10 pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6 md:pb-7 flex justify-between items-center transition-colors duration-300"
       aria-label="Main Navigation"
     >
       {/* Left Slot: Fixed Navbar Brand Wordmark Target */}

@@ -6,6 +6,22 @@
       "files": {
         "src/components/effects/parallax-strip-slider/index.tsx": "sha256:7898c324c10de5d188396d8805b00f1f4cf149f59682ae20e42d4ec8b0decef7"
       }
+    },
+    "zoom-slider": {
+      "version": "1.0.1",
+      "installedAt": "2026-09-24T16:59:01.039Z",
+      "files": {
+        "src/components/effects/zoom-slider/index.tsx": "sha256:d49ada9c0e35ffb1b6920885e42df6346613062d55686ff2c169db82ee739fb9",
+        "src/components/effects/zoom-slider/ZoomSliderComp.tsx": "sha256:c7308e53b4e23071cf4793b7e1e0f5ca96f858de4ed1d1d2cd92b5122847658d"
+      }
+    },
+    "orbit-flip-slider": {
+      "version": "1.0.0",
+      "installedAt": "2026-09-25T07:33:15.237Z",
+      "files": {
+        "src/components/effects/orbit-flip-slider/index.tsx": "sha256:4b50190d8456823bb67175dedfe3b393139433f0a2e0b8bc4c610daec96ba186",
+        "src/components/effects/orbit-flip-slider/OrbitFlipSliderComp.tsx": "sha256:d3babd50248b1849e7b10eec175bbad3f631e9a4e612868f48d17606cf61ec02"
+      }
     }
   }
 }

@@ -2369,6 +2369,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
                 isolation: "isolate",
                 background,
                 touchAction: "none",
+                pointerEvents: "auto",
 
                 userSelect: "none",
                 WebkitUserSelect: "none",

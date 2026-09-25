@@ -13,6 +13,7 @@ import XylophoneHelix from './originkit/ui/xylophone-helix';
 import Counter from './Counter';
 import ParallaxStripTransition from './ParallaxStripTransition';
 import OurWork, { type OurWorkHandle } from './OurWork';
+import ProjectShowcase, { type ProjectShowcaseHandle } from './ProjectShowcase';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -50,6 +51,10 @@ export default function MainExperience() {
   const stripTransitionContainerRef = useRef<HTMLDivElement>(null);
   const page3ContainerRef = useRef<HTMLDivElement>(null);
   const ourWorkHandleRef = useRef<OurWorkHandle | null>(null);
+
+  // Section 4 (Page 4) Refs
+  const page4ContainerRef = useRef<HTMLDivElement>(null);
+  const projectShowcaseHandleRef = useRef<ProjectShowcaseHandle | null>(null);
 
   // Persistent 3D Wheel refs and controllers
   const wheelWrapperRef = useRef<HTMLDivElement>(null);
@@ -112,14 +117,14 @@ export default function MainExperience() {
         // Navbar hidden at start (reveals on scroll)
         if (navBrandRef.current) {
           navBrandRef.current.style.opacity = '0';
-          navBrandRef.current.style.transform = 'translateY(-14px)';
+          navBrandRef.current.style.transform = 'translateY(0px)';
         }
         if (navActionsRef.current) {
           navActionsRef.current.style.opacity = '0';
           navActionsRef.current.style.transform = 'translateY(-14px)';
         }
 
-        // Parallax strips initial state (hidden / clipped out)
+        // Section 3 Parallax strips initial state (hidden / clipped out horizontally)
         if (stripsRef.current) {
           stripsRef.current.forEach((el) => {
             if (el) gsap.set(el, { clipPath: 'inset(0 100% 0 0)' });
@@ -133,9 +138,11 @@ export default function MainExperience() {
         if (page3ContainerRef.current) {
           gsap.set(page3ContainerRef.current, { opacity: 0, filter: 'blur(16px)', y: 0 });
         }
+        if (page4ContainerRef.current) {
+          gsap.set(page4ContainerRef.current, { y: '100%' });
+        }
 
-
-        // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 transition
+        // 3. ScrollTrigger timeline for Hero -> Section 2 -> Section 3 transition
         const cameraObj = {
           tilt: 36,
           sideTilt: -35,
@@ -144,25 +151,27 @@ export default function MainExperience() {
           y: initialYOffset,
         };
 
+        const TOTAL_DUR = 0.77;
+        const S_START = 0.28 / TOTAL_DUR; // Services range start
+        const S_END = 0.58 / TOTAL_DUR;   // Services range end
+
         const scrollTl = gsap.timeline({
           scrollTrigger: {
             trigger: pinnedStageRef.current,
             start: 'top top',
-            end: '+=520%',
+            end: '+=650%',
             pin: true,
             scrub: 0.15,
             snap: {
               snapTo: (progress: number) => {
-                // Only snap when in the services scroll range (Phase 6: 0.44 → 0.98)
-                const sStart = 0.44;
-                const sEnd = 0.98;
-                if (progress >= sStart - 0.02) {
-                  const step = (sEnd - sStart) / 5; // 6 services, 5 gaps
-                  const nearestIdx = Math.round((progress - sStart) / step);
+                // Only snap when in the services scroll range
+                if (progress >= S_START - 0.015 && progress <= S_END + 0.015) {
+                  const step = (S_END - S_START) / 5; // 6 services, 5 gaps
+                  const nearestIdx = Math.round((progress - S_START) / step);
                   const clamped = Math.max(0, Math.min(5, nearestIdx));
-                  return sStart + clamped * step;
+                  return S_START + clamped * step;
                 }
-                // Before services zone — don't snap, let it flow freely
+                // Before or after services zone — don't snap, let it flow freely
                 return progress;
               },
               duration: 0.35,
@@ -173,10 +182,10 @@ export default function MainExperience() {
             onUpdate: (self) => {
               const progress = self.progress;
               if (heroContainerRef.current && aboutContainerRef.current) {
-                if (progress > 0.12 && progress < 0.35) {
+                if (progress > 0.08 / TOTAL_DUR && progress < 0.22 / TOTAL_DUR) {
                   heroContainerRef.current.style.pointerEvents = 'none';
                   aboutContainerRef.current.style.pointerEvents = 'auto';
-                } else if (progress <= 0.12) {
+                } else if (progress <= 0.08 / TOTAL_DUR) {
                   heroContainerRef.current.style.pointerEvents = 'auto';
                   aboutContainerRef.current.style.pointerEvents = 'none';
                 } else {
@@ -186,11 +195,15 @@ export default function MainExperience() {
               }
               if (stripTransitionContainerRef.current) {
                 stripTransitionContainerRef.current.style.pointerEvents =
-                  progress > 0.42 ? 'auto' : 'none';
+                  progress > 0.24 / TOTAL_DUR ? 'auto' : 'none';
               }
               if (page3ContainerRef.current) {
                 page3ContainerRef.current.style.pointerEvents =
-                  progress > 0.38 ? 'auto' : 'none';
+                  progress > 0.25 / TOTAL_DUR ? 'auto' : 'none';
+              }
+              if (page4ContainerRef.current) {
+                page4ContainerRef.current.style.pointerEvents =
+                  progress > 0.62 / TOTAL_DUR ? 'auto' : 'none';
               }
             },
           },
@@ -207,9 +220,10 @@ export default function MainExperience() {
           const navEl = navBrandRef.current;
           if (!heroEl || !navEl) return { scale: 0.22, x: 0, y: 0 };
 
-          const heroText = heroEl.querySelector('p') || heroEl;
+          const heroText = (heroEl.querySelector('.blur-text') || heroEl.querySelector('p') || heroEl) as HTMLElement;
+          const navText = (navEl.querySelector('.nav-brand-text') || navEl) as HTMLElement;
           const heroRect = heroText.getBoundingClientRect();
-          const navRect = navEl.getBoundingClientRect();
+          const navRect = navText.getBoundingClientRect();
 
           // Get current transform on hero to calculate untransformed initial box
           const currentX = (gsap.getProperty(heroEl, 'x') as number) || 0;
@@ -220,30 +234,19 @@ export default function MainExperience() {
           const untransformedHeroTop = heroRect.top - currentY;
           const untransformedHeroHeight = currentScale > 0 ? heroRect.height / currentScale : heroRect.height;
 
-          // Prominent studio wordmark scale (NOT tiny)
-          const width = window.innerWidth;
-          let targetScale = 0.22;
-          if (width < 640) {
-            targetScale = 0.32; // Mobile: ~28px
-          } else if (width < 1024) {
-            targetScale = 0.26; // Tablet: ~32px
-          } else {
-            targetScale = 0.22; // Desktop: ~36px
-          }
+          // Target scale matching rendered height of universal navBrandText
+          const targetScale = navRect.height > 0 && untransformedHeroHeight > 0
+            ? navRect.height / untransformedHeroHeight
+            : (window.innerWidth < 640 ? 0.32 : window.innerWidth < 1024 ? 0.26 : 0.22);
 
-          // Exact X alignment with left edge of navbar slot
+          // Exact coordinates landing directly onto navRect
           const deltaX = navRect.left - untransformedHeroLeft;
-
-          // Exact Y alignment: centered inside the 44px navbar row with generous ceiling clearance
-          const scaledHeight = untransformedHeroHeight * targetScale;
-          const navCenterY = navRect.top + (navRect.height / 2);
-          const targetTop = navCenterY - (scaledHeight / 2);
-          const deltaY = targetTop - untransformedHeroTop;
+          const deltaY = navRect.top - untransformedHeroTop;
 
           return { scale: targetScale, x: deltaX, y: deltaY };
         };
 
-        // Phase 1: Huge "MAGNM" scales down and docks prominently into the fixed Navbar (0.0 -> 0.16)
+        // Phase 1: Huge "MAGNM" scales down and docks seamlessly into the fixed Navbar (0.0 -> 0.11)
         if (heroMagnmRef.current) {
           scrollTl.to(
             heroMagnmRef.current,
@@ -253,7 +256,7 @@ export default function MainExperience() {
               y: () => getTransformTargets().y,
               transformOrigin: '0 0',
               ease: 'power2.inOut',
-              duration: 0.16,
+              duration: 0.11,
             },
             0
           );
@@ -268,10 +271,10 @@ export default function MainExperience() {
               filter: 'blur(20px)',
               opacity: 0,
               stagger: {
-                amount: 0.06,
+                amount: 0.05,
                 from: 'random',
               },
-              duration: 0.08,
+              duration: 0.06,
               ease: 'power1.out',
             },
             0
@@ -291,7 +294,7 @@ export default function MainExperience() {
             {
               y: -14,
               ease: 'power2.in',
-              duration: 0.10,
+              duration: 0.07,
             },
             0
           );
@@ -302,11 +305,11 @@ export default function MainExperience() {
               duration: 0.02,
               ease: 'none',
             },
-            0.10
+            0.07
           );
         }
 
-        // Phase 2: As "MAGNM" finishes docking, Navbar right-side actions & Section 2 appear (0.12 -> 0.22)
+        // Phase 2: As "MAGNM" finishes docking, Navbar right-side actions & Section 2 appear (0.08 -> 0.15)
         if (navActionsRef.current) {
           scrollTl.fromTo(
             navActionsRef.current,
@@ -318,10 +321,10 @@ export default function MainExperience() {
               opacity: 1,
               y: 0,
               ease: 'power2.out',
-              duration: 0.10,
+              duration: 0.07,
               immediateRender: false,
             },
-            0.12
+            0.08
           );
         }
 
@@ -336,14 +339,14 @@ export default function MainExperience() {
               opacity: 1,
               y: 0,
               ease: 'power2.out',
-              duration: 0.10,
+              duration: 0.07,
               immediateRender: false,
             },
-            0.12
+            0.08
           );
         }
 
-        // Phase 3: 3D Wheel smooth rotation into vertical circle in the center (0.0 -> 0.26)
+        // Phase 3: 3D Wheel smooth rotation into vertical circle in the center (0.0 -> 0.18)
         scrollTl.to(
           cameraObj,
           {
@@ -353,7 +356,7 @@ export default function MainExperience() {
             opacity: 0.42,
             y: 0,
             ease: 'power2.inOut',
-            duration: 0.26,
+            duration: 0.18,
             onUpdate: () => {
               if (cameraControllerRef.current) {
                 cameraControllerRef.current.tilt = cameraObj.tilt;
@@ -369,7 +372,7 @@ export default function MainExperience() {
           0
         );
 
-        // Phase 4: Section 2 Manifesto words progressive illumination (0.14 -> 0.30)
+        // Phase 4: Section 2 Manifesto words progressive illumination (0.10 -> 0.20)
         const words = aboutContainerRef.current?.querySelectorAll('.word');
         if (words && words.length > 0) {
           scrollTl.to(
@@ -377,15 +380,15 @@ export default function MainExperience() {
             {
               opacity: 1,
               filter: 'blur(0px)',
-              stagger: 0.008,
-              duration: 0.16,
+              stagger: 0.006,
+              duration: 0.10,
               ease: 'power1.out',
             },
-            0.14
+            0.10
           );
         }
 
-        // Phase 5: Transition from Section 2 to Section 3 with Parallax Strip Slider effect (0.34 -> 0.44)
+        // Phase 5: Transition from Section 2 to Section 3 with Parallax Strip Slider effect (0.22 -> 0.28)
         // 5a. Outgoing Section 2 wipes out with blur and lifts smoothly
         if (aboutContainerRef.current) {
           scrollTl.to(
@@ -394,10 +397,10 @@ export default function MainExperience() {
               opacity: 0,
               filter: 'blur(20px)',
               y: -24,
-              duration: 0.06,
+              duration: 0.05,
               ease: 'power2.in',
             },
-            0.34
+            0.22
           );
         }
 
@@ -406,7 +409,7 @@ export default function MainExperience() {
           cameraObj,
           {
             opacity: 0,
-            duration: 0.06,
+            duration: 0.05,
             ease: 'power2.in',
             onUpdate: () => {
               if (wheelWrapperRef.current) {
@@ -414,7 +417,7 @@ export default function MainExperience() {
               }
             },
           },
-          0.34
+          0.22
         );
 
         // 5c. Incoming Parallax Strip wipe reveals light color #cccccc across 12 vertical strips
@@ -427,11 +430,11 @@ export default function MainExperience() {
             { clipPath: 'inset(0 100% 0 0)' },
             {
               clipPath: 'inset(0 0% 0 0)',
-              duration: 0.08,
+              duration: 0.06,
               ease: 'power2.out',
-              stagger: 0.006,
+              stagger: 0.004,
             },
-            0.35
+            0.23
           );
         }
 
@@ -441,10 +444,10 @@ export default function MainExperience() {
             { scale: 1.15 },
             {
               scale: 1.0,
-              duration: 0.09,
+              duration: 0.07,
               ease: 'power2.out',
             },
-            0.35
+            0.23
           );
         }
 
@@ -455,10 +458,10 @@ export default function MainExperience() {
             heroMagnmSpans,
             {
               color: '#171717',
-              duration: 0.06,
+              duration: 0.05,
               ease: 'power1.out',
             },
-            0.38
+            0.25
           );
         }
 
@@ -466,10 +469,10 @@ export default function MainExperience() {
           '.nav-brand-text',
           {
             color: '#171717',
-            duration: 0.06,
+            duration: 0.05,
             ease: 'power1.out',
           },
-          0.38
+          0.25
         );
 
         if (document.querySelector('.nav-action-btn')) {
@@ -479,46 +482,29 @@ export default function MainExperience() {
               backgroundColor: 'rgba(23, 23, 23, 0.06)',
               borderColor: 'rgba(23, 23, 23, 0.18)',
               boxShadow: '0 4px 18px rgba(0,0,0,0.06)',
-              duration: 0.06,
+              duration: 0.05,
               ease: 'power1.out',
             },
-            0.38
+            0.25
           );
 
           scrollTl.to(
             '.nav-action-btn span, .nav-action-btn .letter-swap-face',
             {
               color: '#171717',
-              duration: 0.06,
+              duration: 0.05,
               ease: 'power1.out',
             },
-            0.38
+            0.25
           );
         }
 
-        // 5e. Crossfade docked Hero MAGNM to fixed Navbar Brand
+        // 5e. Behind the wipe at 0.27, instant handoff from docked heroMagnm to universal fixed Navbar Brand
         if (heroMagnmRef.current) {
-          scrollTl.to(
-            heroMagnmRef.current,
-            {
-              opacity: 0,
-              duration: 0.03,
-              ease: 'none',
-            },
-            0.41
-          );
+          scrollTl.set(heroMagnmRef.current, { opacity: 0 }, 0.27);
         }
-
         if (navBrandRef.current) {
-          scrollTl.to(
-            navBrandRef.current,
-            {
-              opacity: 1,
-              duration: 0.03,
-              ease: 'none',
-            },
-            0.41
-          );
+          scrollTl.set(navBrandRef.current, { opacity: 1 }, 0.27);
         }
 
         // 5f. Page 3 (Our Work) reveals smoothly via signature optical blur as the parallax wipe completes
@@ -534,15 +520,15 @@ export default function MainExperience() {
               opacity: 1,
               filter: 'blur(0px)',
               y: 0,
-              duration: 0.08,
+              duration: 0.06,
               ease: 'power2.out',
               immediateRender: false,
             },
-            0.36
+            0.24
           );
         }
 
-        // Phase 6: Pinned Services Scroll (0.44 -> 0.98)
+        // Phase 6: Pinned Services Scroll (0.28 -> 0.58)
         // User scrolls through each and every service sequentially while section remains pinned!
         const servicesScrollObj = { index: 0 };
         scrollTl.to(
@@ -550,13 +536,64 @@ export default function MainExperience() {
           {
             index: 5,
             ease: 'none',
-            duration: 0.54,
+            duration: 0.30,
             onUpdate: () => {
               ourWorkHandleRef.current?.setPositionDirect(servicesScrollObj.index);
             },
           },
-          0.44
+          0.28
         );
+
+        // Resting hold buffer at the end of services before unpinning (0.58 -> 0.62)
+        scrollTl.to({}, { duration: 0.04 }, 0.58);
+
+        // Phase 7: Page 4 (Selected Work) slides up smoothly over Page 3 (0.62 -> 0.77)
+        if (page4ContainerRef.current) {
+          scrollTl.to(
+            page4ContainerRef.current,
+            {
+              y: '0%',
+              ease: 'power2.inOut',
+              duration: 0.15,
+            },
+            0.62
+          );
+
+          // Invert navbar colors back to light for the dark Page 4 background
+          scrollTl.to(
+            '.nav-brand-text',
+            {
+              color: '#cccccc',
+              duration: 0.10,
+              ease: 'power2.inOut',
+            },
+            0.65
+          );
+
+          if (document.querySelector('.nav-action-btn')) {
+            scrollTl.to(
+              '.nav-action-btn',
+              {
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+                duration: 0.10,
+                ease: 'power2.inOut',
+              },
+              0.65
+            );
+
+            scrollTl.to(
+              '.nav-action-btn span, .nav-action-btn .letter-swap-face',
+              {
+                color: '#cccccc',
+                duration: 0.10,
+                ease: 'power2.inOut',
+              },
+              0.65
+            );
+          }
+        }
       };
 
       // Desktop: >= 1024px
@@ -581,8 +618,8 @@ export default function MainExperience() {
 
   return (
     <SmoothScroll>
-      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-hidden">
-        {/* Sticky Fixed Navbar (z-50) */}
+      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#171717] text-[#cccccc] overflow-x-hidden">
+        {/* Sticky Fixed Navbar (z-100) */}
         <Navbar
           headerRef={navbarHeaderRef}
           navBrandRef={navBrandRef}
@@ -595,7 +632,7 @@ export default function MainExperience() {
             ref={counterWrapperRef}
             className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none select-none transition-opacity duration-300"
           >
-            <div className="translate-y-[76px] sm:translate-y-[84px] font-['Martian_Mono',monospace] text-xs sm:text-sm tracking-[0.14em] text-[#cccccc] font-light tabular-nums flex items-baseline justify-center">
+            <div className="translate-y-[76px] sm:translate-y-[84px] font-mono text-xs sm:text-sm tracking-[0.14em] text-[#cccccc] font-light tabular-nums flex items-baseline justify-center">
               <Counter
                 value={loadProgress}
                 places={[100, 10, 1]}
@@ -605,7 +642,7 @@ export default function MainExperience() {
                 textColor="#cccccc"
                 fontWeight={300}
                 gradientHeight={3}
-                gradientFrom="#000000"
+                gradientFrom="#171717"
                 gradientTo="transparent"
                 horizontalPadding={0}
                 containerStyle={{ display: 'inline-flex', alignItems: 'center' }}
@@ -617,7 +654,7 @@ export default function MainExperience() {
           </div>
         )}
 
-        {/* Master Pinned Stage for Hero and Section 2 Transition */}
+        {/* Master Pinned Stage for Hero -> Section 2 -> Section 3 -> Section 4 */}
         <div ref={pinnedStageRef} className="relative z-20 w-full h-screen overflow-hidden">
           {/* Section 1: Hero (Reveals as preloader finishes, active at top) */}
           <div
@@ -638,13 +675,13 @@ export default function MainExperience() {
           {/* Persistent 3D Wheel (Layered in FRONT of MAGNM Wordmark & Tagline Text) */}
           <div
             ref={wheelWrapperRef}
-            className="absolute inset-0 z-20 pointer-events-auto flex items-center justify-center will-change-transform"
+            className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center will-change-transform"
           >
             <div className="w-full h-full flex items-center justify-center">
               <XylophoneHelix
                 soundMode="glockenspiel"
                 background="transparent"
-                baseColor="#0E0E1A"
+                baseColor="#171717"
                 bars={44}
                 shape="wheel"
                 speed={59}
@@ -666,23 +703,36 @@ export default function MainExperience() {
             <AboutManifesto skipInternalTrigger={true} />
           </div>
 
-          {/* Section 3 Wipe: Parallax Strip Slider Transition into Page 3 */}
+          {/* Section 3 Wipe: Parallax Strip Slider Transition into Page 3 (Horizontal) */}
           <ParallaxStripTransition
             stripCount={12}
             stripsRef={stripsRef}
             zoomsRef={zoomsRef}
             containerRef={stripTransitionContainerRef}
             bgColor="#cccccc"
+            zIndex={30}
           />
 
-          {/* Section 3 (Page 3): Our Work */}
+          {/* Section 3 (Page 3): Our Work (OptionWheel Services) */}
           <div
             id="page-3"
-            className="absolute inset-0 z-35 w-full h-full pointer-events-auto overflow-hidden"
+            className="absolute inset-0 z-35 w-full h-full pointer-events-none overflow-hidden"
           >
             <OurWork ref={ourWorkHandleRef} containerRef={page3ContainerRef} />
           </div>
+
+          {/* Section 4 (Page 4): Selected Work — Typographic Hero */}
+          <div
+            ref={page4ContainerRef}
+            id="page-4"
+            className="absolute inset-0 z-40 w-full h-full bg-[#171717] text-[#DEDEDE] overflow-hidden pointer-events-none"
+          >
+            <ProjectShowcase
+              ref={projectShowcaseHandleRef}
+            />
+          </div>
         </div>
+
       </div>
     </SmoothScroll>
   );

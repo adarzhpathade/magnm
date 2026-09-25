@@ -15,6 +15,12 @@
   "installedEffects": {
     "parallax-strip-slider": {
       "installedAt": "2026-09-23T06:43:58.806Z"
+    },
+    "zoom-slider": {
+      "installedAt": "2026-09-24T16:59:01.042Z"
+    },
+    "orbit-flip-slider": {
+      "installedAt": "2026-09-25T07:33:15.239Z"
     }
   }
 }

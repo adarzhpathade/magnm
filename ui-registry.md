@@ -264,7 +264,36 @@ Last updated: 2026-09-24
 - Imported Originkit `HoverImageReveal` for interactive services presentation on the light `#cccccc` canvas.
 - Features smooth cursor-following floating image cards with spring dynamics and vertical roll text animation on hover.
 - Sized responsively across desktop, tablet, and mobile breakpoints.
+---
 
+### ProjectShowcase (Page 4 — Selected Work)
 
+File: `src/components/ProjectShowcase.tsx`  
+Last updated: 2026-09-25  
 
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Background       | `#cccccc` (Light surface)                    |
+| Text — primary   | `#171717` (Dark charcoal)                    |
+| Horizontal Margin| `px-4 sm:px-6 md:px-8 lg:px-10` (Identical horizontal alignment to fixed Navbar) |
+| Vertical Padding | `pt-[18vh] sm:pt-[19vh] md:pt-[20vh]` (Top-aligned ~19% viewport height below Navbar) |
+| Title Font       | `font-sans` (Matches Home Hero Geist typography) |
+| Title Weight     | `font-normal` (400, strictly matches Hero wordmark) |
+| Title Tracking   | `tracking-[-0.04em]`, `leading-[0.88]`       |
+| Title Sizing     | `text-[12vw] sm:text-[10vw] md:text-[8.5vw] lg:text-[7.5vw] xl:text-[7vw]` |
+| Description Font | `font-sans font-normal text-[14px] sm:text-[15px] md:text-[16px] lg:text-[17px]` |
+| Description Text | `#171717`, `leading-[1.4]`, `tracking-[-0.015em]`, expanded copy, `max-w-[580px]` |
+| Alignment        | Top-aligned flex row (`justify-between md:items-start`), paragraph & button shifted towards right (`md:ml-auto md:mr-[6vw]`) |
+| Action Button    | `HeroContactButton` (`theme="light"`, text: `"SEE ALL PROJECTS"`), Martian Mono, staggered hover shift & line sweep |
+| Bottom Element   | Full-bleed `Kinetic Thumbnail Stream` with subtle left/right `<GradualBlur />` edge fades (`width="clamp(2.5rem, 5vw, 5rem)"`, `strength={0.8}`, `exponential={false}`), clean borderless thumbnail cards with `rounded-[4px]`, and smooth hover scale (`scale-105`) |
+| Motion Library   | `BlurText` motion component, `GradualBlur` (React Bits), GSAP ScrollTrigger reveal triggers, CSS keyframe GPU marquee |
+
+**Pattern notes:**
+- Typographic hero section on Page 4 following the supplied reference image (`media_1790327219817.png`).
+- Direct horizontal alignment with fixed Navbar's brand text (`px-4 sm:px-6 md:px-8 lg:px-10`).
+- Strict typography match to the Home Hero text: `font-sans`, `font-normal`, tight negative tracking (`-0.04em`), and leading (`0.88`).
+- Expanded editorial paragraph and `SEE ALL PROJECTS` button positioned in the right-of-center region with balanced margin.
+- Kinetic Thumbnail Stream along the bottom edge: pure borderless visual project cards with `rounded-[4px]` and subtle `<GradualBlur />` edge fades. (Tilted card effect removed for now, preserved at `src/components/TiltedCard.tsx`).
+- Scroll-triggered partial blur reveal: as soon as Section 4 enters the screen (`start: 'top 75%'`), the display title "Selected Work" blurs in letter-by-letter (`animateBy="letters"`) through an intermediate partial blur (`blur(7px)`, opacity 0.6) to sharp (`blur(0px)`, opacity 1), accompanied by the editorial paragraph's word-by-word partial blur reveal and button reveal. Automatically resets when scrolling back up and re-animates upon return.
+- Alternating bottom strip entrance: coordinated with the text reveal, the thumbnail strip initially remains stationary as all 16 cards rise up in an alternating manner from below (even cards emerge first from `+180px` with duration `1.15s`, odd cards emerge right after from deeper down `+260px` in interleaved slots with duration `1.15s`, staggered across the entire list with smooth `[0.16, 1, 0.3, 1]` decel easing). Once all cards have completed their rise (~2.3s), the infinite horizontal marquee scrolling smoothly begins.
 

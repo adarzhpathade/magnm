@@ -9,6 +9,8 @@ export interface ParallaxStripTransitionProps {
   containerRef?: React.RefObject<HTMLDivElement | null>;
   bgColor?: string;
   className?: string;
+  direction?: 'horizontal' | 'vertical' | 'horizontal-reverse';
+  zIndex?: number;
 }
 
 export const ParallaxStripTransition: React.FC<ParallaxStripTransitionProps> = ({
@@ -18,13 +20,22 @@ export const ParallaxStripTransition: React.FC<ParallaxStripTransitionProps> = (
   containerRef,
   bgColor = '#cccccc',
   className = '',
+  direction = 'horizontal',
+  zIndex = 30,
 }) => {
   const width = 100 / stripCount;
+  const initialClip =
+    direction === 'vertical'
+      ? 'inset(100% 0 0 0)'
+      : direction === 'horizontal-reverse'
+        ? 'inset(0 0 0 100%)'
+        : 'inset(0 100% 0 0)';
 
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 z-30 pointer-events-none overflow-hidden ${className}`}
+      className={`absolute inset-0 pointer-events-none overflow-hidden ${className}`}
+      style={{ zIndex }}
       aria-hidden="true"
     >
       {Array.from({ length: stripCount }, (_, i) => (
@@ -39,7 +50,7 @@ export const ParallaxStripTransition: React.FC<ParallaxStripTransitionProps> = (
           style={{
             left: `${i * width}%`,
             width: `${width}%`,
-            clipPath: 'inset(0 100% 0 0)',
+            clipPath: initialClip,
             marginLeft: i === 0 ? 0 : '-0.5px',
             paddingLeft: i === 0 ? 0 : '0.5px',
           }}
@@ -51,8 +62,11 @@ export const ParallaxStripTransition: React.FC<ParallaxStripTransitionProps> = (
                 zoomsRef.current[i] = el;
               }
             }}
-            className="absolute inset-y-0 will-change-transform"
+            className="absolute will-change-transform"
             style={{
+              top: direction === 'vertical' ? '-20%' : '0',
+              bottom: direction === 'vertical' ? '-20%' : '0',
+              height: direction === 'vertical' ? '140%' : '100%',
               left: `-${i * 100}%`,
               width: `${stripCount * 100}%`,
               backgroundColor: bgColor,
