@@ -265,6 +265,61 @@ Last updated: 2026-09-24
 - Features smooth cursor-following floating image cards with spring dynamics and vertical roll text animation on hover.
 - Sized responsively across desktop, tablet, and mobile breakpoints.
 
+---
+
+### KineticShiftButton
+
+File: `src/components/KineticShiftButton.tsx`  
+Last updated: 2026-09-26  
+
+| Property         | Class / Value                                |
+| ---------------- | -------------------------------------------- |
+| Background       | Transparent                                  |
+| Border           | Baseline underline: `h-[1px]` (`rgba(255,255,255,0.2)` dark / `rgba(23,23,23,0.18)` light) |
+| Border radius    | None                                         |
+| Text — primary   | `#cccccc` (dark theme at rest) / `#171717` (light theme at rest) |
+| Text — hover     | `#ffffff` (dark theme hovered) / `#000000` (light theme hovered) |
+| Typography       | `Martian Mono` (`font-['Martian_Mono',monospace]`), light 300, `text-[clamp(0.68rem,0.85vw,0.82rem)]`, `tracking-[0.06em]` |
+| Spacing          | `pt-1.5 pb-1` (button padding), default gap `32px` (`gapPx`) |
+| Hover state      | Left `+` reveals & rotates 90°; words travel in staggered wave to dock flush against extreme right edge of baseline; right `+` rotates & fades out; glowing line sweeps across baseline from left to right |
+| Shadow           | Underline active sweep glow: `shadow-[0_0_8px_rgba(255,255,255,0.6)]` (dark) / `shadow-[0_0_6px_rgba(23,23,23,0.25)]` (light) |
+| Audio Feedback   | Zero-latency acoustic metallic hover sound via Web Audio API (`/audio/hover-sound.mp3` decoded buffer with synthesized micro-chime fallback). Configurable via `enableSound` and `soundVolume` |
+| Accent usage     | Pure monochromatic (`#000000`, `#171717`, `#666666`, `#cccccc`, `#ffffff`) |
+
+**Pattern notes:**
+- Signature MAGNM typographic micro-action button with kinetic word travel and animated geometric `+` indicators.
+- Words calculate layout bounds dynamically via `rowWidth - wordsWidth` so the final word aligns exactly flush with the right edge of the baseline line without text overflow.
+- Reusable across both dark backgrounds (`theme="dark"`) and light canvases (`theme="light"`).
+- Features integrated zero-latency acoustic audio feedback on hover and focus.
+- Supports customizable `gapPx`, `enableSound`, `soundVolume`, custom `onClick` handler, and accessible `ariaLabel`.
+
+---
+
+### LiquidGlassCarousel & Projects Showcase (Page 4)
+
+Files: `src/components/ui/liquid-glass-carousel.tsx`, `src/components/Projects.tsx`  
+Last updated: 2026-09-26  
+
+| Property         | Class / Value                                |
+| Heading          | Top center: `Our Projects` in `Familjen Grotesk` (`text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem]`, `font-normal tracking-[-0.035em] text-[#171717]`) |
+| Card Orientation | Horizontal (`aspect: 16 / 10`), landscape aspect ratio with 1600x1000 imagery |
+| Background       | `#cccccc` (matching Page 3 light surface)    |
+| Border radius    | Strictly none (`rounded-none`, sharp corners)|
+| WebGL Rendering  | Direct crisp card rendering (lens removed — zero distortion/blur/chromatic aberrations) with inertial drag physics |
+| Incoming Motion  | Triggered synchronously via GSAP ScrollTrigger at scroll `0.80` the moment Page 4 elevates: horizontal cards rise from below and expand outward |
+| Interaction      | Mouse/touch inertial drag, click-to-focus expansion with drop-away physics, keyboard left/right arrow navigation, Escape to close |
+| Scroll Behavior  | Non-blocking vertical wheel: page continues smooth scrolling into & out of Page 4; Shift+Wheel and trackpad horizontal gestures scroll the carousel |
+| Stacking Context | `z-40`, slides up over scaled Page 3 (0.8 scale at `z-35`) with elevated drop shadow `shadow-[0_-25px_80px_rgba(0,0,0,0.22)]` |
+
+**Pattern notes:**
+- Top center heading **"Our Projects"** rendered in a little big size font matching the grotesque typography of Page 3.
+- Imported `@componentry/liquid-glass-carousel` rendered raw on Page 4 with the lens shader removed.
+- Cards are horizontal rectangles (`16 / 10` widescreen format).
+- Sharp rectangular panels with zero rounded corners as mandated by design specifications.
+- Incoming animation is triggered by `MainExperience.tsx` at scroll 0.80 so the cards rise and expand outward right as Page 4 comes into view.
+
+
+
 
 
 

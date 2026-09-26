@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { chimeSynth } from '@/lib/chime-synth';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -20,7 +21,10 @@ export const SmoothScroll: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     lenis.scrollTo(0, { immediate: true });
-    lenis.on('scroll', ScrollTrigger.update);
+    lenis.on('scroll', () => {
+      ScrollTrigger.update();
+      chimeSynth.notifyScroll();
+    });
 
     const updateTicker = (time: number) => {
       lenis.raf(time * 1000);

@@ -1277,7 +1277,7 @@ export interface XylophoneHelixProps {
     metal?: MetalProps
     hover?: HoverProps
     camera?: CameraProps
-    cameraControllerRef?: React.RefObject<{ tilt: number; sideTilt: number; scale?: number } | null>
+    cameraControllerRef?: React.RefObject<{ tilt: number; sideTilt: number; scale?: number; interactive?: boolean } | null>
 
     width?: number | string
     height?: number | string
@@ -1757,6 +1757,11 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const readPointer = (clientX: number, clientY: number) => {
+            // When interactive is explicitly false, suppress hover
+            if (cameraControllerRef?.current?.interactive === false) {
+                input.hasPointer = false
+                return
+            }
             if (audioCtxRef.current?.state === "suspended") {
                 audioCtxRef.current.resume()
             }
@@ -1776,11 +1781,17 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
 
         const onPointerDown = (event: PointerEvent) => {
             if (event.pointerType === "touch") return
+            const target = event.target as HTMLElement | null
+            if (target && target.closest('button, a, [role="button"], input, textarea, select')) {
+                return
+            }
+            chimeSynth.resume()
             const rect = root.getBoundingClientRect()
             if (rect.width <= 0) return
             gesture.pointerId = event.pointerId
             gesture.prevX = event.clientX
             gesture.width = rect.width
+            readPointer(event.clientX, event.clientY)
         }
 
         const onWindowPointerMove = (event: PointerEvent) => {
@@ -1800,6 +1811,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const onWheel = (event: WheelEvent) => {
+            if (cameraControllerRef?.current?.interactive === false) return
             event.preventDefault()
             let delta = event.deltaY
             if (event.deltaMode === 1) delta *= 16
@@ -1810,6 +1822,11 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         const onTouchStart = (event: TouchEvent) => {
             const touch = event.touches[0]
             if (!touch) return
+            const target = event.target as HTMLElement | null
+            if (target && target.closest('button, a, [role="button"], input, textarea, select')) {
+                return
+            }
+            chimeSynth.resume()
             const rect = root.getBoundingClientRect()
             gesture.startX = touch.clientX
             gesture.startY = touch.clientY
@@ -1850,15 +1867,16 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
             gesture.axis = "none"
         }
 
-        root.addEventListener("pointerdown", onPointerDown, { passive: true })
+        window.addEventListener("pointerdown", onPointerDown, { passive: true })
         window.addEventListener("pointermove", onWindowPointerMove, { passive: true })
         window.addEventListener("pointerup", onWindowPointerUp, { passive: true })
         window.addEventListener("pointercancel", onWindowPointerUp, { passive: true })
-        root.addEventListener("pointermove", onPointerMove, { passive: true })
-        root.addEventListener("pointerleave", onPointerLeave, { passive: true })
+        window.addEventListener("pointermove", onPointerMove, { passive: true })
+        document.addEventListener("mouseleave", onPointerLeave, { passive: true })
+        window.addEventListener("blur", onPointerLeave, { passive: true })
         root.addEventListener("wheel", onWheel, { passive: false })
-        root.addEventListener("touchstart", onTouchStart, { passive: true })
-        root.addEventListener("touchmove", onTouchMove, { passive: true })
+        window.addEventListener("touchstart", onTouchStart, { passive: true })
+        window.addEventListener("touchmove", onTouchMove, { passive: true })
         window.addEventListener("touchend", onTouchEnd, { passive: true })
         window.addEventListener("touchcancel", onTouchEnd, { passive: true })
 
@@ -2308,15 +2326,16 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
             cancelAnimationFrame(rafId)
             resizeObserver.disconnect()
 
-            root.removeEventListener("pointerdown", onPointerDown)
+            window.removeEventListener("pointerdown", onPointerDown)
             window.removeEventListener("pointermove", onWindowPointerMove)
             window.removeEventListener("pointerup", onWindowPointerUp)
             window.removeEventListener("pointercancel", onWindowPointerUp)
-            root.removeEventListener("pointermove", onPointerMove)
-            root.removeEventListener("pointerleave", onPointerLeave)
+            window.removeEventListener("pointermove", onPointerMove)
+            document.removeEventListener("mouseleave", onPointerLeave)
+            window.removeEventListener("blur", onPointerLeave)
             root.removeEventListener("wheel", onWheel)
-            root.removeEventListener("touchstart", onTouchStart)
-            root.removeEventListener("touchmove", onTouchMove)
+            window.removeEventListener("touchstart", onTouchStart)
+            window.removeEventListener("touchmove", onTouchMove)
             window.removeEventListener("touchend", onTouchEnd)
             window.removeEventListener("touchcancel", onTouchEnd)
 
@@ -2369,6 +2388,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
                 isolation: "isolate",
                 background,
                 touchAction: "none",
+                pointerEvents: "none",
 
                 userSelect: "none",
                 WebkitUserSelect: "none",

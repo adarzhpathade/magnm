@@ -13,6 +13,8 @@ import XylophoneHelix from './originkit/ui/xylophone-helix';
 import Counter from './Counter';
 import ParallaxStripTransition from './ParallaxStripTransition';
 import OurWork, { type OurWorkHandle } from './OurWork';
+import Projects, { type ProjectsHandle } from './Projects';
+import { chimeSynth } from '@/lib/chime-synth';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -49,14 +51,19 @@ export default function MainExperience() {
   const zoomsRef = useRef<(HTMLDivElement | null)[]>([]);
   const stripTransitionContainerRef = useRef<HTMLDivElement>(null);
   const page3ContainerRef = useRef<HTMLDivElement>(null);
+  const page3WrapperRef = useRef<HTMLDivElement>(null);
+  const whiteBackdropRef = useRef<HTMLDivElement>(null);
+  const page4ContainerRef = useRef<HTMLDivElement>(null);
   const ourWorkHandleRef = useRef<OurWorkHandle | null>(null);
+  const projectsHandleRef = useRef<ProjectsHandle | null>(null);
 
   // Persistent 3D Wheel refs and controllers
   const wheelWrapperRef = useRef<HTMLDivElement>(null);
-  const cameraControllerRef = useRef<{ tilt: number; sideTilt: number; scale?: number }>({
+  const cameraControllerRef = useRef<{ tilt: number; sideTilt: number; scale?: number; interactive?: boolean }>({
     tilt: 36,
     sideTilt: -35,
     scale: 90,
+    interactive: true,
   });
 
   const [wheelScale, setWheelScale] = useState(90);
@@ -83,6 +90,64 @@ export default function MainExperience() {
     return () => window.removeEventListener('resize', updateWheelScale);
   }, []);
 
+const TIMINGS = {
+  heroDock: { start: 0.0, duration: 0.16 },
+  navbarActions: { start: 0.12, duration: 0.10 },
+  aboutManifesto: { start: 0.14, duration: 0.16 },
+  wheel3D: { start: 0.0, duration: 0.26 },
+  stripWipe: { start: 0.34, duration: 0.10 },
+  servicesScroll: { start: 0.44, end: 0.70, duration: 0.26 },
+  page3ScaleDown: { start: 0.70, duration: 0.12 },
+  page4SlideUp: { start: 0.74, duration: 0.18 },
+};
+
+function animateSheetScaleDown(
+  tl: gsap.core.Timeline,
+  el: HTMLElement | null,
+  start: number,
+  duration = 0.12
+) {
+  if (!el) return;
+  tl.to(
+    el,
+    {
+      scale: 0.8,
+      boxShadow: '0 25px 70px -15px rgba(0, 0, 0, 0.16), 0 0 1px rgba(0, 0, 0, 0.1)',
+      transformOrigin: 'center center',
+      duration,
+      ease: 'power2.inOut',
+    },
+    start
+  );
+}
+
+function animateSheetSlideUp(
+  tl: gsap.core.Timeline,
+  el: HTMLElement | null,
+  start: number,
+  duration = 0.12,
+  onEnter?: () => void
+) {
+  if (!el) return;
+  tl.fromTo(
+    el,
+    {
+      y: '100%',
+      opacity: 1,
+    },
+    {
+      y: '0%',
+      opacity: 1,
+      duration,
+      ease: 'power2.out',
+    },
+    start
+  );
+  if (onEnter) {
+    tl.call(onEnter, [], start);
+  }
+}
+
   useGSAP(
     () => {
       if (!pinnedStageRef.current || !heroContainerRef.current) return;
@@ -95,12 +160,18 @@ export default function MainExperience() {
           cameraControllerRef.current.tilt = 36;
           cameraControllerRef.current.sideTilt = -35;
           cameraControllerRef.current.scale = baseScale;
+          cameraControllerRef.current.interactive = true;
         }
 
         if (wheelWrapperRef.current) {
           wheelWrapperRef.current.style.opacity = '1';
           wheelWrapperRef.current.style.transform = `translateY(${initialYOffset}px)`;
         }
+
+        if (heroContainerRef.current) {
+          heroContainerRef.current.style.pointerEvents = 'auto';
+        }
+        chimeSynth.suppressHover(1200);
 
         // About hidden at start (reveals on scroll)
         if (aboutContainerRef.current) {
@@ -130,12 +201,33 @@ export default function MainExperience() {
             if (el) gsap.set(el, { scale: 1.15 });
           });
         }
+        if (whiteBackdropRef.current) {
+          gsap.set(whiteBackdropRef.current, { opacity: 0 });
+        }
+        if (page3WrapperRef.current) {
+          gsap.set(page3WrapperRef.current, {
+            opacity: 0,
+            scale: 1,
+            boxShadow: 'none',
+            transformOrigin: 'center center',
+            pointerEvents: 'none',
+          });
+        }
         if (page3ContainerRef.current) {
           gsap.set(page3ContainerRef.current, { opacity: 0, filter: 'blur(16px)', y: 0 });
         }
+        if (page4ContainerRef.current) {
+          gsap.set(page4ContainerRef.current, {
+            y: '100%',
+            opacity: 0,
+            scale: 1,
+            boxShadow: 'none',
+            transformOrigin: 'center center',
+            pointerEvents: 'none',
+          });
+        }
 
-
-        // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 transition
+        // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 -> Page 4 transition
         const cameraObj = {
           tilt: 36,
           sideTilt: -35,
@@ -148,21 +240,25 @@ export default function MainExperience() {
           scrollTrigger: {
             trigger: pinnedStageRef.current,
             start: 'top top',
-            end: '+=520%',
+            end: '+=780%',
             pin: true,
             scrub: 0.15,
             snap: {
               snapTo: (progress: number) => {
-                // Only snap when in the services scroll range (Phase 6: 0.44 → 0.98)
+                // Snap points for the 6 services in Phase 6: 0.44 -> 0.70
                 const sStart = 0.44;
-                const sEnd = 0.98;
-                if (progress >= sStart - 0.02) {
+                const sEnd = 0.70;
+                if (progress >= sStart - 0.02 && progress <= sEnd + 0.02) {
                   const step = (sEnd - sStart) / 5; // 6 services, 5 gaps
                   const nearestIdx = Math.round((progress - sStart) / step);
                   const clamped = Math.max(0, Math.min(5, nearestIdx));
                   return sStart + clamped * step;
                 }
-                // Before services zone — don't snap, let it flow freely
+                // Snap to fully docked Page 4
+                if (progress >= 0.90) {
+                  return 1.0;
+                }
+                // Before services zone or during card transition — let it flow freely
                 return progress;
               },
               duration: 0.35,
@@ -171,12 +267,21 @@ export default function MainExperience() {
             },
             anticipatePin: 1,
             onUpdate: (self) => {
+              chimeSynth.notifyScroll();
               const progress = self.progress;
+
+              // Section 1 (Hero) vs Section 2 (About)
               if (heroContainerRef.current && aboutContainerRef.current) {
                 if (progress > 0.12 && progress < 0.35) {
+                  if (aboutContainerRef.current.style.pointerEvents !== 'auto') {
+                    chimeSynth.suppressHover(500);
+                  }
                   heroContainerRef.current.style.pointerEvents = 'none';
                   aboutContainerRef.current.style.pointerEvents = 'auto';
                 } else if (progress <= 0.12) {
+                  if (heroContainerRef.current.style.pointerEvents !== 'auto') {
+                    chimeSynth.suppressHover(600);
+                  }
                   heroContainerRef.current.style.pointerEvents = 'auto';
                   aboutContainerRef.current.style.pointerEvents = 'none';
                 } else {
@@ -184,13 +289,36 @@ export default function MainExperience() {
                   aboutContainerRef.current.style.pointerEvents = 'none';
                 }
               }
+
+              // Disable 3D wheel hover interaction after the about section
+              if (cameraControllerRef.current) {
+                cameraControllerRef.current.interactive = progress <= 0.30;
+              }
+
+              // Parallax strip transition container
               if (stripTransitionContainerRef.current) {
                 stripTransitionContainerRef.current.style.pointerEvents =
-                  progress > 0.42 ? 'auto' : 'none';
+                  progress > 0.42 && progress < 0.70 ? 'auto' : 'none';
               }
-              if (page3ContainerRef.current) {
-                page3ContainerRef.current.style.pointerEvents =
-                  progress > 0.38 ? 'auto' : 'none';
+
+              // Section 3 (Our Work)
+              if (page3WrapperRef.current) {
+                const isPage3Active = progress > 0.38 && progress < 0.78;
+                if (isPage3Active && page3WrapperRef.current.style.pointerEvents !== 'auto') {
+                  chimeSynth.suppressHover(600);
+                }
+                page3WrapperRef.current.style.pointerEvents =
+                  isPage3Active ? 'auto' : 'none';
+              }
+
+              // Section 4 (Page 4 Projects Card)
+              if (page4ContainerRef.current) {
+                const isPage4Active = progress >= 0.78;
+                if (isPage4Active && page4ContainerRef.current.style.pointerEvents !== 'auto') {
+                  chimeSynth.suppressHover(600);
+                }
+                page4ContainerRef.current.style.pointerEvents =
+                  isPage4Active ? 'auto' : 'none';
               }
             },
           },
@@ -260,7 +388,11 @@ export default function MainExperience() {
         }
 
         // Secondary Hero elements individual words/items wipe out with randomized optical blur
-        const leaveItems = heroSectionRef.current?.querySelectorAll('.leave-blur-item');
+        // Exclude elements inside buttons so GSAP doesn't override their hover-driven styles
+        const allLeaveItems = heroSectionRef.current?.querySelectorAll('.leave-blur-item');
+        const leaveItems = allLeaveItems
+          ? Array.from(allLeaveItems).filter((el) => !el.closest('button'))
+          : [];
         if (leaveItems && leaveItems.length > 0) {
           scrollTl.to(
             leaveItems,
@@ -522,6 +654,22 @@ export default function MainExperience() {
         }
 
         // 5f. Page 3 (Our Work) reveals smoothly via signature optical blur as the parallax wipe completes
+        if (page3WrapperRef.current) {
+          scrollTl.fromTo(
+            page3WrapperRef.current,
+            {
+              opacity: 0,
+            },
+            {
+              opacity: 1,
+              duration: 0.08,
+              ease: 'power2.out',
+              immediateRender: false,
+            },
+            0.36
+          );
+        }
+
         if (page3ContainerRef.current) {
           scrollTl.fromTo(
             page3ContainerRef.current,
@@ -540,9 +688,11 @@ export default function MainExperience() {
             },
             0.36
           );
+
+          scrollTl.set('#page-3', { pointerEvents: 'auto' }, 0.36);
         }
 
-        // Phase 6: Pinned Services Scroll (0.44 -> 0.98)
+        // Phase 6: Pinned Services Scroll (0.44 -> 0.70)
         // User scrolls through each and every service sequentially while section remains pinned!
         const servicesScrollObj = { index: 0 };
         scrollTl.to(
@@ -550,13 +700,46 @@ export default function MainExperience() {
           {
             index: 5,
             ease: 'none',
-            duration: 0.54,
+            duration: 0.26,
             onUpdate: () => {
               ourWorkHandleRef.current?.setPositionDirect(servicesScrollObj.index);
             },
           },
           0.44
         );
+
+        // Phase 7: Page 3 Zoom-out / Scale-down to 80% & Pure White Backdrop Reveal
+        if (whiteBackdropRef.current) {
+          scrollTl.fromTo(
+            whiteBackdropRef.current,
+            { opacity: 0 },
+            {
+              opacity: 1,
+              duration: 0.08,
+              ease: 'power2.out',
+            },
+            TIMINGS.page3ScaleDown.start
+          );
+        }
+
+        animateSheetScaleDown(
+          scrollTl,
+          page3WrapperRef.current,
+          TIMINGS.page3ScaleDown.start,
+          TIMINGS.page3ScaleDown.duration
+        );
+
+        // Phase 8: Page 4 (Projects Card) slides up from bottom
+        animateSheetSlideUp(
+          scrollTl,
+          page4ContainerRef.current,
+          TIMINGS.page4SlideUp.start,
+          TIMINGS.page4SlideUp.duration,
+          () => {
+            projectsHandleRef.current?.playEntry();
+          }
+        );
+        scrollTl.set(page4ContainerRef.current, { pointerEvents: 'auto' }, 0.82);
       };
 
       // Desktop: >= 1024px
@@ -638,7 +821,7 @@ export default function MainExperience() {
           {/* Persistent 3D Wheel (Layered in FRONT of MAGNM Wordmark & Tagline Text) */}
           <div
             ref={wheelWrapperRef}
-            className="absolute inset-0 z-20 pointer-events-auto flex items-center justify-center will-change-transform"
+            className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center will-change-transform"
           >
             <div className="w-full h-full flex items-center justify-center">
               <XylophoneHelix
@@ -675,12 +858,30 @@ export default function MainExperience() {
             bgColor="#cccccc"
           />
 
+          {/* Pure White Backdrop revealed when Page 3 contracts/scales down to 80% */}
+          <div
+            id="white-stage-backdrop"
+            ref={whiteBackdropRef}
+            className="absolute inset-0 z-32 w-full h-full bg-[#ffffff] pointer-events-none opacity-0 will-change-[opacity]"
+          />
+
           {/* Section 3 (Page 3): Our Work */}
           <div
             id="page-3"
-            className="absolute inset-0 z-35 w-full h-full pointer-events-auto overflow-hidden"
+            ref={page3WrapperRef}
+            className="absolute inset-0 z-35 w-full h-full pointer-events-none overflow-hidden bg-[#cccccc] opacity-0 will-change-[transform,box-shadow,opacity]"
           >
             <OurWork ref={ourWorkHandleRef} containerRef={page3ContainerRef} />
+          </div>
+
+          {/* Section 4 (Page 4): Projects Showcase (Incoming Card from bottom) */}
+          <div
+            id="page-4"
+            ref={page4ContainerRef}
+            className="absolute inset-0 z-40 w-full h-full pointer-events-none will-change-transform opacity-0 shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none overflow-hidden"
+            style={{ transform: 'translateY(100%)', opacity: 0 }}
+          >
+            <Projects ref={projectsHandleRef} />
           </div>
         </div>
       </div>

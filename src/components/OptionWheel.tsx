@@ -112,6 +112,11 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
     const lastTickRef = useRef(0);
     const [selectedIndex, setSelectedIndex] = useState(defaultSelected);
     const [isDragging, setIsDragging] = useState(false);
+    const mountedAtRef = useRef<number>(0);
+
+    useEffect(() => {
+      mountedAtRef.current = performance.now();
+    }, []);
 
     const remPx =
       typeof window !== 'undefined'
@@ -226,6 +231,8 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
 
     // Optional tick on selection change, throttled so fast scrolling can't spam
     const playTick = useCallback(() => {
+      // Suppress tick sound during initial mount and section entrance grace window (first 800ms)
+      if (performance.now() - mountedAtRef.current < 800) return;
       const { soundVolume } = cfgRef.current;
       const now = performance.now();
       if (now - lastTickRef.current < 45) return;

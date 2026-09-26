@@ -34,8 +34,31 @@ export class ChimeSynthesizer {
   private lastNotePlayed = -1
   private minIntervalMs = 28 // throttle to prevent runaway oscillator buildup
 
+  // Hover sound suppression state to prevent accidental triggers on section entrance or scroll
+  private hoverSuppressedUntil = 0
+  private lastScrollTime = 0
+  private lastMouseMoveTime = 0
+
   constructor() {
-    // Lazily initialized on first interaction
+    if (typeof window !== "undefined") {
+      // 1.5s grace period on initial page load so entrance animations never trigger hover sound
+      this.hoverSuppressedUntil = performance.now() + 1500
+
+      const onScroll = () => {
+        this.lastScrollTime = performance.now()
+      }
+      window.addEventListener("scroll", onScroll, { passive: true })
+      window.addEventListener("wheel", onScroll, { passive: true })
+
+      const onPointerMove = (e: MouseEvent | PointerEvent) => {
+        // Only record actual movement, not synthetic events dispatched when elements move under mouse
+        if (e.movementX !== 0 || e.movementY !== 0) {
+          this.lastMouseMoveTime = performance.now()
+        }
+      }
+      window.addEventListener("pointermove", onPointerMove, { passive: true })
+      window.addEventListener("mousemove", onPointerMove, { passive: true })
+    }
   }
 
   private initContext(): AudioContext | null {
@@ -243,6 +266,140 @@ export class ChimeSynthesizer {
     }, 50)
   }
 
+  private hoverAudioBuffer: AudioBuffer | null = null
+  private hoverAudioLoading = false
+  private lastHoverSoundTime = 0
+
+  /**
+   * Preload hover sound buffer for instant, zero-latency trigger
+   */
+  public preloadHoverSound(url: string = "/audio/hover-sound.mp3"): void {
+    if (typeof window === "undefined" || this.hoverAudioBuffer || this.hoverAudioLoading) return
+    const ctx = this.initContext()
+    if (!ctx) return
+    this.hoverAudioLoading = true
+    fetch(url)
+      .then((res) => (res.ok ? res.arrayBuffer() : null))
+      .then((buf) => (buf && this.ctx ? this.ctx.decodeAudioData(buf) : null))
+      .then((decoded) => {
+        if (decoded) this.hoverAudioBuffer = decoded
+        this.hoverAudioLoading = false
+      })
+      .catch(() => {
+        this.hoverAudioLoading = false
+      })
+  }
+
+  /**
+   * Temporarily suppress hover sounds for a specified duration (in milliseconds).
+   * Call when sections transition, scroll triggers fire, or layers change visibility.
+   */
+  public suppressHover(durationMs: number = 700): void {
+    if (typeof window === "undefined") return
+    const until = performance.now() + durationMs
+    if (until > this.hoverSuppressedUntil) {
+      this.hoverSuppressedUntil = until
+    }
+  }
+
+  /**
+   * Notify the audio system that scrolling or animated section movement is active.
+   */
+  public notifyScroll(): void {
+    if (typeof window === "undefined") return
+    this.lastScrollTime = performance.now()
+  }
+
+  /**
+   * Checks if hover sound is currently suppressed due to:
+   * 1. Section entrance / transition suppression timer
+   * 2. Active scroll (scroll / wheel within last 250ms)
+   * 3. Stationary cursor (pointer hasn't moved in last 180ms, meaning element moved under mouse)
+   */
+  public isHoverSuppressed(): boolean {
+    if (typeof window === "undefined") return true
+    const now = performance.now()
+    // Initial page load or section entrance suppression window
+    if (now < this.hoverSuppressedUntil) return true
+    // Active scrolling suppression
+    if (now - this.lastScrollTime < 250) return true
+    // Stationary mouse check: mouse must have actively moved within the last 180ms
+    // Prevents accidental trigger when an element animates/renders/incomes under a still cursor
+    if (this.lastMouseMoveTime === 0 || now - this.lastMouseMoveTime > 180) return true
+    return false
+  }
+
+  /**
+   * Plays a crisp, subtle hover sound for buttons and interactive controls.
+   * Plays the preloaded acoustic audio sample through the master bus,
+   * with fallback to an ultra-refined synthesized micro-chime.
+   */
+  public playButtonHover(volume: number = 0.35): void {
+    if (this.isHoverSuppressed()) return
+
+    const nowMs = performance.now()
+    if (nowMs - this.lastHoverSoundTime < 60) return
+    this.lastHoverSoundTime = nowMs
+
+    const ctx = this.initContext()
+    if (!ctx || !this.compressor) {
+      // HTML Audio fallback
+      try {
+        const audio = new Audio('/audio/hover-sound.mp3')
+        audio.volume = Math.max(0, Math.min(1, volume))
+        audio.play().catch(() => {})
+      } catch {}
+      return
+    }
+
+    // If preloaded buffer is ready, play through dedicated gain
+    if (this.hoverAudioBuffer) {
+      try {
+        const source = ctx.createBufferSource()
+        source.buffer = this.hoverAudioBuffer
+        const gain = ctx.createGain()
+        gain.gain.setValueAtTime(Math.max(0, Math.min(1, volume)), ctx.currentTime)
+        source.connect(gain)
+        gain.connect(this.compressor)
+        source.start(0)
+        return
+      } catch {
+        // Fallback to synthesis below
+      }
+    }
+
+    // Try preloading for future hovers if not loaded yet
+    if (!this.hoverAudioBuffer && !this.hoverAudioLoading) {
+      this.preloadHoverSound()
+    }
+
+    // High-end synthesized acoustic micro-chime / metallic tick fallback
+    try {
+      const t = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      // Pure metallic glass-like tick at 1480Hz dropping to 880Hz
+      osc.type = "sine"
+      osc.frequency.setValueAtTime(1480, t)
+      osc.frequency.exponentialRampToValueAtTime(880, t + 0.035)
+
+      gain.gain.setValueAtTime(0, t)
+      gain.gain.linearRampToValueAtTime(volume * 0.28, t + 0.002)
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08)
+
+      osc.connect(gain)
+      gain.connect(this.compressor)
+      osc.start(t)
+      osc.stop(t + 0.085)
+
+      setTimeout(() => {
+        osc.disconnect()
+        gain.disconnect()
+      }, 100)
+    } catch {}
+  }
+
   public setVolume(volume: number): void {
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(
@@ -253,11 +410,26 @@ export class ChimeSynthesizer {
   }
 
   public resume(): void {
-    if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume().catch(() => {})
+    const ctx = this.initContext()
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume().catch(() => {})
     }
   }
 }
 
 // Export singleton instance for seamless reuse across the application
 export const chimeSynth = new ChimeSynthesizer()
+
+// Auto-unlock Web Audio on first user interaction anywhere on the window
+if (typeof window !== "undefined") {
+  const unlockAudio = () => {
+    chimeSynth.resume()
+    chimeSynth.preloadHoverSound()
+  }
+  window.addEventListener("pointerdown", unlockAudio, { capture: true, passive: true })
+  window.addEventListener("click", unlockAudio, { capture: true, passive: true })
+  window.addEventListener("keydown", unlockAudio, { capture: true, passive: true })
+  window.addEventListener("touchstart", unlockAudio, { capture: true, passive: true })
+  window.addEventListener("pointermove", unlockAudio, { once: true, capture: true, passive: true })
+}
+

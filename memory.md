@@ -1,92 +1,96 @@
-# Memory — MAGNM Landing Page: Section 3 Rebuild & Scroll-Driven Services Wheel
+# Memory — MAGNM Landing Page: Section 4 Polish, Hover Fixes & Page 5 Removal
 
-Last updated: 2026-09-24 17:02
+Last updated: 2026-09-27 00:08
+
+---
+
+## ⚠️ Core Workflow Rules & Developer Constraints
+
+1. **DO NOT RUN CHECKS AFTER EVERY STEP**:
+   - There is NO need to run validation, terminal commands, or build/lint checks after every individual step or small code edit.
+   - Run checks only at major completion milestones or when explicitly requested by the developer.
+
+2. **NO NEED TO CHECK IN BROWSER AFTER EVERY STEP**:
+   - Do NOT launch browser subagents, browser sessions, or browser verification steps after every individual change.
+   - Rely on direct code precision, verified design references, and deliberate developer handoffs. Test in browser only when explicitly asked.
+
+---
 
 ## What was built
 
-### 1. Section 3 "We provide" Sentence & OptionWheel Showcase ([src/components/OurWork.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OurWork.tsx))
-- **Sentence Architecture**:
-  - Replaced former list and hover-image-reveal with a unified editorial sentence composition: **"We provide"** (left display text in `Familjen Grotesk`, display scale `text-3xl sm:text-4xl md:text-5xl lg:text-[3.75rem] xl:text-[4.15rem]`) paired with a dynamic 3D cylindrical **OptionWheel** (right).
-  - Centered horizontally and vertically in the pinned viewport (`max-w-6xl mx-auto`).
-- **Dynamic 2-Line Paragraph with Signature Optical Blur Reveal**:
-  - Positioned directly underneath "We provide" (`md:absolute md:top-full md:left-0`).
-  - Utilizes `<BlurText>` with `randomize={true}`, `animateBy="words"`, `direction="none"`, `delay={24}`, and `stepDuration={0.2}` for MAGNM's signature randomized optical blur reveal (`blur(18px) -> blur(8px) -> blur(0px)` without any jarring vertical y-translation).
-  - Shortened all 6 service descriptions to punchy, 2-line statements:
-    1. **Strategy & Direction**: *Defining creative trajectories to transform vision into actionable roadmaps.*
-    2. **Digital Products & Websites**: *Engineering bespoke flagships built for fluid interaction and performance.*
-    3. **3D & Motion Design**: *Crafting kinetic identities and spatial 3D experiences with depth.*
-    4. **AI Systems & Interfaces**: *Architecting generative interfaces that turn intelligent logic into intuitive tools.*
-    5. **Brand Identity & Systems**: *Formulating typographic systems and design tokens built to scale.*
-    6. **Creative Engineering**: *Bridging avant-garde aesthetics with robust architecture and custom shaders.*
-  - Wrapped in Framer Motion `<AnimatePresence mode="wait">` with blur exit for seamless service transitions.
-- **OptionWheel Integration ([src/components/OptionWheel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OptionWheel.tsx))**:
-  - Adapted React Bits cylindrical wheel for MAGNM's monochromatic design system (`#171717` active, `rgba(23, 23, 23, 0.28)` inactive, `#cccccc` background).
-  - Configured with Title Case items, responsive font sizing (`1.85rem` to `3.75rem`), perspective curve (`0.82`), and tilt (`5deg`).
-  - Zero-latency mechanical audio tick via Web Audio API (`AudioContext`, decoded `AudioBuffer` from `/audio/hover-sound.mp3`, with tactile oscillator fallback).
-  - Exposes imperative methods via `forwardRef<OptionWheelHandle>`: `setTarget` and `setPositionDirect`.
+### 1. Removal of Page 5 & Timeline Realignment
+- **Cleaned out Page 5 ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))**:
+  - Removed `Page5Orbit` import, `page5ContainerRef`, initial GSAP setup, and `#page-5` JSX wrapper.
+  - Removed `src/components/Page5Orbit.tsx`.
+  - Re-aligned GSAP pinned timeline to `+=780%` scroll distance.
+  - Removed Phase 9 (Page 4 scale-down) and Phase 10 (Page 5 slide-up). Page 4 is now the docked final page.
+  - Set Page 4 pointer events to activate for `progress >= 0.78`.
+  - Updated ScrollTrigger snap point: snaps to Page 4 docked at `1.0` when `progress >= 0.90`.
+  - Footer deferred to a future session per developer request.
 
-### 2. Scroll Orchestration & Synchronization ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))
-- **Extended Pinned Timeline**:
-  - Pinned stage scroll length extended to `+=520%` to give the user ample scroll distance to experience all 6 services.
-- **Signature Optical Blur Section Entrance**:
-  - Section 3 reveals smoothly via pure optical blur (`filter: blur(16px) -> blur(0px)`, `opacity: 0 -> 1`, `y: 0`, duration 0.08, `ease: 'power2.out'`) as the 12-strip vertical parallax transition finishes.
-- **Scroll-Driven Services Sequence (Phase 6: 0.44 -> 0.98)**:
-  - GSAP timeline tween interpolates `servicesScrollObj.index` from 0 to 5 across scroll progress 0.44 -> 0.98.
-  - On update, calls `ourWorkHandleRef.current?.setPositionDirect(servicesScrollObj.index)`.
-- **Discrete Service Scroll Snapping**:
-  - Implemented custom `snap.snapTo` in ScrollTrigger strictly scoped to the services range (`progress >= 0.42`).
-  - Calculates 5 equal increments between `0.44` and `0.98` (`0.108` per service), smoothly locking the scroll (`ease: 'power2.inOut'`, `duration: 0.35s`, `delay: 0.08s`) onto the exact integer option so the wheel never rests midway between services.
-  - Leaves earlier phases (0.0 -> 0.42) completely unaffected with freeform continuous scroll.
+### 2. 3D Kinetic Helix Wheel Hover Scope Fix
+- **Scoped Pointer & Wheel Physics ([src/components/originkit/ui/xylophone-helix.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/originkit/ui/xylophone-helix.tsx))**:
+  - Added optional `interactive?: boolean` flag to `cameraControllerRef`.
+  - Inside `readPointer` and `onWheel`, immediately bail out when `cameraControllerRef.current?.interactive === false`.
+- **Scroll Progress Gate ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))**:
+  - In `scrollTl`'s `onUpdate`, set `cameraControllerRef.current.interactive = progress <= 0.30`.
+  - The 3D wheel hover reactions are now active only during the Hero and About sections, completely disabling interaction once the user scrolls into Section 3 (Our Work) and beyond.
 
-### 3. Elimination of Scroll Desync & Double Smoothing
-- Standard OptionWheel applies an internal `requestAnimationFrame` exponential smoothing loop (`tau = smoothing / 1000`).
-- Because GSAP ScrollTrigger already applies scrub easing (`scrub: 0.15`), combining both caused significant input lag and desynchronization.
-- Solved by implementing `setPositionDirect()` which bypasses the rAF easing loop during scroll-driven playback, updating DOM transforms and firing selection change triggers synchronously with the GSAP scrub position.
+### 3. Hero Button Hover Effect Fix
+- **GSAP Scrub Interference Resolution ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))**:
+  - Identified that GSAP's scroll scrub was targeting `.leave-blur-item` elements, which matched elements inside `<KineticShiftButton>`.
+  - Scrub updates were continuously overwriting the button's inline `filter` and `opacity` styles, preventing the kinetic word shift and underline animations from displaying.
+  - Filtered `.leave-blur-item` elements via `Array.from(allLeaveItems).filter((el) => !el.closest('button'))`. Button hovers now respond smoothly with zero friction.
+
+### 4. Page 4 (Projects Showcase) Typography & Animation Acceleration
+- **Proportions for 1920x1080 ([src/components/ui/liquid-glass-carousel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/liquid-glass-carousel.tsx))**:
+  - Adjusted card container height to 230px (`aspect-video`), perfectly proportioned for full HD displays.
+  - Enlarged "Our Projects" heading to responsive `text-3xl/4xl/5xl/[3.6rem]/[4.2rem]`.
+  - Set project title font weight to `font-normal text-[14px]/[15px]/[16px]`.
+  - Shifted bottom project info block higher (`bottom-[6.5%]/[8%]/[9%]`).
+- **Snappy Text Reveal ([src/components/ui/liquid-glass-carousel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/liquid-glass-carousel.tsx), [src/components/ui/carousel-engine.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/carousel-engine.ts))**:
+  - Accelerated entrance blur transitions from 1.4s to 0.55s - 0.6s, with delay reduced to 0.04s.
+  - Reduced card swipe blur duration to 0.3s.
+  - Updated `onEntryDone` trigger in `carousel-engine.ts` to fire at 0.6s for immediate text appearance upon card arrival.
 
 ---
 
 ## Decisions made
 
-1. **Sentence Composition ("We provide" + Wheel)**:
-   - Formatted the section as a grammatical statement rather than a disconnected header and list.
-   - Text rendered in Title Case rather than all-caps for modern editorial elegance.
-2. **Signature Optical Blur without Y-Translation**:
-   - Adhered strictly to the user guideline: no vertical sliding/displacement for text or section reveals. All reveals use the studio's signature optical blur (`blur(18px) -> blur(0px)`).
-3. **Direct Positioning for Scroll Sync**:
-   - Single source of truth for motion smoothing: GSAP controls the scrub physics while OptionWheel renders synchronously.
-4. **Scoped Snapping**:
-   - Snapping only activates within the services scroll phase (`0.44 -> 0.98`) to avoid hijacking free scroll during Hero and About manifesto transitions.
+1. **Footer Deferred**:
+   - Rather than keeping an intermediate Orbit Card Stack component as Page 5, Page 5 was removed completely so Page 4 remains the clean terminus of the current page flow until the custom footer is built.
+2. **Wheel Interactivity Gate**:
+   - Gating interaction via `cameraControllerRef.interactive` cleanly decouples wheel physics from scroll without having to unmount the WebGL canvas, preserving WebGL state and zero-allocation performance.
+3. **Exclusion of Buttons from Section Leave Transitions**:
+   - Explicitly excluding buttons from `.leave-blur-item` prevents GSAP timeline scrubs from hijacking CSS transforms/filters managed by component-level CSS or Framer Motion.
 
 ---
 
 ## Problems solved
 
-1. **Scroll-Wheel Desync**:
-   - Fixed lag where wheel movement trailed user scroll. Eliminated internal rAF exponential decay during scroll updates via `setPositionDirect`.
-2. **Fractional Service Stopping**:
-   - Fixed wheel resting between two service titles when the user released the scrollbar. Added dynamic `snapTo` calculation snapping to the nearest whole service index.
-3. **Paragraph Length & Layout Fitting**:
-   - Descriptions originally ran into 3-4 wrapped lines, looking crowded. Shortened to 8-10 words each so they consistently occupy 2 lines with balanced whitespace.
+1. **Wheel Hover Persisting Past About Section**:
+   - Solved: Gated `readPointer` and `onWheel` with `interactive = progress <= 0.30`.
+2. **Hero Button Kinetic Hover Inactive**:
+   - Solved: Excluded buttons from `.leave-blur-item` GSAP scrub animation.
+3. **Delayed Text Reveal on Page 4**:
+   - Solved: Reduced blur duration from 1.4s to 0.55s and accelerated `onEntryDone` event callback.
+4. **Card Proportions on Full HD**:
+   - Solved: Scaled cards to 230px height (`aspect-video`) with increased heading hierarchy.
 
 ---
 
 ## Current state
 
-- **Section 1 (Hero)**: Complete with 3D wheel, dynamic tagline, and wordmark docking.
-- **Section 2 (About Manifesto)**: Complete with centered typography over the upright kinetic wheel backdrop.
-- **Transition**: 12-strip vertical wipe smoothly transitions into the light `#cccccc` canvas.
-- **Section 3 (Our Work / Services)**: **Complete & Polished**. "We provide" + OptionWheel sentence, zero-latency mechanical audio tick, 2-line randomized blur reveal descriptions, direct scroll-sync, and discrete snapping.
-- **Dev Server**: Running on `http://localhost:3000`.
+- **Section 1 (Hero)**: Kinetic 3D wheel audio, interactive `KineticShiftButton` hovers working end-to-end.
+- **Section 2 (Manifesto)**: Upright wheel rotation and progressive word illumination.
+- **Section 3 (Our Work)**: OptionWheel services scroll with discrete snapping and acoustic ticks.
+- **Section 4 (Projects)**: Liquid glass carousel showcase on docked card with sharp edges, fast text reveal, and 230px cards.
+- **Section 5**: Removed.
+- **Server**: Next.js running on `http://localhost:3000`. Clean TypeScript compilation (`0` errors).
 
 ---
 
 ## Next session starts with
 
-- Section 4 development: Next section after the pinned services experience (e.g., Selected Works / Case Studies / Project Grid).
-- Finalize top-right Navbar actions/menu triggers if needed.
-
----
-
-## Open questions
-
-- What should be the transition or layout for Section 4 following the pinned services?
+- Design and build the Footer section following Page 4.
+- Implement footer transitions and layout matching MAGNM monochromatic visual standards.

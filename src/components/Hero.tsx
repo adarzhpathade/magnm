@@ -5,7 +5,7 @@ import Image from 'next/image';
 import BlurText from './BlurText';
 import XylophoneHelix from './originkit/ui/xylophone-helix';
 import { Letter3DSwap } from './ui/letter-3d-swap';
-import HeroContactButton from './HeroContactButton';
+import KineticShiftButton from './KineticShiftButton';
 
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -251,12 +251,12 @@ export default function Hero({
       >
         {/* Bottom Left Options (Interactive on all viewports) */}
         <div className="pointer-events-auto relative z-30 flex flex-wrap items-center gap-6 sm:gap-8 md:gap-10 pb-0.5 sm:pb-1">
-          <HeroContactButton
+          <KineticShiftButton
             text="DISCUSS YOUR PROJECT"
             ariaLabel="Discuss your project"
           />
 
-          <HeroContactButton
+          <KineticShiftButton
             text="BOOK A 30-MINUTE CALL"
             ariaLabel="Book a 30-minute call"
           />
