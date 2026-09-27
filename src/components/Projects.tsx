@@ -32,7 +32,7 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
         ref={containerRef}
         id="page-4-content"
         aria-label="Projects Section"
-        className={`relative w-full h-full min-h-screen bg-[#cccccc] overflow-hidden select-none ${className}`}
+        className={`relative w-full h-full lg:min-h-screen bg-[#cccccc] overflow-hidden select-none ${className}`}
       >
         <LiquidGlassCarousel
           ref={carouselRef}

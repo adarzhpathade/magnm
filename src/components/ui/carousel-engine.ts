@@ -367,6 +367,7 @@ export function createCarousel(
     gap: number;
     background: string;
     entry: boolean;
+    autoScroll?: boolean | { delay?: number; interval?: number };
     onActiveChange: (index: number) => void;
     onFocusChange: (open: boolean) => void;
     onEntryDone: (done: boolean) => void;
@@ -397,6 +398,21 @@ export function createCarousel(
   const SHRINK_ATTACK = 0.25;
   const SHRINK_DECAY = 0.06;
 
+  const autoScrollOption = options.autoScroll ?? true;
+  const autoScrollConfig = {
+    enabled:
+      !reduced &&
+      (typeof autoScrollOption === "boolean"
+        ? autoScrollOption
+        : (autoScrollOption?.delay ?? 0) >= 0),
+    interval:
+      typeof autoScrollOption === "object" && autoScrollOption.interval
+        ? autoScrollOption.interval
+        : typeof autoScrollOption === "object" && autoScrollOption.delay
+          ? autoScrollOption.delay
+          : 3500,
+  };
+
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -411,9 +427,10 @@ export function createCarousel(
   renderer.domElement.style.display = "block";
   renderer.domElement.style.width = "100%";
   renderer.domElement.style.height = "100%";
-  renderer.domElement.style.touchAction = "none";
+  renderer.domElement.style.touchAction = "pan-y";
   renderer.domElement.style.userSelect = "none";
   renderer.domElement.setAttribute("aria-hidden", "true");
+  mount.style.touchAction = "pan-y";
   mount.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -541,6 +558,7 @@ export function createCarousel(
   let scrollEnergy = 0;
   let pendingFocus: { srcIndex: number } | null = null;
   let lastInput = performance.now();
+  let lastActivity = performance.now();
   let snapped = false;
 
   const rt = new THREE.WebGLRenderTarget(W * dpr, H * dpr);
@@ -593,6 +611,7 @@ export function createCarousel(
 
   const focusState = {
     active: false,
+    closing: false,
     srcIndex: -1,
     poolIdx: -1,
     lensFx: entryOn ? 0 : 1,
@@ -775,6 +794,10 @@ export function createCarousel(
   let dragging = false;
   let dragPointerId: number | null = null;
   let dragLastX = 0;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let touchDirectionDetermined = false;
+  let isVerticalScroll = false;
   let dragDist = 0;
   let dragVel = 0;
   let dragMoveT = 0;
@@ -863,24 +886,36 @@ export function createCarousel(
       pendingFocus = null;
       target += (e.shiftKey ? e.deltaY : e.deltaX) * WHEEL;
       lastInput = performance.now();
+      lastActivity = performance.now();
       snapped = false;
     }
   }
 
   function onPointerDown(e: PointerEvent) {
     suppressClick = false;
+    lastActivity = performance.now();
+    if (focusState.active) return;
     if (inputLocked()) return;
     if (dragging) return;
     if (e.button !== 0 && e.pointerType === "mouse") return;
     dragging = true;
     dragPointerId = e.pointerId;
     dragPointerType = e.pointerType || "mouse";
-    try {
-      el.setPointerCapture(e.pointerId);
-    } catch {
-      /* capture is best-effort */
+    touchDirectionDetermined = false;
+    isVerticalScroll = false;
+
+    // Capture immediately for mouse. Defer for touch so vertical scrolling is not blocked.
+    if (dragPointerType === "mouse") {
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        /* capture is best-effort */
+      }
     }
+
     const p = localPoint(e);
+    dragStartX = p.x;
+    dragStartY = p.y;
     dragLastX = p.x;
     lastPointerX = p.x;
     lastPointerY = p.y;
@@ -897,7 +932,42 @@ export function createCarousel(
 
   function onPointerMove(e: PointerEvent) {
     const p = localPoint(e);
+    const moveDist = Number.isFinite(lastPointerX)
+      ? Math.hypot(p.x - lastPointerX, p.y - lastPointerY)
+      : 0;
+    if (moveDist > 2) {
+      lastActivity = performance.now();
+    }
     if (dragging && e.pointerId === dragPointerId) {
+      // For touch, distinguish horizontal swipe vs vertical scroll
+      if (dragPointerType === "touch" && !touchDirectionDetermined) {
+        const totalDx = Math.abs(p.x - dragStartX);
+        const totalDy = Math.abs(p.y - dragStartY);
+        if (totalDx > 6 || totalDy > 6) {
+          touchDirectionDetermined = true;
+          if (totalDy > totalDx) {
+            // Vertical page scroll detected — release drag and let browser scroll naturally
+            isVerticalScroll = true;
+            dragging = false;
+            dragPointerId = null;
+            return;
+          } else {
+            // Horizontal swipe detected — capture pointer for carousel motion
+            try {
+              el.setPointerCapture(e.pointerId);
+            } catch {
+              /* capture is best-effort */
+            }
+          }
+        } else {
+          lastPointerX = p.x;
+          lastPointerY = p.y;
+          return;
+        }
+      }
+
+      if (isVerticalScroll) return;
+
       const sens = dragPointerType === "mouse" ? DRAG : TOUCH_DRAG;
       const dx = p.x - dragLastX;
       dragLastX = p.x;
@@ -923,6 +993,7 @@ export function createCarousel(
   }
 
   function onPointerUp(e?: PointerEvent) {
+    lastActivity = performance.now();
     if (!dragging) return;
     if (e && dragPointerId !== null && e.pointerId !== dragPointerId) return;
     dragging = false;
@@ -959,8 +1030,17 @@ export function createCarousel(
   }
 
   function onClick(e: MouseEvent) {
+    lastActivity = performance.now();
     if (suppressClick) {
       suppressClick = false;
+      return;
+    }
+    if (focusState.active) {
+      const p = localPoint(e);
+      const hit = panelAtPointer(p.x, p.y);
+      if (!hit || hit.poolIdx !== focusState.poolIdx) {
+        closeFocus();
+      }
       return;
     }
     if (inputLocked()) return;
@@ -982,6 +1062,8 @@ export function createCarousel(
 
   function openFocus() {
     if (focusState.active || !centeredPanel) return;
+    focusState.closing = false;
+    lastActivity = performance.now();
     const src = sources[centeredPanel.srcIndex];
     if (!src?.tex) return;
 
@@ -1039,7 +1121,9 @@ export function createCarousel(
   }
 
   function closeFocus() {
-    if (!focusState.active) return;
+    if (!focusState.active || focusState.closing) return;
+    focusState.closing = true;
+    lastActivity = performance.now();
     if (focusState.anim) focusState.anim.kill();
 
     const focusX = lastCenterX[focusState.poolIdx] || 0;
@@ -1062,7 +1146,9 @@ export function createCarousel(
     const tl = gsap.timeline({
       onComplete: () => {
         focusState.active = false;
+        focusState.closing = false;
         focusState.srcIndex = -1;
+        lastActivity = performance.now();
         updateCursor();
       },
     });
@@ -1185,6 +1271,7 @@ export function createCarousel(
         entrySettled = false;
         for (let k = 0; k < growArr.length; k++) growArr[k] = 1;
         updateCursor();
+        lastActivity = performance.now();
       },
       [],
       growEnd,
@@ -1200,6 +1287,15 @@ export function createCarousel(
     target = centerForIndex(nearestIndex(scroll) + direction);
     snapped = true;
     lastInput = performance.now();
+    lastActivity = performance.now();
+  }
+
+  function autoAdvance() {
+    if (inputLocked() || dragging || hoverPanel) return;
+    velocity = 0;
+    pendingFocus = null;
+    target = centerForIndex(nearestIndex(scroll) + 1);
+    snapped = true;
   }
 
   el.addEventListener("wheel", onWheel, { passive: false });
@@ -1220,6 +1316,22 @@ export function createCarousel(
     if (!visible || document.hidden) {
       raf = 0;
       return;
+    }
+
+    const now = performance.now();
+    if (
+      autoScrollConfig.enabled &&
+      !focusState.active &&
+      !focusState.closing &&
+      !dragging &&
+      !hoverPanel &&
+      !entryActive &&
+      !entrySettled &&
+      Math.abs(target - scroll) < 1.0 &&
+      now - lastActivity > autoScrollConfig.interval
+    ) {
+      lastActivity = now;
+      autoAdvance();
     }
     if (!dragging) {
       target += velocity;
@@ -1316,12 +1428,16 @@ export function createCarousel(
     if (!box || (box.width === 0 && box.height === 0)) return;
     visible = entry?.isIntersecting ?? true;
     if (visible) {
+      lastActivity = performance.now();
       startLoop();
     }
   });
   intersection.observe(mount);
   const onVisibility = () => {
-    if (!document.hidden) startLoop();
+    if (!document.hidden) {
+      lastActivity = performance.now();
+      startLoop();
+    }
   };
   document.addEventListener("visibilitychange", onVisibility);
 

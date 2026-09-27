@@ -1820,6 +1820,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const onTouchStart = (event: TouchEvent) => {
+            if (cameraControllerRef?.current?.interactive === false) return
             const touch = event.touches[0]
             if (!touch) return
             const target = event.target as HTMLElement | null
@@ -1838,6 +1839,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const onTouchMove = (event: TouchEvent) => {
+            if (cameraControllerRef?.current?.interactive === false) return
             const touch = event.touches[0] ?? event.changedTouches[0]
             if (!touch) return
             readPointer(touch.clientX, touch.clientY)
@@ -1857,10 +1859,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
                 gesture.prevX = touch.clientX
                 return
             }
-
-            const delta = (gesture.prevY - touch.clientY) * DRAG_SCALE
-            input.deltaScrollY += Math.max(-MAX_SCROLL_PER_EVENT, Math.min(MAX_SCROLL_PER_EVENT, delta))
-            gesture.prevY = touch.clientY
+            // Do not hijack vertical drag gestures on phone so native scrolling works smoothly
         }
 
         const onTouchEnd = () => {
@@ -2387,7 +2386,7 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
                 overflow: "hidden",
                 isolation: "isolate",
                 background,
-                touchAction: "none",
+                touchAction: "pan-y",
                 pointerEvents: "none",
 
                 userSelect: "none",

@@ -31,6 +31,7 @@ export default function MainExperience() {
 
   // Pinned Stage & Layer Refs
   const pinnedStageRef = useRef<HTMLDivElement>(null);
+  const heroAboutStageRef = useRef<HTMLDivElement>(null);
   const heroContainerRef = useRef<HTMLDivElement>(null);
   const aboutContainerRef = useRef<HTMLDivElement>(null);
 
@@ -54,6 +55,8 @@ export default function MainExperience() {
   const page3WrapperRef = useRef<HTMLDivElement>(null);
   const whiteBackdropRef = useRef<HTMLDivElement>(null);
   const page4ContainerRef = useRef<HTMLDivElement>(null);
+  const mobileHeroSpacerRef = useRef<HTMLDivElement>(null);
+  const mobilePage3SpacerRef = useRef<HTMLDivElement>(null);
   const ourWorkHandleRef = useRef<OurWorkHandle | null>(null);
   const projectsHandleRef = useRef<ProjectsHandle | null>(null);
 
@@ -67,6 +70,7 @@ export default function MainExperience() {
   });
 
   const [wheelScale, setWheelScale] = useState(90);
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'scrollRestoration' in history) {
@@ -75,19 +79,20 @@ export default function MainExperience() {
     // Reset scroll to top on mount
     window.scrollTo(0, 0);
 
-    const updateWheelScale = () => {
+    const updateDimensions = () => {
       const width = window.innerWidth;
+      setIsDesktop(width >= 1024);
       if (width < 640) {
-        setWheelScale(48);
+        setWheelScale(54);
       } else if (width < 1024) {
         setWheelScale(70);
       } else {
         setWheelScale(90);
       }
     };
-    updateWheelScale();
-    window.addEventListener('resize', updateWheelScale);
-    return () => window.removeEventListener('resize', updateWheelScale);
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
 const TIMINGS = {
@@ -153,6 +158,44 @@ function animateSheetSlideUp(
       if (!pinnedStageRef.current || !heroContainerRef.current) return;
 
       const mm = gsap.matchMedia();
+
+      // Measure targets with pure geometry (unaffected by active transforms)
+      const getTransformTargets = () => {
+        const heroEl = heroMagnmRef.current;
+        const navEl = navBrandRef.current;
+        if (!heroEl || !navEl) return { scale: 0.22, x: 0, y: 0 };
+
+        const heroText = heroEl.querySelector('p') || heroEl;
+        const heroRect = heroText.getBoundingClientRect();
+        const navRect = navEl.getBoundingClientRect();
+
+        const currentX = (gsap.getProperty(heroEl, 'x') as number) || 0;
+        const currentY = (gsap.getProperty(heroEl, 'y') as number) || 0;
+        const currentScale = (gsap.getProperty(heroEl, 'scale') as number) || 1;
+
+        const untransformedHeroLeft = heroRect.left - currentX;
+        const untransformedHeroTop = heroRect.top - currentY;
+        const untransformedHeroHeight = currentScale > 0 ? heroRect.height / currentScale : heroRect.height;
+
+        const width = window.innerWidth;
+        let targetScale = 0.22;
+        if (width < 640) {
+          targetScale = 0.32; // Mobile: ~28px
+        } else if (width < 1024) {
+          targetScale = 0.26; // Tablet: ~32px
+        } else {
+          targetScale = 0.22; // Desktop: ~36px
+        }
+
+        const deltaX = navRect.left - untransformedHeroLeft;
+        const scaledHeight = untransformedHeroHeight * targetScale;
+        const navCenterY = navRect.top + (navRect.height / 2);
+        const targetTop = navCenterY - (scaledHeight / 2);
+        const deltaY = targetTop - untransformedHeroTop;
+
+        return { scale: targetScale, x: deltaX, y: deltaY };
+      };
+
       const setupExperience = (baseScale: number, initialYOffset: number) => {
         // 1. Initial State Setup:
         // 3D Wheel starts directly at hero scale and position
@@ -201,23 +244,30 @@ function animateSheetSlideUp(
             if (el) gsap.set(el, { scale: 1.15 });
           });
         }
+        if (heroAboutStageRef.current) {
+          gsap.set(heroAboutStageRef.current, { clearProps: 'all' });
+          heroAboutStageRef.current.style.visibility = 'visible';
+        }
         if (whiteBackdropRef.current) {
           gsap.set(whiteBackdropRef.current, { opacity: 0 });
         }
         if (page3WrapperRef.current) {
           gsap.set(page3WrapperRef.current, {
+            clearProps: 'all',
             opacity: 0,
             scale: 1,
             boxShadow: 'none',
             transformOrigin: 'center center',
             pointerEvents: 'none',
           });
+          page3WrapperRef.current.style.visibility = 'visible';
         }
         if (page3ContainerRef.current) {
           gsap.set(page3ContainerRef.current, { opacity: 0, filter: 'blur(16px)', y: 0 });
         }
         if (page4ContainerRef.current) {
           gsap.set(page4ContainerRef.current, {
+            clearProps: 'all',
             y: '100%',
             opacity: 0,
             scale: 1,
@@ -225,6 +275,7 @@ function animateSheetSlideUp(
             transformOrigin: 'center center',
             pointerEvents: 'none',
           });
+          page4ContainerRef.current.style.visibility = 'visible';
         }
 
         // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 -> Page 4 transition
@@ -328,48 +379,6 @@ function animateSheetSlideUp(
         if (heroMagnmRef.current) {
           gsap.set(heroMagnmRef.current, { transformOrigin: '0 0' });
         }
-
-        // Measure targets with pure geometry (unaffected by active transforms)
-        const getTransformTargets = () => {
-          const heroEl = heroMagnmRef.current;
-          const navEl = navBrandRef.current;
-          if (!heroEl || !navEl) return { scale: 0.22, x: 0, y: 0 };
-
-          const heroText = heroEl.querySelector('p') || heroEl;
-          const heroRect = heroText.getBoundingClientRect();
-          const navRect = navEl.getBoundingClientRect();
-
-          // Get current transform on hero to calculate untransformed initial box
-          const currentX = (gsap.getProperty(heroEl, 'x') as number) || 0;
-          const currentY = (gsap.getProperty(heroEl, 'y') as number) || 0;
-          const currentScale = (gsap.getProperty(heroEl, 'scale') as number) || 1;
-
-          const untransformedHeroLeft = heroRect.left - currentX;
-          const untransformedHeroTop = heroRect.top - currentY;
-          const untransformedHeroHeight = currentScale > 0 ? heroRect.height / currentScale : heroRect.height;
-
-          // Prominent studio wordmark scale (NOT tiny)
-          const width = window.innerWidth;
-          let targetScale = 0.22;
-          if (width < 640) {
-            targetScale = 0.32; // Mobile: ~28px
-          } else if (width < 1024) {
-            targetScale = 0.26; // Tablet: ~32px
-          } else {
-            targetScale = 0.22; // Desktop: ~36px
-          }
-
-          // Exact X alignment with left edge of navbar slot
-          const deltaX = navRect.left - untransformedHeroLeft;
-
-          // Exact Y alignment: centered inside the 44px navbar row with generous ceiling clearance
-          const scaledHeight = untransformedHeroHeight * targetScale;
-          const navCenterY = navRect.top + (navRect.height / 2);
-          const targetTop = navCenterY - (scaledHeight / 2);
-          const deltaY = targetTop - untransformedHeroTop;
-
-          return { scale: targetScale, x: deltaX, y: deltaY };
-        };
 
         // Phase 1: Huge "MAGNM" scales down and docks prominently into the fixed Navbar (0.0 -> 0.16)
         if (heroMagnmRef.current) {
@@ -742,19 +751,309 @@ function animateSheetSlideUp(
         scrollTl.set(page4ContainerRef.current, { pointerEvents: 'auto' }, 0.82);
       };
 
-      // Desktop: >= 1024px
+      // Desktop: >= 1024px (Pinned ScrollTrigger Experience)
       mm.add('(min-width: 1024px)', () => {
         setupExperience(90, 36);
       });
 
-      // Tablet: 640px - 1023px
-      mm.add('(min-width: 640px) and (max-width: 1023px)', () => {
-        setupExperience(70, 28);
-      });
+      // Mobile & Tablet: < 1024px (Wheel transition between Hero and About + natural vertical flow for Pages 3 & 4)
+      mm.add('(max-width: 1023px)', () => {
+        const baseMobileScale = 54;
+        if (cameraControllerRef.current) {
+          cameraControllerRef.current.tilt = 36;
+          cameraControllerRef.current.sideTilt = -35;
+          cameraControllerRef.current.scale = baseMobileScale;
+          cameraControllerRef.current.interactive = true;
+        }
 
-      // Mobile: < 640px
-      mm.add('(max-width: 639px)', () => {
-        setupExperience(48, 0);
+        if (wheelWrapperRef.current) {
+          wheelWrapperRef.current.style.opacity = '1';
+          wheelWrapperRef.current.style.transform = 'translateY(0px)';
+        }
+
+        if (heroAboutStageRef.current) {
+          gsap.set(heroAboutStageRef.current, { clearProps: 'all' });
+          heroAboutStageRef.current.style.visibility = 'visible';
+        }
+
+        if (heroContainerRef.current) {
+          heroContainerRef.current.style.pointerEvents = 'auto';
+          heroContainerRef.current.style.opacity = '1';
+        }
+        if (heroMagnmRef.current) {
+          gsap.set(heroMagnmRef.current, { clearProps: 'all', transformOrigin: '0 0' });
+        }
+        const secondaryElements = [
+          heroTaglineRef.current,
+          heroEmblemRef.current,
+          heroBottomRef.current,
+        ].filter(Boolean);
+        if (secondaryElements.length > 0) {
+          gsap.set(secondaryElements, { clearProps: 'all' });
+        }
+
+        if (aboutContainerRef.current) {
+          gsap.set(aboutContainerRef.current, { clearProps: 'all' });
+          aboutContainerRef.current.style.opacity = '0';
+          aboutContainerRef.current.style.pointerEvents = 'none';
+        }
+
+        const words = aboutContainerRef.current?.querySelectorAll('.word');
+        if (words && words.length > 0) {
+          gsap.set(words, { opacity: 0.14, filter: 'blur(8px)' });
+        }
+
+        if (navBrandRef.current) {
+          gsap.set(navBrandRef.current, { clearProps: 'all' });
+          navBrandRef.current.style.opacity = '0';
+        }
+        if (navActionsRef.current) {
+          gsap.set(navActionsRef.current, { clearProps: 'all' });
+          navActionsRef.current.style.opacity = '1';
+        }
+
+        // Section 3 & 4: natural document flow
+        if (page3WrapperRef.current) {
+          gsap.set(page3WrapperRef.current, { clearProps: 'all' });
+          page3WrapperRef.current.style.opacity = '1';
+          page3WrapperRef.current.style.visibility = 'visible';
+          page3WrapperRef.current.style.pointerEvents = 'auto';
+        }
+        if (page3ContainerRef.current) {
+          gsap.set(page3ContainerRef.current, { clearProps: 'all' });
+          page3ContainerRef.current.style.opacity = '1';
+          page3ContainerRef.current.style.filter = 'none';
+        }
+        if (page4ContainerRef.current) {
+          gsap.set(page4ContainerRef.current, { clearProps: 'all' });
+          page4ContainerRef.current.style.opacity = '1';
+          page4ContainerRef.current.style.visibility = 'visible';
+          page4ContainerRef.current.style.pointerEvents = 'auto';
+        }
+
+        // Dedicated Mobile ScrollTrigger timeline for Hero -> About Wheel Transition
+        const mobileCameraObj = {
+          tilt: 36,
+          sideTilt: -35,
+          scale: baseMobileScale,
+          opacity: 1,
+        };
+
+        const mobileTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: pinnedStageRef.current,
+            start: 'top top',
+            end: () => `+=${window.innerHeight * 1.1}px`,
+            scrub: 0.35,
+            onUpdate: (self) => {
+              chimeSynth.notifyScroll();
+              const p = self.progress;
+
+              if (cameraControllerRef.current) {
+                cameraControllerRef.current.interactive = p <= 0.2;
+              }
+              if (heroContainerRef.current && aboutContainerRef.current) {
+                heroContainerRef.current.style.pointerEvents = p < 0.4 ? 'auto' : 'none';
+                aboutContainerRef.current.style.pointerEvents = p >= 0.4 ? 'auto' : 'none';
+              }
+            },
+          },
+        });
+
+        // 1. Huge "MAGNM" scales down and docks into navbar (0.0 -> 0.40)
+        if (heroMagnmRef.current) {
+          mobileTl.to(
+            heroMagnmRef.current,
+            {
+              scale: () => getTransformTargets().scale,
+              x: () => getTransformTargets().x,
+              y: () => getTransformTargets().y,
+              transformOrigin: '0 0',
+              ease: 'power2.inOut',
+              duration: 0.40,
+            },
+            0
+          );
+        }
+
+        // 2. Hero secondary items wipe out with optical blur (0.0 -> 0.25)
+        const allLeaveItems = heroSectionRef.current?.querySelectorAll('.leave-blur-item');
+        const leaveItems = allLeaveItems
+          ? Array.from(allLeaveItems).filter((el) => !el.closest('button'))
+          : [];
+        if (leaveItems.length > 0) {
+          mobileTl.to(
+            leaveItems,
+            {
+              filter: 'blur(16px)',
+              opacity: 0,
+              stagger: {
+                amount: 0.08,
+                from: 'random',
+              },
+              duration: 0.25,
+              ease: 'power1.out',
+            },
+            0
+          );
+        }
+
+        if (secondaryElements.length > 0) {
+          mobileTl.to(
+            secondaryElements,
+            {
+              y: -14,
+              opacity: 0,
+              duration: 0.25,
+              ease: 'power2.in',
+            },
+            0
+          );
+        }
+
+        // 3. 3D Wheel rotates from hero tilt into upright vertical circle in center (0.0 -> 0.55)
+        mobileTl.to(
+          mobileCameraObj,
+          {
+            tilt: 90,
+            sideTilt: 0,
+            scale: baseMobileScale * 0.74,
+            opacity: 0.42,
+            ease: 'power2.inOut',
+            duration: 0.55,
+            onUpdate: () => {
+              if (cameraControllerRef.current) {
+                cameraControllerRef.current.tilt = mobileCameraObj.tilt;
+                cameraControllerRef.current.sideTilt = mobileCameraObj.sideTilt;
+                cameraControllerRef.current.scale = mobileCameraObj.scale;
+              }
+              if (wheelWrapperRef.current) {
+                wheelWrapperRef.current.style.opacity = `${mobileCameraObj.opacity}`;
+              }
+            },
+          },
+          0
+        );
+
+        // 4. Section 2 Manifesto fades in (0.25 -> 0.55)
+        if (aboutContainerRef.current) {
+          mobileTl.fromTo(
+            aboutContainerRef.current,
+            { opacity: 0, y: 16 },
+            { opacity: 1, y: 0, ease: 'power2.out', duration: 0.30 },
+            0.25
+          );
+        }
+
+        // 5. Manifesto words illuminate progressively across the 3D wheel (0.35 -> 0.85)
+        if (words && words.length > 0) {
+          mobileTl.to(
+            words,
+            {
+              opacity: 1,
+              filter: 'blur(0px)',
+              stagger: 0.015,
+              duration: 0.50,
+              ease: 'power1.out',
+            },
+            0.35
+          );
+        }
+
+        // 6. Crossfade docked Hero MAGNM to fixed Navbar Brand (0.50 -> 0.60)
+        if (heroMagnmRef.current) {
+          mobileTl.to(heroMagnmRef.current, { opacity: 0, duration: 0.10 }, 0.50);
+        }
+        if (navBrandRef.current) {
+          mobileTl.to(navBrandRef.current, { opacity: 1, duration: 0.10 }, 0.50);
+        }
+
+        // Section 3 slides ON TO Page 2:
+        // As Section 3's top moves from bottom of viewport to top of viewport,
+        // Page 2 underneath subtly scales down and dims, while remaining held at top: 0
+        const slideOnTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: page3WrapperRef.current,
+            start: 'top bottom',
+            end: 'top top',
+            scrub: true,
+            onUpdate: (self) => {
+              if (heroAboutStageRef.current) {
+                // When Section 3 has fully covered Page 2, hide heroAboutStage to free GPU
+                heroAboutStageRef.current.style.visibility =
+                  self.progress >= 0.99 ? 'hidden' : 'visible';
+              }
+            },
+          },
+        });
+
+        if (heroAboutStageRef.current) {
+          slideOnTl.to(
+            heroAboutStageRef.current,
+            {
+              scale: 0.94,
+              opacity: 0.35,
+              ease: 'none',
+            },
+            0
+          );
+        }
+
+        // Section 4 slides ON TO Page 3 in the exact same way:
+        // As Section 4's top moves from bottom of viewport to top of viewport,
+        // Page 3 underneath subtly scales down and dims, while remaining held at top: 0
+        const slideOnP4Tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: page4ContainerRef.current,
+            start: 'top bottom',
+            end: 'top top',
+            scrub: true,
+            onUpdate: (self) => {
+              if (page3WrapperRef.current) {
+                // When Section 4 has fully covered Page 3, hide page3Wrapper to free GPU
+                page3WrapperRef.current.style.visibility =
+                  self.progress >= 0.99 ? 'hidden' : 'visible';
+              }
+              if (self.progress > 0.05) {
+                projectsHandleRef.current?.playEntry();
+              }
+            },
+          },
+        });
+
+        if (page3WrapperRef.current) {
+          slideOnP4Tl.to(
+            page3WrapperRef.current,
+            {
+              scale: 0.94,
+              opacity: 0.35,
+              ease: 'none',
+            },
+            0
+          );
+        }
+
+        ScrollTrigger.refresh();
+
+        // Navbar dynamic color updater when scrolling through Section 3 & 4
+        const updateMobileNav = () => {
+          const p3El = page3WrapperRef.current;
+          if (p3El && navBrandRef.current) {
+            const p3Top = p3El.getBoundingClientRect().top;
+            const isLightBg = p3Top <= 60;
+            const brandText = navBrandRef.current.querySelector('.nav-brand-text') as HTMLElement | null;
+            if (brandText) {
+              brandText.style.color = isLightBg ? '#171717' : '#cccccc';
+            }
+          }
+        };
+
+        window.addEventListener('scroll', updateMobileNav, { passive: true });
+        updateMobileNav();
+
+        return () => {
+          window.removeEventListener('scroll', updateMobileNav);
+        };
       });
 
       return () => mm.revert();
@@ -764,7 +1063,7 @@ function animateSheetSlideUp(
 
   return (
     <SmoothScroll>
-      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-hidden">
+      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-clip lg:overflow-x-hidden">
         {/* Sticky Fixed Navbar (z-50) */}
         <Navbar
           headerRef={navbarHeaderRef}
@@ -800,89 +1099,116 @@ function animateSheetSlideUp(
           </div>
         )}
 
-        {/* Master Pinned Stage for Hero and Section 2 Transition */}
-        <div ref={pinnedStageRef} className="relative z-20 w-full h-screen overflow-hidden">
-          {/* Section 1: Hero (Reveals as preloader finishes, active at top) */}
+        {/* Master Stage: Pinned on Desktop, Natural Vertical Flow on Mobile */}
+        <div ref={pinnedStageRef} className="relative z-20 w-full lg:h-screen lg:overflow-hidden">
+          {/* Hero & About Combined Stage (Sticky on Mobile so Section 3 slides directly on to it) */}
           <div
-            ref={heroContainerRef}
-            className="absolute inset-0 w-full h-full pointer-events-none opacity-100"
+            ref={heroAboutStageRef}
+            className="sticky top-0 z-20 w-full h-[100svh] lg:h-full lg:absolute lg:inset-0 overflow-hidden bg-[#000000] will-change-transform"
           >
-            <Hero
-              showWheel={false}
-              triggerReveal={triggerHeroReveal}
-              heroSectionRef={heroSectionRef}
-              heroMagnmRef={heroMagnmRef}
-              heroTaglineRef={heroTaglineRef}
-              heroEmblemRef={heroEmblemRef}
-              heroBottomRef={heroBottomRef}
-            />
-          </div>
-
-          {/* Persistent 3D Wheel (Layered in FRONT of MAGNM Wordmark & Tagline Text) */}
-          <div
-            ref={wheelWrapperRef}
-            className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center will-change-transform"
-          >
-            <div className="w-full h-full flex items-center justify-center">
-              <XylophoneHelix
-                soundMode="glockenspiel"
-                background="transparent"
-                baseColor="#0E0E1A"
-                bars={44}
-                shape="wheel"
-                speed={59}
-                drag={100}
-                scale={wheelScale}
-                metal={{ reflect: 100, polish: 100 }}
-                hover={{ colors: ['#D8782B'], strength: 0, tint: 0, glow: 0 }}
-                camera={{ tilt: 36, sideTilt: -35 }}
-                cameraControllerRef={cameraControllerRef}
+            {/* Section 1: Hero */}
+            <div
+              ref={heroContainerRef}
+              className="absolute inset-0 w-full h-full pointer-events-auto flex flex-col justify-between"
+            >
+              <Hero
+                showWheel={false}
+                triggerReveal={triggerHeroReveal}
+                heroSectionRef={heroSectionRef}
+                heroMagnmRef={heroMagnmRef}
+                heroTaglineRef={heroTaglineRef}
+                heroEmblemRef={heroEmblemRef}
+                heroBottomRef={heroBottomRef}
               />
+            </div>
+
+            {/* Persistent 3D Wheel */}
+            <div
+              ref={wheelWrapperRef}
+              className="absolute inset-0 w-full h-full z-20 pointer-events-none flex items-center justify-center will-change-transform"
+            >
+              <div className="w-full h-full flex items-center justify-center">
+                <XylophoneHelix
+                  soundMode="glockenspiel"
+                  background="transparent"
+                  baseColor="#0E0E1A"
+                  bars={44}
+                  shape="wheel"
+                  speed={59}
+                  drag={100}
+                  scale={wheelScale}
+                  metal={{ reflect: 100, polish: 100 }}
+                  hover={{ colors: ['#D8782B'], strength: 0, tint: 0, glow: 0 }}
+                  camera={{ tilt: 36, sideTilt: -35 }}
+                  cameraControllerRef={cameraControllerRef}
+                />
+              </div>
+            </div>
+
+            {/* Section 2: Centered About Manifesto */}
+            <div
+              ref={aboutContainerRef}
+              className="absolute inset-0 z-25 w-full h-full pointer-events-none opacity-0 bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform"
+            >
+              <AboutManifesto skipInternalTrigger={true} />
             </div>
           </div>
 
-          {/* Section 2: Centered About Manifesto (Reveals simultaneously with Navbar) */}
+          {/* Mobile Scroll Spacer: track for Hero -> About wheel transition and manifesto reveal */}
           <div
-            ref={aboutContainerRef}
-            className="absolute inset-0 z-25 w-full h-full pointer-events-none opacity-0 will-change-transform"
-          >
-            <AboutManifesto skipInternalTrigger={true} />
-          </div>
-
-          {/* Section 3 Wipe: Parallax Strip Slider Transition into Page 3 */}
-          <ParallaxStripTransition
-            stripCount={12}
-            stripsRef={stripsRef}
-            zoomsRef={zoomsRef}
-            containerRef={stripTransitionContainerRef}
-            bgColor="#cccccc"
+            ref={mobileHeroSpacerRef}
+            className="relative w-full h-[110svh] lg:hidden pointer-events-none"
+            aria-hidden="true"
           />
 
-          {/* Pure White Backdrop revealed when Page 3 contracts/scales down to 80% */}
+          {/* Section 3 Wipe: Parallax Strip Slider Transition (Desktop Only) */}
+          <div className="hidden lg:block">
+            <ParallaxStripTransition
+              stripCount={12}
+              stripsRef={stripsRef}
+              zoomsRef={zoomsRef}
+              containerRef={stripTransitionContainerRef}
+              bgColor="#cccccc"
+            />
+          </div>
+
+          {/* Pure White Backdrop (Desktop Only) */}
           <div
             id="white-stage-backdrop"
             ref={whiteBackdropRef}
-            className="absolute inset-0 z-32 w-full h-full bg-[#ffffff] pointer-events-none opacity-0 will-change-[opacity]"
+            className="hidden lg:block absolute inset-0 z-32 w-full h-full bg-[#ffffff] pointer-events-none opacity-0 will-change-[opacity]"
           />
 
-          {/* Section 3 (Page 3): Our Work */}
+          {/* Section 3 (Page 3): Our Work — sticky on mobile so Section 4 slides directly on to it */}
           <div
             id="page-3"
             ref={page3WrapperRef}
-            className="absolute inset-0 z-35 w-full h-full pointer-events-none overflow-hidden bg-[#cccccc] opacity-0 will-change-[transform,box-shadow,opacity]"
+            className="sticky top-0 lg:absolute lg:inset-0 z-35 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none overflow-hidden bg-[#cccccc] text-[#171717] opacity-100 lg:opacity-0 will-change-transform flex items-center justify-center rounded-none shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-none"
           >
             <OurWork ref={ourWorkHandleRef} containerRef={page3ContainerRef} />
           </div>
 
-          {/* Section 4 (Page 4): Projects Showcase (Incoming Card from bottom) */}
+          {/* Mobile Scroll Spacer: track for Section 3 viewing before Section 4 slides on */}
+          <div
+            ref={mobilePage3SpacerRef}
+            className="relative w-full h-[25svh] lg:hidden pointer-events-none"
+            aria-hidden="true"
+          />
+
+          {/* Section 4 (Page 4): Projects Showcase — slides up on to Page 3 on mobile */}
           <div
             id="page-4"
             ref={page4ContainerRef}
-            className="absolute inset-0 z-40 w-full h-full pointer-events-none will-change-transform opacity-0 shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none overflow-hidden"
-            style={{ transform: 'translateY(100%)', opacity: 0 }}
+            className="sticky top-0 lg:absolute lg:inset-0 z-40 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-hidden shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex items-center justify-center will-change-transform"
           >
             <Projects ref={projectsHandleRef} />
           </div>
+
+          {/* Mobile Scroll Spacer: allows Section 4 to stay docked at top: 0 comfortably */}
+          <div
+            className="relative w-full h-[25svh] lg:hidden pointer-events-none"
+            aria-hidden="true"
+          />
         </div>
       </div>
     </SmoothScroll>

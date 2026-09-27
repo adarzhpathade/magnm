@@ -34,6 +34,8 @@ export interface LiquidGlassCarouselProps {
   background?: string;
   /** Play the rise-and-grow intro. Ignored when the user prefers reduced motion. */
   entry?: boolean;
+  /** Automatically scroll through cards when idle. Default true (3.5s delay). */
+  autoScroll?: boolean | { delay?: number; interval?: number };
   className?: string;
   style?: CSSProperties;
   heading?: string;
@@ -64,6 +66,7 @@ export const LiquidGlassCarousel = forwardRef<
     gap = 14,
     background = "#cccccc",
     entry = true,
+    autoScroll = true,
     heading = "Our Projects",
     description = "Selected spatial systems, digital interfaces & interactive works.",
     className,
@@ -116,6 +119,7 @@ export const LiquidGlassCarousel = forwardRef<
       gap,
       background,
       entry,
+      autoScroll,
       onActiveChange: (index) => {
         setActive(index);
         onActiveChangeRef.current?.(index);
@@ -136,7 +140,7 @@ export const LiquidGlassCarousel = forwardRef<
       engine.destroy();
       engineRef.current = null;
     };
-  }, [items, panelHeight, gap, background, entry]);
+  }, [items, panelHeight, gap, background, entry, autoScroll]);
 
   useEffect(() => {
     const title = titleRef.current;
@@ -247,6 +251,14 @@ export const LiquidGlassCarousel = forwardRef<
       aria-roledescription="carousel"
       aria-labelledby={labelId}
       onKeyDown={onKeyDown}
+      onClick={(e) => {
+        if (!focused) return;
+        if ((e.target as HTMLElement).closest("button")) return;
+        const canvas = mountRef.current?.querySelector("canvas");
+        if (e.target !== canvas) {
+          engineRef.current?.closeFocus();
+        }
+      }}
     >
       <p id={labelId} className="sr-only">
         Liquid glass project carousel

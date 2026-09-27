@@ -56,7 +56,7 @@ export default function Hero({
     const updateWheelScale = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setWheelScale(48);
+        setWheelScale(54);
       } else if (width < 1024) {
         setWheelScale(70);
       } else {
@@ -71,7 +71,7 @@ export default function Hero({
   return (
     <section
       ref={heroSectionRef}
-      className="relative w-full h-screen min-h-[500px] bg-transparent text-[#cccccc] overflow-hidden flex flex-col justify-between px-4 sm:px-6 md:px-8 lg:px-10 pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6 md:pb-7 select-none pointer-events-none"
+      className="relative w-full min-h-[100svh] lg:h-screen bg-transparent text-[#cccccc] overflow-hidden flex flex-col justify-between px-4 sm:px-6 md:px-8 lg:px-10 pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6 md:pb-7 select-none pointer-events-none"
     >
       {/* Top Header: Brand Wordmark & Tagline (Left) & Narrative Statement (Right) */}
       <header className="relative w-full flex flex-col pointer-events-none">
@@ -244,89 +244,22 @@ export default function Hero({
         </div>
       </header>
 
-      {/* Bottom Row: Bottom-Left Options */}
+      {/* Bottom Row: Action Buttons grounded at bottom-left */}
       <div
         ref={heroBottomRef}
-        className="pointer-events-auto relative z-30 w-full flex justify-between items-end"
+        className="pointer-events-auto relative z-30 w-full flex justify-start items-end pb-0.5 sm:pb-1"
       >
-        {/* Bottom Left Options (Interactive on all viewports) */}
-        <div className="pointer-events-auto relative z-30 flex flex-wrap items-center gap-6 sm:gap-8 md:gap-10 pb-0.5 sm:pb-1">
+        {/* Action Buttons: Single focused CTA on mobile, both side-by-side on desktop */}
+        <div className="pointer-events-auto relative z-30 flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
           <KineticShiftButton
             text="DISCUSS YOUR PROJECT"
             ariaLabel="Discuss your project"
           />
 
-          <KineticShiftButton
-            text="BOOK A 30-MINUTE CALL"
-            ariaLabel="Book a 30-minute call"
-          />
-        </div>
-
-        {/* Mobile View: Logo Emblem + Thin Line Divider + Narrative Statement (Bottom-Right) */}
-        <div className="pointer-events-auto relative z-30 flex md:hidden items-center gap-3 sm:gap-3.5 max-w-[310px] sm:max-w-[340px] self-end ml-auto pb-1">
-          {/* MAGNM Metallic Logo Emblem */}
-          <motion.div
-            initial={{ filter: 'blur(16px)', opacity: 0 }}
-            animate={triggerReveal ? { filter: 'blur(0px)', opacity: 1 } : { filter: 'blur(16px)', opacity: 0 }}
-            transition={{ duration: 0.55, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="leave-blur-item relative shrink-0 flex items-center justify-center will-change-[filter,opacity]"
-          >
-            <Image
-              src="/magnm light.png"
-              alt="MAGNM Emblem"
-              width={1536}
-              height={1024}
-              className="h-9 sm:h-10 w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
-              priority
-            />
-          </motion.div>
-
-          {/* Thin Vertical Dividing Line */}
-          <motion.div
-            initial={{ filter: 'blur(8px)', opacity: 0 }}
-            animate={triggerReveal ? { filter: 'blur(0px)', opacity: 1 } : { filter: 'blur(8px)', opacity: 0 }}
-            transition={{ duration: 0.5, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="leave-blur-item w-[1px] h-9 sm:h-10 bg-white/20 shrink-0 will-change-[filter,opacity]"
-            aria-hidden="true"
-          />
-
-          {/* Narrative Statement with BlurText reveal */}
-          <div className="flex flex-col justify-center select-none">
-            <BlurText
-              text="Websites, AI products, brands,"
-              animateBy="words"
-              direction="none"
-              randomize={false}
-              delay={40}
-              startDelay={160}
-              stepDuration={0.35}
-              trigger={triggerReveal}
-              spanClassName="leave-blur-item"
-              className="font-['Familjen_Grotesk',sans-serif] text-[0.68rem] sm:text-[0.74rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]"
-            />
-            <BlurText
-              text="and systems built for clarity,"
-              animateBy="words"
-              direction="none"
-              randomize={false}
-              delay={40}
-              startDelay={260}
-              stepDuration={0.35}
-              trigger={triggerReveal}
-              spanClassName="leave-blur-item"
-              className="font-['Familjen_Grotesk',sans-serif] text-[0.68rem] sm:text-[0.74rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]"
-            />
-            <BlurText
-              text="scale and impact."
-              animateBy="words"
-              direction="none"
-              randomize={false}
-              delay={40}
-              startDelay={360}
-              stepDuration={0.35}
-              trigger={triggerReveal}
-              spanClassName="leave-blur-item"
-              className="font-['Familjen_Grotesk',sans-serif] text-[0.68rem] sm:text-[0.74rem] text-[#cccccc] font-normal leading-[1.25] tracking-[-0.012em]"
+          <div className="hidden md:block">
+            <KineticShiftButton
+              text="BOOK A 30-MINUTE CALL"
+              ariaLabel="Book a 30-minute call"
             />
           </div>
         </div>
