@@ -1,135 +1,241 @@
-# Memory — MAGNM Landing Page: Full Architecture, Mobile Page Transition Parity & Minimalist Refinement
+# Memory — MAGNM Creative Studio Landing Page
 
-Last updated: 2026-09-27 18:55
-
----
-
-## ⚠️ Core Workflow Rules & Developer Constraints
-
-1. **DO NOT RUN CHECKS AFTER EVERY STEP**:
-   - There is NO need to run validation, terminal commands, or build/lint checks after every individual step or small code edit.
-   - Run checks only at major completion milestones or when explicitly requested by the developer.
-
-2. **NO NEED TO CHECK IN BROWSER AFTER EVERY STEP**:
-   - Do NOT launch browser subagents, browser sessions, or browser verification steps after every individual change.
-   - Rely on direct code precision, verified design references, and deliberate developer handoffs. Test in browser only when explicitly asked.
+Last updated: 2026-09-28 01:45
+Repository: `https://github.com/adarzhpathade/magnm.git`
+Branch: `main`
 
 ---
 
-## What was built
+## 1. Executive Summary & Project Mission
 
-### 1. Unified Mobile Page Transition System (Exact Parity: Page 2 &rarr; 3 &rarr; 4)
-- **Problem Solved**:
-  - Previously, Section 3 sliding onto Section 2 felt smooth, but Section 4 sliding onto Section 3 felt disjointed due to mismatched sizing (`min-h-[100svh]` vs `h-[100svh]`), lack of sticky docking (`relative` vs `sticky top-0`), missing overflow clipping (`overflow-visible`), an excessively large dead spacer (`h-[100svh]`), and no scroll cushion after Section 4 causing mobile address bars to cut off the final scroll progress.
-- **Unified Architecture Implementation ([src/components/MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))**:
-  - **Identical Structural Containment**:
-    - `heroAboutStageRef` (Page 1 & 2): `sticky top-0 z-20 w-full h-[100svh] lg:h-full lg:absolute lg:inset-0 overflow-hidden bg-[#000000] will-change-transform`.
-    - `page3WrapperRef` (Page 3 - Our Work): `sticky top-0 lg:absolute lg:inset-0 z-35 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none overflow-hidden bg-[#cccccc] text-[#171717] opacity-100 lg:opacity-0 will-change-transform flex items-center justify-center rounded-none shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-none`.
-    - `page4ContainerRef` (Page 4 - Projects): `sticky top-0 lg:absolute lg:inset-0 z-40 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-hidden shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex items-center justify-center will-change-transform`.
-  - **Identical Motion Timelines & Easing Curves**:
-    - **Page 2 &rarr; Page 3 (`slideOnTl`)**:
-      - Trigger: `page3WrapperRef.current` (`start: 'top bottom'`, `end: 'top top'`, `scrub: true`).
-      - Target: `heroAboutStageRef.current` &rarr; `scale: 0.94`, `opacity: 0.35`, `ease: 'none'`.
-      - On Update: `heroAboutStageRef.current.style.visibility = self.progress >= 0.99 ? 'hidden' : 'visible'`.
-    - **Page 3 &rarr; Page 4 (`slideOnP4Tl`)**:
-      - Trigger: `page4ContainerRef.current` (`start: 'top bottom'`, `end: 'top top'`, `scrub: true`).
-      - Target: `page3WrapperRef.current` &rarr; `scale: 0.94`, `opacity: 0.35`, `ease: 'none'`.
-      - On Update: `page3WrapperRef.current.style.visibility = self.progress >= 0.99 ? 'hidden' : 'visible'`.
-      - Trigger carousel entry when starting entrance: `if (self.progress > 0.05) projectsHandleRef.current?.playEntry()`.
-  - **Optimized Cadence & Docking Cushions**:
-    - `mobileHeroSpacerRef`: `h-[110svh]` — scrubs Hero fadeout, 3D wheel upright rotation, navbar brand docking, and manifesto progressive word illumination.
-    - `mobilePage3SpacerRef`: Tightened from `h-[100svh]` to `h-[25svh]` — allows comfortable reading of Section 3 before a single natural thumb flick starts Section 4 sliding up.
-    - `mobilePage4SpacerRef`: Added `h-[25svh]` scroll cushion after Section 4 — guarantees Section 4 reaches `progress = 1.0` and docks firmly at `top: 0` without prematurely hitting browser bottom bounds or address bar bounce.
-  - **Full Reversibility**:
-    - Scrolling backwards cleanly unhides previous sections, restoring `opacity: 1` and `scale: 1` dynamically.
-  - **Desktop Zero-Impact Guarantee**:
-    - All mobile classes use `lg:` overrides (`lg:absolute`, `lg:inset-0`, `lg:h-full`, `lg:overflow-hidden`); desktop pinned timeline inside `mm.add('(min-width: 1024px)')` remains 100% untouched.
+MAGNM is a motion-driven, ultra-minimalist, monochromatic digital creative studio landing page. It is engineered with high visual fidelity, seamless 3D WebGL scenes, fluid scroll-driven GSAP sequences, and an interactive spatial soundscape.
+
+The codebase has undergone a complete architectural refactoring: both monolithic bottlenecks (`MainExperience.tsx` and `carousel-engine.ts`) have been broken down into modular, single-responsibility files under `src/components/experience/` and `src/components/ui/carousel/`.
 
 ---
 
-### 2. Mobile Hero Pure Minimalist Layout (Direction 1)
-- **Problem Solved**:
-  - Mobile hero previously suffered from visual competition: stacked narrative paragraph, floating `[M]` emblem conflicting with the main wordmark, and stacked mismatched buttons at the bottom.
-- **Refinement Implementation ([src/components/Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx))**:
-  - **Stripped Redundant Narrative**: Removed the 3-line studio paragraph on mobile so the header area breathes with only the iconic `MAGNM` typography and kinetic tagline.
-  - **Removed Floating Emblem**: Stripped the redundant floating `[M]` emblem from mobile bottom; emblem remains exclusively on desktop (`hidden md:flex`).
-  - **Single Focused CTA Button**: Mobile features a single grounded button (`DISCUSS YOUR PROJECT +`) anchored at the **bottom-left** with generous thumb-reach spacing. The secondary button (`SEE WORK ↓`) is hidden on mobile (`hidden md:block`).
-  - **Scaled 3D Helix Wheel**: Scaled mobile wheel up from `48` to `54` in both [Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx) and [MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx), giving the 3D metal wheel commanding centered presence.
-  - **Desktop 100% Preserved**: Top-right narrative + emblem block and bottom dual buttons preserved intact on desktop.
+## 2. ⚠️ Core Developer Constraints & Workflow Rules
+
+1. **Exact Design Reference Fidelity**:
+   - The monochromatic visual identity is non-negotiable (`#000000`, `#171717`, `#4D4D4D`, `#cccccc`, `#DEDEDE`, `#ffffff`).
+   - Do NOT introduce random accent colors (red, blue, green, gradients) unless explicitly shown in a reference.
+   - Exact spacing, typography, letter-spacing, and layout take precedence over personal preferences.
+
+2. **No Checks After Every Minor Edit**:
+   - Do NOT run validation, terminal commands, or build/lint checks after every individual step.
+   - Run checks only at major completion milestones (e.g., after an entire section is wired or at session end).
+
+3. **No Unwanted Browser Subagent Launches**:
+   - Do NOT launch browser subagents unless explicitly requested by the user.
+   - Rely on direct code precision, verified component APIs, and compile-time verification (`npx tsc --noEmit`).
+
+4. **Preserve Third-Party Imported Components**:
+   - Do NOT touch or refactor anything in:
+     - `src/components/originkit/` (`xylophone-helix.tsx`, `liquid-glass-carousel.tsx`, etc.)
+     - `src/components/unlumen-ui/`
+     - `src/components/effects/`
+     - `src/components/fancy/`
 
 ---
 
-### 3. Mobile Section 3 (Our Work) Layout & Editorial Typography
-- **Refinement Implementation ([src/components/OurWork.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/OurWork.tsx))**:
-  - **Container Parity**: Changed `min-h-screen` to `lg:min-h-screen` on the root container so on mobile it is strictly `h-full`, perfectly contained inside `page3WrapperRef`'s `100svh`.
-  - **Editorial Padding & Clearance**: Updated mobile container to `pt-20 sm:pt-24 pb-8 sm:pb-12 px-2`, ensuring complete clearance below the fixed navbar and zero bottom clipping across all mobile viewports.
-  - **Left-Aligned Header & Description**: Kept "We provide" heading and descriptive statement cleanly left-aligned with editorial spacing (`mt-5 sm:mt-6`, `mb-12 sm:mb-14`).
-  - **Spacious Services Rows**: Scaled rows to `py-5 sm:py-5.5` with monospace numbering `01`–`04` and fluid tap-to-expand `<BlurText>` animation with smooth `layout="position"` motion.
+## 3. Design System & Palette Tokens
+
+| Token | Hex | Role | Usage |
+|---|---|---|---|
+| Background Dark | `#000000` | Main deep background | Viewport background, Hero stage, dark sections |
+| Dark Surface / Primary Text | `#171717` | High-contrast text & cards | Primary typography on light surfaces, button fill |
+| Medium Dark Accent | `#4D4D4D` | Subtle borders & muted text | Borders, secondary labels, disabled states |
+| Light Surface Primary | `#cccccc` | Light surface for Sec 3 & 4 | Our Work background, Projects card backdrop |
+| Light Background Surface | `#DEDEDE` | High-key surface tint | Secondary light highlights and overlays |
+| Pure White Accent | `#ffffff` | Flash backdrop | Stage flash transitions (`#white-stage-backdrop`) |
+
+**Typography**:
+- Primary Display: Custom Sans (`font-sans`, uppercase, tight tracking `-0.04em` to `-0.05em`)
+- Technical / Data: Martian Mono / Monospace (`tabular-nums`, tracking `0.14em`)
+- Editorial / Body: Minimalist grotesque sans-serif with subtle letter spacing
 
 ---
 
-### 4. Mobile Section 4 (Projects Showcase) Container Sizing
-- **Refinement Implementation ([src/components/Projects.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Projects.tsx))**:
-  - Changed `min-h-screen` to `lg:min-h-screen` on the section container, ensuring it resolves to `h-full` within the `100svh` sticky card sheet on mobile.
-  - [LiquidGlassCarousel](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/liquid-glass-carousel.tsx) scales cleanly within the centered viewport card with horizontal swipe interaction.
+## 4. Full Codebase Inventory & Modular Architecture
+
+```
+src/
+├── app/
+│   ├── page.tsx                          — Entry point, renders <MainExperience />
+│   ├── layout.tsx                        — Font optimization (Geist, Martian Mono), root HTML
+│   └── globals.css                       — Base Tailwind, custom utilities, selection styles
+├── components/
+│   ├── MainExperience.tsx                — (~260 lines) Orchestrator: refs, useGSAP lifecycle, JSX stage tree
+│   ├── Navbar.tsx                        — Fixed sticky navbar (z-50) with Brand dock target & action buttons
+│   ├── Hero.tsx                          — Minimalist hero header, kinetic tagline, bottom-left CTA
+│   ├── AboutManifesto.tsx                — Section 2 manifesto with progressive word illumination
+│   ├── OurWork.tsx                       — Section 3: desktop OptionWheel wrapper + mobile tap-to-expand services
+│   ├── Projects.tsx                      — Section 4: Projects title + LiquidGlassCarousel wrapper
+│   ├── OptionWheel.tsx                   — Desktop interactive 3D circular service carousel
+│   ├── ParallaxStripTransition.tsx       — 12-strip vertical wipe from Section 2 to Section 3
+│   ├── SmoothScroll.tsx                  — Lenis smooth scrolling (desktop only; bypassed on mobile)
+│   ├── Counter.tsx                       — Monospace odometer roll-up number counter
+│   ├── BlurText.tsx                      — Text reveal with staggered character/word optical blur
+│   ├── KineticShiftButton.tsx            — 3D letter-swap button with magnetic/spring hover
+│   ├── FloatingRock.tsx                  — Decorative 3D asset with subtle inertia float
+│   │
+│   ├── experience/                       — 🎯 EXTRACTED FROM MAINEXPERIENCE MONOLITH
+│   │   ├── timings.ts                    — Master TIMINGS config object for all 8 scroll phases
+│   │   ├── animation-helpers.ts          — animateSheetScaleDown, animateSheetSlideUp, getTransformTargets
+│   │   ├── use-responsive-wheel.ts       — Wheel scale state (54/70/90), resize listener, scrollRestoration
+│   │   ├── use-desktop-timeline.ts       — Desktop pinned ScrollTrigger master timeline (min-width: 1024px)
+│   │   └── use-mobile-timeline.ts        — Mobile sequential ScrollTrigger timelines (max-width: 1023px)
+│   │
+│   ├── ui/
+│   │   ├── liquid-glass-carousel.tsx     — React forwardRef component wrapping the carousel engine
+│   │   ├── letter-3d-swap.tsx            — Letter swap hover physics
+│   │   ├── orbital-rings.tsx             — Decorative canvas/SVG orbital rings
+│   │   ├── text-repel.tsx                — Interactive mouse-repelling text
+│   │   ├── webgl-error-boundary.tsx      — Fallback container if WebGL context is lost or unsupported
+│   │   │
+│   │   └── carousel/                     — 🎯 EXTRACTED FROM CAROUSEL-ENGINE MONOLITH
+│   │       ├── index.ts                  — Public barrel exports (createCarousel, types, defaultItems)
+│   │       ├── types.ts                  — CarouselState, LiquidGlassCarouselHandle, PoolItem, Source, etc.
+│   │       ├── constants.ts              — LENS, FOCUS, ENTRY, REPEATS, drag physics, hexToNumber
+│   │       ├── default-items.ts          — Default project item showcase definitions
+│   │       ├── shaders.ts                — Vertex & Fragment GLSL shaders (discLens, chromatic aberration)
+│   │       ├── create-renderer.ts        — Three.js WebGLRenderer, scene, orthographic camera, quad mesh
+│   │       ├── layout.ts                 — Slot math, wrap-around offsets, centerForIndex, mesh positioning
+│   │       ├── input.ts                  — Wheel, drag, pointer capture, touch direction gating, custom cursor
+│   │       ├── focus.ts                  — openFocus and closeFocus card-drop GSAP animations
+│   │       ├── entry.ts                  — playEntry symmetrical center-outward ripple animation
+│   │       ├── auto-scroll.ts            — Continuous progress bar calculation and idle auto-advance
+│   │       └── create-carousel.ts        — Orchestrator connecting all modules inside RAF tick loop
+│   │
+│   ├── originkit/ui/                     — 3rd party UI (DO NOT MODIFY)
+│   │   └── xylophone-helix.tsx           — 3D metal kinetic helix wheel
+│   ├── unlumen-ui/                       — 3rd party UI (DO NOT MODIFY)
+│   ├── effects/parallax-strip-slider/    — Parallax strip slice logic (DO NOT MODIFY)
+│   └── fancy/physics/elastic-line.tsx    — Interactive SVG elastic line
+│
+├── hooks/
+│   ├── use-dimensions.ts                 — Viewport bounding client rect tracker
+│   ├── use-elastic-line-events.ts        — Mouse pointer physics for SVG elastic line
+│   └── use-mouse-position.ts             — Normalized mouse coordinates hook
+│
+└── lib/
+    ├── chime-synth.ts                    — Web Audio API glockenspiel synthesizer + scroll listener
+    └── utils.ts                          — clsx / twMerge helper (`cn`)
+```
 
 ---
 
-### 5. Native Momentum Touch Scrolling on Mobile
-- **Implementation ([src/components/SmoothScroll.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/SmoothScroll.tsx))**:
-  - Lenis smooth wheel scrolling is strictly active on desktop (`window.innerWidth >= 1024`).
-  - On mobile (`< 1024px`), Lenis is completely bypassed, returning native `children` for raw 120Hz momentum touch scrolling.
-  - Root container utilizes `overflow-x-clip lg:overflow-x-hidden`, allowing CSS `position: sticky` to function without viewport truncation.
+## 5. Detailed Breakdown of Sections & Motion Pipeline
+
+### Section 1: Hero & Navbar Docking
+- **Navbar ([Navbar.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Navbar.tsx))**:
+  - Sticky fixed header (`z-50`) across the entire page.
+  - Left brand target (`.nav-brand-text`): hidden at start (`opacity: 0, y: -14px`), crossfades into view at scroll `0.41`.
+  - Right action button (`DISCUSS YOUR PROJECT +`): hidden at start, animates into view at scroll `0.12`.
+- **Hero ([Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx))**:
+  - Monolithic `MAGNM` typography scaled across the full width.
+  - On desktop scroll (`0.0 -> 0.16`), `heroMagnmRef` scales down from `1.0` to `0.22` and translates directly into the top-left Navbar position via `getTransformTargets()`.
+  - Secondary elements (`heroTaglineRef`, `heroEmblemRef`, `heroBottomRef`) lift `-14px` and blur out with randomized optical blur.
+  - On mobile, `Hero` follows Minimalist Direction: no paragraph clutter, emblem hidden, single bottom-left CTA button, 3D wheel scaled to `54`.
+
+### Section 2: Centered About Manifesto
+- **Manifesto ([AboutManifesto.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutManifesto.tsx))**:
+  - Pinned stage: statement appears at scroll `0.12` and remains centered.
+  - Individual `.word` spans start blurred and dimmed (`opacity: 0.14, filter: blur(8px)`).
+  - Progressive illumination scrubs across scroll `0.14 -> 0.30` (stagger `0.008s`), lighting words as the user scrolls.
+- **3D Kinetic Helix Wheel ([xylophone-helix.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/originkit/ui/xylophone-helix.tsx))**:
+  - Starts tilted (`tilt: 36, sideTilt: -35`) at `initialYOffset = 36px`.
+  - During scroll `0.0 -> 0.26`, smoothly rotates upright (`tilt: 90, sideTilt: 0`) and centers directly behind the manifesto statement.
+  - Interactive hover audio physics enabled only when `progress <= 0.30`. At scroll `0.34`, fades out cleanly.
+
+### Section 2 &rarr; Section 3 Transition: Parallax Strip Slider
+- **12 Vertical Strips ([ParallaxStripTransition.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ParallaxStripTransition.tsx))**:
+  - At scroll `0.34 -> 0.44`, Section 2 blurs out and lifts `-24px`.
+  - 12 vertical strips wipe across the screen from left to right (`clipPath: 'inset(0 100% 0 0)'` &rarr; `'inset(0 0% 0 0)'`, stagger `0.006s`).
+  - Underlying background slices scale down from `1.15` to `1.0`, creating high-end optical depth revealing the light `#cccccc` surface.
+  - Navbar styles invert dynamically to dark text (`#171717`) and translucent dark button borders.
+
+### Section 3: Our Work (Services)
+- **Desktop (OptionWheel)**:
+  - Active during scroll `0.44 -> 0.70`.
+  - Pinned timeline scrubs a virtual index (`0 -> 5`), invoking `ourWorkHandleRef.current.setPositionDirect(index)`.
+  - ScrollTrigger has discrete snap points (`snapTo`) for each service index with `0.35s` easing and `chimeSynth` tick audio.
+- **Mobile (Card Sheet Slide-On)**:
+  - Section 3 is a sticky card sheet (`sticky top-0 h-[100svh] bg-[#cccccc] text-[#171717] shadow-[0_-25px_60px_rgba(0,0,0,0.35)]`).
+  - As user scrolls through `mobileHeroSpacerRef` (`110svh`), Section 3 slides UP on top of Section 2.
+  - Section 2 underneath stays locked at `top: 0`, scales to `0.94`, and dims to `0.35`.
+  - Features an editorial left-aligned header, monospace numbers `01`–`04`, and tap-to-expand service drawers with `<BlurText>`.
+
+### Section 4: Projects Showcase (Liquid Glass Carousel)
+- **Desktop**:
+  - At scroll `0.70 -> 0.82`, Section 3 scales down to `0.8` (`animateSheetScaleDown`), revealing the white backdrop flash (`whiteBackdropRef`).
+  - Section 4 (`page4ContainerRef`) slides up from bottom (`100% -> 0%`, `animateSheetSlideUp`).
+  - On arrival, triggers `projectsHandleRef.current.playEntry()` for the carousel intro sequence.
+- **Mobile**:
+  - Slides onto Section 3 with the exact same motion language: Section 3 stays locked, scales to `0.94`, dims to `0.35`, and Section 4 locks at `top: 0`.
+  - Supported by `mobilePage3SpacerRef` (`25svh`) and `mobilePage4SpacerRef` (`25svh`) docking cushions.
+- **WebGL Carousel Engine Features**:
+  - **Symmetrical Card Ripple Entry**: Uniform card heights (`PANEL_H = 230px`), Card 0 mathematically centered (`x = 0`), symmetrical center-outward ripple (`staggerDelay = normDist * 0.16`).
+  - **Auto-Advance Progress Line**: Exact-width line (`2px` track, `#171717` fill) 14px below active frame, fills 0% to 100% over 3.5s idle interval, advances to next card and resets.
+  - **Interactions**: Drag/swipe with velocity physics, touch direction disambiguation (vertical scroll passes through to page; horizontal swipes control carousel), click-to-focus modal with card-drop animation, background click to dismiss.
 
 ---
 
-### 6. Prior System Polish & Foundational Fixes
-- **3D Kinetic Helix Wheel Hover Scope Fix ([xylophone-helix.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/originkit/ui/xylophone-helix.tsx))**:
-  - Gated hover reactions via `cameraControllerRef.current.interactive = progress <= 0.30`, keeping wheel physics active only in Hero and About sections.
-- **Hero Button Kinetic Hover Fix ([MainExperience.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/MainExperience.tsx))**:
-  - Excluded buttons from `.leave-blur-item` GSAP scrub animation to prevent overwrite of button CSS transforms and Framer Motion hover states.
-- **Page 4 Carousel Enhancements ([liquid-glass-carousel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/liquid-glass-carousel.tsx), [carousel-engine.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/carousel-engine.ts))**:
-  - 230px card height (`aspect-video`), responsive typography, empty space click-to-dismiss for focused projects, and idle auto-scroll (3.5s interval) with smart pause triggers.
-- **Page 5 Orbit Stack Removal**:
-  - Cleaned out Page 5 completely, making Page 4 the docked terminus of the page experience until the footer is built.
+## 6. Exact GSAP Desktop TIMINGS Config
+
+```ts
+export const TIMINGS = {
+  heroDock:        { start: 0.00, duration: 0.16 }, // MAGNM docks to navbar
+  navbarActions:   { start: 0.12, duration: 0.10 }, // Navbar actions fade in
+  aboutManifesto:  { start: 0.14, duration: 0.16 }, // Words progressive illumination
+  wheel3D:         { start: 0.00, duration: 0.26 }, // Wheel rotates upright
+  stripWipe:       { start: 0.34, duration: 0.10 }, // Parallax 12-strip transition
+  servicesScroll:  { start: 0.44, end: 0.70, duration: 0.26 }, // OptionWheel 6 services
+  page3ScaleDown:  { start: 0.70, duration: 0.12 }, // Section 3 scales to 80%
+  page4SlideUp:    { start: 0.74, duration: 0.18 }, // Section 4 slides up from bottom
+};
+```
 
 ---
 
-## Decisions made
+## 7. Solved Issues & Historical Gotchas
 
-1. **Card-Sheet Slide-On Pattern for All Mobile Page Transitions**:
-   - Rather than standard vertical scrolling where elements simply leave the viewport, each major section (Section 3 and Section 4) slides UP directly ON TO the previous section as an elevated card sheet (`shadow-[0_-25px_60px_rgba(0,0,0,0.35)]`), while the section underneath stays locked at `top: 0`, scales down to `0.94`, and dims to `0.35` against the dark `#000000` backdrop.
-2. **Strict 100svh Viewport Containment**:
-   - Both `page3WrapperRef` and `page4ContainerRef` are enforced to `h-[100svh] overflow-hidden will-change-transform` on mobile. This ensures transforms scale precisely from the screen center without leaking or distorting.
-3. **Dedicated Scroll Spacers for Natural Cadence**:
-   - `mobileHeroSpacerRef` (`110svh`) provides the track for the 3D wheel rotation and word illumination.
-   - `mobilePage3SpacerRef` (`25svh`) provides an intentional rest before Page 4 slides on.
-   - `mobilePage4SpacerRef` (`25svh`) provides a docking cushion for Page 4.
-4. **Desktop Preservation Priority**:
-   - All mobile-specific CSS utilities are overridden with `lg:` classes, and JavaScript animations are segregated via `gsap.matchMedia()`.
-
----
-
-## Current state
-
-- **Section 1 (Hero)**:
-  - Desktop: Kinetic 3D wheel audio, horizontal CTA buttons, top-right narrative & emblem.
-  - Mobile: Minimalist Direction 1 — header breathes with MAGNM + kinetic tagline, single grounded bottom-left CTA, scaled wheel (`54`).
-- **Section 2 (Manifesto)**:
-  - 3D wheel rotates to upright vertical circle centered behind About Manifesto statement; progressive word illumination.
-- **Section 3 (Our Work)**:
-  - Desktop: Interactive OptionWheel with mouse drag and wheel scrubbing.
-  - Mobile: Left-aligned editorial header, borderless tap-to-expand list (`01`–`04`) with partial optical blur reveal.
-- **Section 4 (Projects)**:
-  - Desktop & Mobile: Liquid glass WebGL carousel with project cards, auto-scroll, and click-to-focus modal.
-- **Page Transitions (Mobile)**:
-  - Page 2 &rarr; 3: Card sheet slides on top, Page 2 scales to 0.94 and dims to 0.35.
-  - Page 3 &rarr; Page 4: Identical card sheet slide-on, Page 3 scales to 0.94 and dims to 0.35, Page 4 locks at `top: 0`.
-- **Server**: Next.js running on `http://localhost:3000`. Clean TypeScript compilation (`0` errors).
+1. **Card Asymmetry on Entrance**:
+   - *Cause*: `rep !== midRep` pool culling and custom offset summation in earlier code caused uneven left/right distribution and an ugly left blank gap.
+   - *Fix*: Maintained true infinite repeating loop coordinate math during entrance so cards tile symmetrically across both viewport edges.
+2. **Hover Resetting Progress Line**:
+   - *Cause*: Any pointer movement was updating `lastActivity = performance.now()`, restarting the 3.5s auto-scroll timer whenever the mouse hovered over the card.
+   - *Fix*: Decoupled mouse hover from `lastActivity`. Only actual drag, swipe, wheel scrub, or modal focus pauses/resets the timer.
+3. **Mobile Sticky Stacking Loss**:
+   - *Cause*: `overflow-hidden` on parent containers broke CSS `position: sticky`.
+   - *Fix*: Used `overflow-x-clip lg:overflow-x-hidden` on the main container and dedicated SVH scroll spacers (`mobileHeroSpacerRef`, `mobilePage3SpacerRef`, `mobilePage4SpacerRef`).
+4. **Touch Event Blocking**:
+   - *Cause*: WebGL canvas pointer capture swallowed vertical swipe gestures on mobile devices.
+   - *Fix*: Implemented touch direction detection in `input.ts`. If `totalDy > totalDx`, pointer capture is immediately released so natural page scrolling occurs seamlessly.
 
 ---
 
-## Next session starts with
+## 8. Immediate Next Steps / Roadmap to Completion
 
-- Design and build the Footer section following Page 4.
-- Implement footer transitions and layout matching MAGNM monochromatic visual standards.
+To complete the website as fast as possible:
+
+### Phase A: Section 5 — Footer Component
+1. Build `src/components/Footer.tsx`:
+   - Monochromatic dark background (`#000000` or `#171717`) or contrast white/light card.
+   - Giant stylized `MAGNM` logo signature watermark.
+   - Studio navigation links (Work, About, Services, Careers, Contact).
+   - Social links (X/Twitter, Instagram, LinkedIn, GitHub).
+   - Kinetic Contact CTA: "LET'S WORK TOGETHER" or "START A PROJECT".
+   - Current time (UTC/local) + status indicator ("AVAILABLE FOR Q2/Q3 PROJECTS").
+   - Copyright, privacy, and imprint lines.
+2. Wire Footer into `MainExperience.tsx`:
+   - Desktop: Animate Section 4 scale-down or reveal Footer naturally after Section 4.
+   - Mobile: Slide-on card sheet or natural scroll docking below Section 4.
+
+### Phase B: Contact / Project Inquiry Modal (Optional/Interactive)
+1. Add an overlay inquiry drawer or full-screen contact form triggered by all `DISCUSS YOUR PROJECT +` buttons.
+2. Keep it minimal, monochromatic, with smooth entrance animation and audio chime feedback.
+
+### Phase C: Final Performance & Visual Polish
+1. Run lighthouse / memory profile to ensure WebGL context disposal and Three.js memory allocations remain low.
+2. Verify all breakpoints (mobile 375px/390px/430px, tablet 768px/1024px, desktop 1440px/1920px).

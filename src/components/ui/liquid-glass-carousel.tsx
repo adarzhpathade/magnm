@@ -21,7 +21,7 @@ import {
   type LiquidGlassCarouselHandle,
   type LiquidGlassCarouselItem,
   liquidGlassCarouselDefaultItems,
-} from "./carousel-engine";
+} from "./carousel";
 
 export type { LiquidGlassCarouselHandle, LiquidGlassCarouselItem };
 export { liquidGlassCarouselDefaultItems };
@@ -89,6 +89,8 @@ export const LiquidGlassCarousel = forwardRef<
   const [entryDone, setEntryDone] = useState(!entry);
   const [failed, setFailed] = useState(false);
   const [panelH, setPanelH] = useState(panelHeight);
+  const progressFillRef = useRef<HTMLDivElement>(null);
+  const progressContainerRef = useRef<HTMLDivElement>(null);
   const labelId = useId();
   const liveId = useId();
   const current = items[active] ?? items[0];
@@ -130,6 +132,11 @@ export const LiquidGlassCarousel = forwardRef<
       },
       onEntryDone: setEntryDone,
       onPanelHChange: (h) => setPanelH(h),
+      onAutoScrollProgress: (progress) => {
+        if (progressFillRef.current) {
+          progressFillRef.current.style.transform = `scaleX(${progress})`;
+        }
+      },
     });
     if (!engine) {
       setFailed(true);
@@ -296,6 +303,28 @@ export const LiquidGlassCarousel = forwardRef<
         >
           {current?.title}
         </p>
+      )}
+
+      {Boolean(autoScroll) && (
+        <div
+          ref={progressContainerRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 transition-opacity duration-300 select-none"
+          style={{
+            top: `calc(50% + ${panelH / 2}px + 14px)`,
+            width: Math.round(panelH * (current?.aspect || 16 / 9)),
+            maxWidth: "calc(100vw - 32px)",
+            opacity: entryDone && !focused ? 1 : 0,
+          }}
+        >
+          <div className="relative h-[2px] w-full rounded-full bg-[#171717]/15 overflow-hidden">
+            <div
+              ref={progressFillRef}
+              className="absolute inset-y-0 left-0 w-full bg-[#171717] origin-left will-change-transform"
+              style={{ transform: "scaleX(0)" }}
+            />
+          </div>
+        </div>
       )}
       <div
         ref={counterRef}
