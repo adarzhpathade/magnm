@@ -10,6 +10,7 @@ import React, {
 import { AnimatePresence, motion } from 'framer-motion';
 import OptionWheel, { type OptionWheelHandle } from './OptionWheel';
 import BlurText from './BlurText';
+import { ChimeSynthesizer } from '@/lib/chime-synth';
 
 export interface OurWorkHandle {
   setTarget: (target: number) => void;
@@ -83,13 +84,13 @@ export const OurWork = forwardRef<OurWorkHandle, OurWorkProps>(function OurWork(
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(0);
   const wheelRef = useRef<OptionWheelHandle | null>(null);
+  const chimeRef = useRef<ChimeSynthesizer | null>(null);
 
   const toggleMobileExpand = (index: number) => {
     setMobileExpanded((prev) => (prev === index ? null : index));
     try {
-      const audio = new Audio('/audio/hover-sound.mp3');
-      audio.volume = 0.35;
-      audio.play().catch(() => {});
+      if (!chimeRef.current) chimeRef.current = new ChimeSynthesizer();
+      chimeRef.current.strike(index, SERVICES_ITEMS.length, "glockenspiel");
     } catch {
       /* Audio play is best-effort */
     }
@@ -195,7 +196,7 @@ export const OurWork = forwardRef<OurWorkHandle, OurWorkProps>(function OurWork(
             disableInternalWheel={true}
             activeColor="#171717"
             textColor="rgba(23, 23, 23, 0.28)"
-            soundUrl="/audio/hover-sound.mp3"
+            soundMode="glockenspiel"
             soundVolume={0.5}
             onChange={(index) => setSelectedIndex(index)}
           />

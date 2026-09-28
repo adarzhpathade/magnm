@@ -43,6 +43,7 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
           panelHeight={230}
           background="#cccccc"
           entry={true}
+          autoScroll={{ interval: 2000 }}
         />
       </section>
     );

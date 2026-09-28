@@ -29,6 +29,7 @@ export interface HeroProps {
   heroBottomRef?: React.RefObject<HTMLDivElement | null>;
   showWheel?: boolean;
   triggerReveal?: boolean;
+  onStartProject?: () => void;
 }
 
 export default function Hero({
@@ -39,6 +40,7 @@ export default function Hero({
   heroBottomRef,
   showWheel = true,
   triggerReveal = true,
+  onStartProject,
 }: HeroProps = {}) {
   const [wordIndex, setWordIndex] = React.useState(0);
   const [wheelScale, setWheelScale] = React.useState(90);
@@ -93,7 +95,7 @@ export default function Hero({
               delay={80}
               stepDuration={0.45}
               trigger={triggerReveal}
-              className="text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.04em] leading-[0.8] text-[#cccccc] hover:text-white transition-colors duration-200 uppercase justify-start flex-nowrap -ml-[0.08em]"
+              className="font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] hover:text-white transition-colors duration-200 uppercase justify-start flex-nowrap"
             />
           </div>
 
@@ -247,21 +249,16 @@ export default function Hero({
       {/* Bottom Row: Action Buttons grounded at bottom-left */}
       <div
         ref={heroBottomRef}
-        className="pointer-events-auto relative z-30 w-full flex justify-start items-end pb-0.5 sm:pb-1"
+        className="pointer-events-auto relative z-50 w-full flex justify-start items-end pb-0.5 sm:pb-1"
       >
-        {/* Action Buttons: Single focused CTA on mobile, both side-by-side on desktop */}
-        <div className="pointer-events-auto relative z-30 flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
+        {/* Action Buttons: Single focused CTA */}
+        <div className="pointer-events-auto relative z-50 flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
           <KineticShiftButton
             text="DISCUSS YOUR PROJECT"
             ariaLabel="Discuss your project"
+            soundIndex={0}
+            onClick={onStartProject}
           />
-
-          <div className="hidden md:block">
-            <KineticShiftButton
-              text="BOOK A 30-MINUTE CALL"
-              ariaLabel="Book a 30-minute call"
-            />
-          </div>
         </div>
       </div>
 

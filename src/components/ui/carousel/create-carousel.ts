@@ -22,8 +22,8 @@ export function createCarousel(
   const items = options.items;
   if (items.length === 0) return null;
 
-  let W = Math.max(1, mount.clientWidth);
-  let H = Math.max(1, mount.clientHeight);
+  const W = Math.max(1, mount.clientWidth);
+  const H = Math.max(1, mount.clientHeight);
   const panelHFor = (w = W, h = H) => {
     // Keep a clean margin on left and right on mobile/tablet viewports so cards are never edge-to-edge
     const maxCardW = Math.min(options.panelHeight * HORIZONTAL_ASPECT, w * 0.80);
@@ -31,7 +31,7 @@ export function createCarousel(
     const hFromH = Math.round(h * 0.28);
     return Math.max(100, Math.min(options.panelHeight, hFromW, hFromH));
   };
-  let PANEL_H = panelHFor(W, H);
+  const PANEL_H = panelHFor(W, H);
   options.onPanelHChange?.(PANEL_H);
   const GAP = options.gap;
   const EASE = reduced ? 0.28 : 0.09;
@@ -145,9 +145,13 @@ export function createCarousel(
   state.scroll = layoutEngine.centerForIndex(0);
   state.target = state.scroll;
 
+  // eslint-disable-next-line prefer-const
   let focusController: ReturnType<typeof createFocusController>;
+  // eslint-disable-next-line prefer-const
   let inputController: ReturnType<typeof setupInput>;
+  // eslint-disable-next-line prefer-const
   let entryController: ReturnType<typeof createEntryController>;
+  // eslint-disable-next-line prefer-const
   let autoScrollController: ReturnType<typeof createAutoScrollController>;
 
   focusController = createFocusController(

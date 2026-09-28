@@ -1,7 +1,6 @@
 import type { RefObject, MutableRefObject } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { getTransformTargets } from './animation-helpers';
 import { chimeSynth } from '@/lib/chime-synth';
 import type { CameraController } from './use-desktop-timeline';
 import type { ProjectsHandle } from '../Projects';
@@ -78,12 +77,16 @@ export function useMobileTimeline(
     }
 
     if (refs.navBrand.current) {
-      gsap.set(refs.navBrand.current, { clearProps: 'all' });
-      refs.navBrand.current.style.opacity = '0';
+      gsap.set(refs.navBrand.current, { clearProps: 'all', opacity: 1 });
     }
+    gsap.set('.nav-logo-container', { opacity: 0 });
+    gsap.set('.nav-brand-divider', { opacity: 0 });
+    gsap.set('.nav-brand-text', { opacity: 0 });
     if (refs.navActions.current) {
       gsap.set(refs.navActions.current, { clearProps: 'all' });
-      refs.navActions.current.style.opacity = '1';
+      refs.navActions.current.style.opacity = '0';
+      refs.navActions.current.style.pointerEvents = 'none';
+      refs.navActions.current.style.transform = 'none';
     }
 
     // Section 3 & 4: natural document flow
@@ -126,6 +129,9 @@ export function useMobileTimeline(
           if (refs.cameraController.current) {
             refs.cameraController.current.interactive = p <= 0.2;
           }
+          if (refs.navActions.current) {
+            refs.navActions.current.style.pointerEvents = p >= 0.25 ? 'auto' : 'none';
+          }
           if (refs.heroContainer.current && refs.aboutContainer.current) {
             refs.heroContainer.current.style.pointerEvents = p < 0.4 ? 'auto' : 'none';
             refs.aboutContainer.current.style.pointerEvents = p >= 0.4 ? 'auto' : 'none';
@@ -134,21 +140,29 @@ export function useMobileTimeline(
       },
     });
 
-    // 1. Huge "MAGNM" scales down and docks into navbar (0.0 -> 0.40)
+    // 1. On mobile: Huge "MAGNM" blurs and fades out (0.0 -> 0.22)
+    // leaving ONLY the enlarged logo in the navbar on mobile
     if (refs.heroMagnm.current) {
       mobileTl.to(
         refs.heroMagnm.current,
         {
-          scale: () => getTransformTargets(refs.heroMagnm.current, refs.navBrand.current).scale,
-          x: () => getTransformTargets(refs.heroMagnm.current, refs.navBrand.current).x,
-          y: () => getTransformTargets(refs.heroMagnm.current, refs.navBrand.current).y,
-          transformOrigin: '0 0',
-          ease: 'power2.inOut',
-          duration: 0.40,
+          opacity: 0,
+          filter: 'blur(12px)',
+          y: -14,
+          duration: 0.22,
+          ease: 'power1.out',
         },
         0
       );
     }
+
+    // Logo fades in cleanly into the navbar (0.06 -> 0.20)
+    mobileTl.fromTo(
+      '.nav-logo-container',
+      { opacity: 0 },
+      { opacity: 1, duration: 0.16, ease: 'power1.out' },
+      0.06
+    );
 
     // 2. Hero secondary items wipe out with optical blur (0.0 -> 0.25)
     const allLeaveItems = refs.heroSection.current?.querySelectorAll('.leave-blur-item');
@@ -219,6 +233,16 @@ export function useMobileTimeline(
       );
     }
 
+    // Navbar action button fades in as Hero section exits into Section 2 (0.25 -> 0.45)
+    if (refs.navActions.current) {
+      mobileTl.fromTo(
+        refs.navActions.current,
+        { opacity: 0 },
+        { opacity: 1, ease: 'power2.out', duration: 0.20 },
+        0.25
+      );
+    }
+
     // 5. Manifesto words illuminate progressively across the 3D wheel (0.35 -> 0.85)
     if (words && words.length > 0) {
       mobileTl.to(
@@ -234,13 +258,7 @@ export function useMobileTimeline(
       );
     }
 
-    // 6. Crossfade docked Hero MAGNM to fixed Navbar Brand (0.50 -> 0.60)
-    if (refs.heroMagnm.current) {
-      mobileTl.to(refs.heroMagnm.current, { opacity: 0, duration: 0.10 }, 0.50);
-    }
-    if (refs.navBrand.current) {
-      mobileTl.to(refs.navBrand.current, { opacity: 1, duration: 0.10 }, 0.50);
-    }
+
 
     // Section 3 slides ON TO Page 2:
     // As Section 3's top moves from bottom of viewport to top of viewport,
@@ -323,8 +341,28 @@ export function useMobileTimeline(
         const p3Top = p3El.getBoundingClientRect().top;
         const isLightBg = p3Top <= 60;
         const brandText = refs.navBrand.current.querySelector('.nav-brand-text') as HTMLElement | null;
+        const logoLight = refs.navBrand.current.querySelector('.nav-logo-light') as HTMLElement | null;
+        const logoDark = refs.navBrand.current.querySelector('.nav-logo-dark') as HTMLElement | null;
         if (brandText) {
           brandText.style.color = isLightBg ? '#171717' : '#cccccc';
+        }
+        if (logoLight) {
+          logoLight.style.opacity = isLightBg ? '0' : '1';
+        }
+        if (logoDark) {
+          logoDark.style.opacity = isLightBg ? '1' : '0';
+        }
+        if (refs.navActions.current) {
+          const actionBtn = refs.navActions.current.querySelector('.nav-action-btn') as HTMLElement | null;
+          if (actionBtn) {
+            actionBtn.style.backgroundColor = isLightBg ? '#171717' : '#ffffff';
+            actionBtn.style.color = isLightBg ? '#ffffff' : '#171717';
+          }
+          const secondaryBtn = refs.navActions.current.querySelector('.nav-secondary-btn') as HTMLElement | null;
+          if (secondaryBtn) {
+            secondaryBtn.style.borderColor = isLightBg ? 'rgba(23, 23, 23, 0.25)' : 'rgba(255, 255, 255, 0.2)';
+            secondaryBtn.style.color = isLightBg ? '#171717' : '#cccccc';
+          }
         }
       }
     };

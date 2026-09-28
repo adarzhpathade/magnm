@@ -25,6 +25,7 @@ A motion-driven, ultra-minimalist, monochromatic digital creative studio landing
 - **Liquid-Glass WebGL Projects Carousel**: Custom GLSL fragment shader simulating real-time glass refraction, chromatic dispersion, center-outward ripple entrance, and an idle auto-scroll progress indicator.
 - **Mobile Card-Sheet Transition Parity**: Uniform elevated card-sheet slide-on transitions across mobile viewports with native momentum touch scrolling.
 - **Spatial Sound Synthesizer**: Custom Web Audio API synthesizer generating real-time glockenspiel chimes on scroll events and component interactions.
+- **Universal Modal System & Intelligent Theme Detection**: Beautiful overlay modal system (`createPortal`) with smooth Framer Motion entry animations. Features intelligent DOM background opacity detection, automatically adapting modal contrast (Light/Dark mode) relative to the active scroll section.
 
 ---
 

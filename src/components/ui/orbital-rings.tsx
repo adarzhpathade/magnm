@@ -8,7 +8,6 @@ interface OrbitalRingsProps {
 }
 
 export function OrbitalRings({ className = '' }: OrbitalRingsProps) {
-  const [mounted, setMounted] = useState(false);
 
   // Mouse parallax motion values
   const mouseX = useMotionValue(0);
@@ -25,7 +24,6 @@ export function OrbitalRings({ className = '' }: OrbitalRingsProps) {
   const rotateParallaxZ = useTransform(smoothX, [-1, 1], [-4, 4]);
 
   useEffect(() => {
-    setMounted(true);
     const handleMouseMove = (e: MouseEvent) => {
       const { innerWidth, innerHeight } = window;
       if (!innerWidth || !innerHeight) return;

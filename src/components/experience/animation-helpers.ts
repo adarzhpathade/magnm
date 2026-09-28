@@ -52,9 +52,11 @@ export function getTransformTargets(
 ): { scale: number; x: number; y: number } {
   if (!heroEl || !navEl) return { scale: 0.22, x: 0, y: 0 };
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
   const heroText = heroEl.querySelector('p') || heroEl;
   const heroRect = heroText.getBoundingClientRect();
-  const navRect = navEl.getBoundingClientRect();
+  const navTarget = (!isMobile ? navEl.querySelector('.nav-brand-text') : null) || navEl.querySelector('.nav-logo-container') || navEl;
+  const navRect = navTarget.getBoundingClientRect();
 
   const currentX = (gsap.getProperty(heroEl, 'x') as number) || 0;
   const currentY = (gsap.getProperty(heroEl, 'y') as number) || 0;
@@ -65,13 +67,17 @@ export function getTransformTargets(
   const untransformedHeroHeight = currentScale > 0 ? heroRect.height / currentScale : heroRect.height;
 
   const width = window.innerWidth;
-  let targetScale = 0.22;
-  if (width < 640) {
-    targetScale = 0.32; // Mobile: ~28px
-  } else if (width < 1024) {
-    targetScale = 0.26; // Tablet: ~32px
+  let targetScale = 0.16;
+  if (untransformedHeroHeight > 0 && navRect.height > 0) {
+    targetScale = navRect.height / untransformedHeroHeight;
   } else {
-    targetScale = 0.22; // Desktop: ~36px
+    if (width < 640) {
+      targetScale = 0.23; // Mobile: ~21.6px
+    } else if (width < 1024) {
+      targetScale = 0.19; // Tablet: ~24px
+    } else {
+      targetScale = 0.16; // Desktop: ~26.4px
+    }
   }
 
   const deltaX = navRect.left - untransformedHeroLeft;

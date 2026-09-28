@@ -10,6 +10,8 @@ import React, {
   type CSSProperties,
 } from 'react';
 
+import { ChimeSynthesizer, type SoundMode } from '@/lib/chime-synth';
+
 type Side = 'left' | 'right';
 
 export interface OptionWheelHandle {
@@ -41,6 +43,7 @@ export interface OptionWheelProps {
   soundVolume?: number;
   disableInternalWheel?: boolean;
   className?: string;
+  soundMode?: SoundMode | 'none';
 }
 
 interface WheelConfig {
@@ -59,6 +62,7 @@ interface WheelConfig {
   soundUrl: string;
   soundVolume: number;
   disableInternalWheel: boolean;
+  soundMode?: SoundMode | 'none';
 }
 
 const DEFAULT_ITEMS = [
@@ -94,6 +98,7 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
       soundVolume = 0.5,
       disableInternalWheel = false,
       className = '',
+      soundMode,
     },
     ref
   ) {
@@ -140,6 +145,7 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
       soundUrl,
       soundVolume,
       disableInternalWheel,
+      soundMode,
     };
 
     // Single rAF loop that eases the wheel position toward its target
@@ -199,6 +205,7 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
 
     const audioCtxRef = useRef<AudioContext | null>(null);
     const audioBufferRef = useRef<AudioBuffer | null>(null);
+    const chimeRef = useRef<ChimeSynthesizer | null>(null);
 
     // Preload and decode audio with Web Audio API for zero latency
     useEffect(() => {
@@ -230,13 +237,19 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
     }, [soundUrl]);
 
     // Optional tick on selection change, throttled so fast scrolling can't spam
-    const playTick = useCallback(() => {
+    const playTick = useCallback((idx?: number) => {
       // Suppress tick sound during initial mount and section entrance grace window (first 800ms)
       if (performance.now() - mountedAtRef.current < 800) return;
-      const { soundVolume } = cfgRef.current;
+      const { soundVolume, soundMode, count } = cfgRef.current;
       const now = performance.now();
       if (now - lastTickRef.current < 45) return;
       lastTickRef.current = now;
+
+      if (soundMode && soundMode !== 'none') {
+        if (!chimeRef.current) chimeRef.current = new ChimeSynthesizer();
+        chimeRef.current.strike(idx || 0, count, soundMode as SoundMode);
+        return;
+      }
 
       try {
         if (!audioCtxRef.current && typeof window !== 'undefined') {
@@ -333,7 +346,7 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
             selectedRef.current = idx;
             setSelectedIndex(idx);
             onChangeRef.current?.(idx, cfg.items[idx]);
-            playTick();
+            playTick(idx);
           }
 
           // Render items synchronously — no rAF loop needed

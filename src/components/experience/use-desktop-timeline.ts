@@ -73,14 +73,18 @@ export function useDesktopTimeline(
       refs.aboutContainer.current.style.pointerEvents = 'none';
     }
 
-    // Navbar hidden at start (reveals on scroll)
+    // Navbar brand initial state: container visible, logo and text hidden
     if (refs.navBrand.current) {
-      refs.navBrand.current.style.opacity = '0';
-      refs.navBrand.current.style.transform = 'translateY(-14px)';
+      refs.navBrand.current.style.opacity = '1';
+      refs.navBrand.current.style.transform = 'none';
     }
+    gsap.set('.nav-logo-container', { opacity: 0 });
+    gsap.set('.nav-brand-divider', { opacity: 0, backgroundColor: 'rgba(255, 255, 255, 0.22)' });
+    gsap.set('.nav-brand-text', { opacity: 0 });
     if (refs.navActions.current) {
       refs.navActions.current.style.opacity = '0';
-      refs.navActions.current.style.transform = 'translateY(-14px)';
+      refs.navActions.current.style.transform = 'none';
+      refs.navActions.current.style.pointerEvents = 'none';
     }
 
     // Parallax strips initial state (hidden / clipped out)
@@ -173,6 +177,9 @@ export function useDesktopTimeline(
           const progress = self.progress;
 
           // Section 1 (Hero) vs Section 2 (About)
+          if (refs.navActions.current) {
+            refs.navActions.current.style.pointerEvents = progress > 0.16 ? 'auto' : 'none';
+          }
           if (refs.heroContainer.current && refs.aboutContainer.current) {
             if (progress > 0.12 && progress < 0.35) {
               if (refs.aboutContainer.current.style.pointerEvents !== 'auto') {
@@ -259,6 +266,18 @@ export function useDesktopTimeline(
       );
     }
 
+    // As Hero MAGNM glides into place, the Navbar logo and divider fade in smoothly right beside its docking position (0.04 -> 0.14)
+    scrollTl.fromTo(
+      ['.nav-logo-container', '.nav-brand-divider'],
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.10,
+        ease: 'power1.out',
+      },
+      0.04
+    );
+
     // Secondary Hero elements individual words/items wipe out with randomized optical blur
     // Exclude elements inside buttons so GSAP doesn't override their hover-driven styles
     const allLeaveItems = refs.heroSection.current?.querySelectorAll('.leave-blur-item');
@@ -310,24 +329,23 @@ export function useDesktopTimeline(
       );
     }
 
-    // Phase 2: As "MAGNM" finishes docking, Navbar right-side actions & Section 2 appear (0.12 -> 0.22)
+    // Phase 2: Once Hero section has completely exited and About Manifesto appears, Navbar action button reveals (0.16 -> 0.24)
     if (refs.navActions.current) {
       scrollTl.fromTo(
         refs.navActions.current,
         {
           opacity: 0,
-          y: -14,
         },
         {
           opacity: 1,
-          y: 0,
           ease: 'power2.out',
-          duration: 0.10,
-          immediateRender: false,
+          duration: 0.08,
         },
-        0.12
+        0.16
       );
     }
+
+
 
     if (refs.aboutContainer.current) {
       scrollTl.fromTo(
@@ -466,10 +484,55 @@ export function useDesktopTimeline(
       );
     }
 
-    scrollTl.to(
+    // Hand off from docked heroMagnm to fixed nav-brand-text behind the 12 parallax strips
+    if (refs.heroMagnm.current) {
+      scrollTl.to(
+        refs.heroMagnm.current,
+        {
+          opacity: 0,
+          duration: 0.03,
+          ease: 'none',
+        },
+        0.38
+      );
+    }
+
+    scrollTl.fromTo(
       '.nav-brand-text',
+      { opacity: 0 },
       {
+        opacity: 1,
         color: '#171717',
+        duration: 0.03,
+        ease: 'none',
+      },
+      0.38
+    );
+
+    scrollTl.to(
+      '.nav-brand-divider',
+      {
+        backgroundColor: 'rgba(23, 23, 23, 0.22)',
+        duration: 0.03,
+        ease: 'none',
+      },
+      0.38
+    );
+
+    scrollTl.to(
+      '.nav-logo-light',
+      {
+        opacity: 0,
+        duration: 0.06,
+        ease: 'power1.out',
+      },
+      0.38
+    );
+
+    scrollTl.to(
+      '.nav-logo-dark',
+      {
+        opacity: 1,
         duration: 0.06,
         ease: 'power1.out',
       },
@@ -480,9 +543,9 @@ export function useDesktopTimeline(
       scrollTl.to(
         '.nav-action-btn',
         {
-          backgroundColor: 'rgba(23, 23, 23, 0.06)',
-          borderColor: 'rgba(23, 23, 23, 0.18)',
-          boxShadow: '0 4px 18px rgba(0,0,0,0.06)',
+          backgroundColor: '#171717',
+          color: '#ffffff',
+          boxShadow: 'none',
           duration: 0.06,
           ease: 'power1.out',
         },
@@ -490,7 +553,30 @@ export function useDesktopTimeline(
       );
 
       scrollTl.to(
-        '.nav-action-btn span, .nav-action-btn .letter-swap-face',
+        '.nav-action-btn span',
+        {
+          color: '#ffffff',
+          duration: 0.06,
+          ease: 'power1.out',
+        },
+        0.38
+      );
+    }
+
+    if (typeof document !== 'undefined' && document.querySelector('.nav-secondary-btn')) {
+      scrollTl.to(
+        '.nav-secondary-btn',
+        {
+          borderColor: 'rgba(23, 23, 23, 0.25)',
+          color: '#171717',
+          duration: 0.06,
+          ease: 'power1.out',
+        },
+        0.38
+      );
+
+      scrollTl.to(
+        '.nav-secondary-btn span',
         {
           color: '#171717',
           duration: 0.06,
@@ -500,30 +586,7 @@ export function useDesktopTimeline(
       );
     }
 
-    // 5e. Crossfade docked Hero MAGNM to fixed Navbar Brand
-    if (refs.heroMagnm.current) {
-      scrollTl.to(
-        refs.heroMagnm.current,
-        {
-          opacity: 0,
-          duration: 0.03,
-          ease: 'none',
-        },
-        0.41
-      );
-    }
 
-    if (refs.navBrand.current) {
-      scrollTl.to(
-        refs.navBrand.current,
-        {
-          opacity: 1,
-          duration: 0.03,
-          ease: 'none',
-        },
-        0.41
-      );
-    }
 
     // 5f. Page 3 (Our Work) reveals smoothly via signature optical blur as the parallax wipe completes
     if (refs.page3Wrapper.current) {

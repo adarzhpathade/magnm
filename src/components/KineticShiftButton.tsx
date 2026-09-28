@@ -20,6 +20,8 @@ export interface KineticShiftButtonProps {
   enableSound?: boolean;
   /** Volume level between 0 and 1 (default: 0.35) */
   soundVolume?: number;
+  /** Index for the piano note to play on hover */
+  soundIndex?: number;
 }
 
 /**
@@ -41,6 +43,7 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
   gapPx = 32,
   enableSound = true,
   soundVolume = 0.35,
+  soundIndex = 0,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const words = text.split(' ');
@@ -81,21 +84,21 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
     const now = performance.now();
     // Guard against premature trigger on section entrance or initial page reveal
     if (now - mountedAtRef.current > 600 && enableSound) {
-      chimeSynth.playButtonHover(soundVolume);
+      chimeSynth.playButtonHover(soundVolume, soundIndex);
     }
     setIsHovered(true);
-  }, [enableSound, soundVolume]);
+  }, [enableSound, soundVolume, soundIndex]);
 
   const handleMouseMove = useCallback(() => {
     // If entered during a suppression window but user is now actively moving cursor
     if (!isHovered) {
       const now = performance.now();
       if (now - mountedAtRef.current > 600 && enableSound) {
-        chimeSynth.playButtonHover(soundVolume);
+        chimeSynth.playButtonHover(soundVolume, soundIndex);
       }
       setIsHovered(true);
     }
-  }, [isHovered, enableSound, soundVolume]);
+  }, [isHovered, enableSound, soundVolume, soundIndex]);
 
   const handleFocus = useCallback(() => {
     // Keyboard focus handles accessibility focus outline only; never play hover sound on focus
@@ -112,7 +115,7 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
       onFocus={handleFocus}
       onBlur={() => setIsHovered(false)}
       aria-label={ariaLabel || text}
-      className={`group relative cursor-pointer flex flex-col items-start pt-1.5 pb-1 focus:outline-none focus-visible:ring-1 ${
+      className={`group relative z-50 cursor-pointer flex flex-col items-start pt-1.5 pb-1 focus:outline-none focus-visible:ring-1 ${
         isLight ? 'focus-visible:ring-black/40' : 'focus-visible:ring-white/40'
       } text-left select-none pointer-events-auto ${className}`}
     >

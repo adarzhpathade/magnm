@@ -130,11 +130,17 @@ src/
 ### Section 1: Hero & Navbar Docking
 - **Navbar ([Navbar.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Navbar.tsx))**:
   - Sticky fixed header (`z-50`) across the entire page.
-  - Left brand target (`.nav-brand-text`): hidden at start (`opacity: 0, y: -14px`), crossfades into view at scroll `0.41`.
-  - Right action button (`DISCUSS YOUR PROJECT +`): hidden at start, animates into view at scroll `0.12`.
+  - Left brand target (`.nav-logo-light`, `.nav-logo-dark` + `.nav-brand-divider` + `.nav-brand-text`): dual origami metallic logo emblems (light on dark surfaces, dark on light surfaces; sized `h-[34px] sm:h-[35px] md:h-[36px] aspect-[1.5/1]`).
+  - **Mobile vs Desktop Distinction**:
+    - **Desktop (`>= 1024px`)**: Dual logo container (`md:h-[36px]`) separated by a refined thin vertical divider line (`.nav-brand-divider w-[1px] h-[20px] bg-white/20`) and paired with refined `MAGNM` wordmark (`.nav-brand-text font-['Familjen_Grotesk'] text-[1.65rem] uppercase`). Unified scale-down: `heroMagnmRef` in `Hero.tsx` scales down smoothly and docks beside `.nav-logo-container` and `.nav-brand-divider` (`0.04 -> 0.14`), locking together as ONE cohesive unit. In Section 3, `.nav-brand-divider` dynamically inverts to `rgba(23, 23, 23, 0.22)` on the light background at scroll `0.38`.
+    - **Mobile (`< 1024px`)**: In mobile view, the navbar strictly displays **only the logo** — `.nav-brand-divider`, `.nav-brand-text`, and nav actions are hidden (`hidden lg:block` / `hidden lg:inline-block` / `hidden lg:flex`). The logo size is increased specifically on mobile (`h-[34px]` vs previously `28px`). On scroll (`0.0 -> 0.22`), the hero monolithic `MAGNM` title softly blurs and fades out (`opacity: 0, filter: 'blur(12px)', y: -14`), leaving only the enlarged logo cleanly illuminated in the navbar throughout Sections 2, 3, and 4.
+  - Right action buttons (`ABOUT US` & `START A PROJECT`): strictly **not visible on the Hero section** (`opacity: 0, pointer-events: none`). Paired flat and minimal design with zero depth or shadow (`boxShadow: none`), matching compact proportions (`h-[27px] sm:h-[28px] md:h-[29px]`, padding `px-3 md:px-4`, font `text-[9.5px] md:text-[10.5px] tracking-[0.05em]`).
+    - `ABOUT US`: Outline / without fill (`border border-white/20 bg-transparent text-[#cccccc] hover:border-white/50 hover:text-white`), smoothly scrolling to the About Manifesto section (Section 2). In Section 3 & 4 on the light background, dynamically inverts to `border-[#171717]/25 text-[#171717]`.
+    - `START A PROJECT`: Filled pill button (`bg-white text-[#171717]`), dynamically inverting to dark (`bg-[#171717] text-white`) on light backgrounds. Smoothly navigates to the Projects section (`#page-4`).
+    - Both reveal together when scrolling past the Hero section (from scroll `0.16` on desktop and `0.25` on mobile) and automatically fade back to `opacity: 0` when scrolling back up to Hero.
 - **Hero ([Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx))**:
-  - Monolithic `MAGNM` typography scaled across the full width.
-  - On desktop scroll (`0.0 -> 0.16`), `heroMagnmRef` scales down from `1.0` to `0.22` and translates directly into the top-left Navbar position via `getTransformTargets()`.
+  - Monolithic `MAGNM` typography scaled across the full width, styled in `Familjen Grotesk` with `tracking-[-0.035em]` to match the navbar wordmark.
+  - On desktop scroll (`0.0 -> 0.16`), `heroMagnmRef` scales down and translates directly into the top-left Navbar position via `getTransformTargets()`, settling smoothly beside the newly revealed logo.
   - Secondary elements (`heroTaglineRef`, `heroEmblemRef`, `heroBottomRef`) lift `-14px` and blur out with randomized optical blur.
   - On mobile, `Hero` follows Minimalist Direction: no paragraph clutter, emblem hidden, single bottom-left CTA button, 3D wheel scaled to `54`.
 
@@ -236,9 +242,12 @@ export const TIMINGS = {
 - As requested, the Footer component and its transitions have been completely removed.
 - Section 4 (Projects Showcase with Liquid Glass Carousel) is the final section of the landing page.
 
-### Phase B: Contact / Project Inquiry Modal (Optional/Interactive)
-1. Add an overlay inquiry drawer or full-screen contact form triggered by all `DISCUSS YOUR PROJECT +` buttons.
-2. Keep it minimal, monochromatic, with smooth entrance animation and audio chime feedback.
+### Phase B: Completed - Modal System & Intelligent Theme Detection
+1. Built `ProjectModal.tsx` and `AboutModal.tsx` using `createPortal` to render above all 3D content.
+2. Integrated intelligent theme detection: the modals calculate the opacity of the `.nav-logo-dark` element to determine the current background context (light/dark) and switch their `data-theme` accordingly for maximum contrast.
+3. Implemented custom `AnimatePresence` dropdowns to replace native HTML `<select>` elements, maintaining the premium monochromatic aesthetic across all devices.
+4. Reused the `LetterSwapPingPong` component inside the modal buttons for consistent kinetic hover effects.
+5. Removed unhooked/redundant "BOOK A 30-MINUTE CALL" and Budget inputs to adhere to the extreme minimalism requested by the user.
 
 ### Phase C: Final Performance & Visual Polish
 1. Verify all breakpoints (mobile 375px/390px/430px, tablet 768px/1024px, desktop 1440px/1920px).

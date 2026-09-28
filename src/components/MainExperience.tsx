@@ -14,6 +14,8 @@ import Counter from './Counter';
 import ParallaxStripTransition from './ParallaxStripTransition';
 import OurWork, { type OurWorkHandle } from './OurWork';
 import Projects, { type ProjectsHandle } from './Projects';
+import ProjectModal from './ProjectModal';
+import AboutModal from './AboutModal';
 
 import { useResponsiveWheel } from './experience/use-responsive-wheel';
 import { useDesktopTimeline } from './experience/use-desktop-timeline';
@@ -30,6 +32,9 @@ export default function MainExperience() {
   const [isLoaded, setIsLoaded] = useState(true);
   const [loadProgress, setLoadProgress] = useState(100);
   const [triggerHeroReveal, setTriggerHeroReveal] = useState(true);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [modalSource, setModalSource] = useState<'navbar' | 'hero'>('navbar');
   const counterWrapperRef = useRef<HTMLDivElement>(null);
 
   // Pinned Stage & Layer Refs
@@ -145,7 +150,12 @@ export default function MainExperience() {
           headerRef={navbarHeaderRef}
           navBrandRef={navBrandRef}
           navActionsRef={navActionsRef}
+          onStartProject={() => { setModalSource('navbar'); setIsProjectModalOpen(true); }}
+          onAboutClick={() => setIsAboutModalOpen(true)}
         />
+        
+        {/* Global Project Modal */}
+        <ProjectModal isOpen={isProjectModalOpen} source={modalSource} onClose={() => setIsProjectModalOpen(false)} />
 
         {/* Preloader Number (Positioned directly below the 20% centered wheel) */}
         {!isLoaded && (
@@ -185,7 +195,7 @@ export default function MainExperience() {
             {/* Section 1: Hero */}
             <div
               ref={heroContainerRef}
-              className="absolute inset-0 w-full h-full pointer-events-auto flex flex-col justify-between"
+              className="absolute inset-0 z-30 w-full h-full pointer-events-none flex flex-col justify-between"
             >
               <Hero
                 showWheel={false}
@@ -195,6 +205,7 @@ export default function MainExperience() {
                 heroTaglineRef={heroTaglineRef}
                 heroEmblemRef={heroEmblemRef}
                 heroBottomRef={heroBottomRef}
+                onStartProject={() => { setModalSource('hero'); setIsProjectModalOpen(true); }}
               />
             </div>
 
@@ -288,6 +299,11 @@ export default function MainExperience() {
           />
         </div>
       </div>
+      
+      <AboutModal
+        isOpen={isAboutModalOpen}
+        onClose={() => setIsAboutModalOpen(false)}
+      />
     </SmoothScroll>
   );
 }

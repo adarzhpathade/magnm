@@ -24,7 +24,7 @@ for (let octave = 0; octave < 4; octave++) {
   }
 }
 
-export type SoundMode = "glockenspiel" | "haptic" | "marimba"
+export type SoundMode = "glockenspiel" | "haptic" | "marimba" | "synth-rhythm" | "cyber-bass" | "retro-arcade" | "techno-zap" | "heavy-click"
 
 export class ChimeSynthesizer {
   private ctx: AudioContext | null = null
@@ -135,6 +135,16 @@ export class ChimeSynthesizer {
       this.playHapticTick(ctx, this.compressor)
     } else if (mode === "marimba") {
       this.playMarimbaBar(ctx, this.compressor, fundamental)
+    } else if (mode === "synth-rhythm") {
+      this.playSynthRhythm(ctx, this.compressor, fundamental)
+    } else if (mode === "cyber-bass") {
+      this.playCyberBass(ctx, this.compressor, fundamental)
+    } else if (mode === "retro-arcade") {
+      this.playRetroArcade(ctx, this.compressor, fundamental)
+    } else if (mode === "techno-zap") {
+      this.playTechnoZap(ctx, this.compressor, fundamental)
+    } else if (mode === "heavy-click") {
+      this.playHeavyClick(ctx, this.compressor)
     } else {
       this.playGlockenspielBar(ctx, this.compressor, fundamental)
     }
@@ -266,6 +276,207 @@ export class ChimeSynthesizer {
     }, 50)
   }
 
+  /**
+   * Loud, punchy rhythmic synth triplet
+   */
+  private playSynthRhythm(ctx: AudioContext, destination: AudioNode, f0: number): void {
+    const now = ctx.currentTime
+
+    const playNote = (timeOffset: number, freq: number, duration: number, vol: number) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const filter = ctx.createBiquadFilter()
+
+      osc.type = "sawtooth"
+      // Keep it thick and loud by lowering an octave
+      osc.frequency.setValueAtTime(freq * 0.5, now + timeOffset)
+
+      filter.type = "lowpass"
+      filter.frequency.setValueAtTime(8000, now + timeOffset)
+      filter.frequency.exponentialRampToValueAtTime(100, now + timeOffset + 0.1)
+      filter.Q.value = 8 // Add some resonant bite
+
+      gain.gain.setValueAtTime(0, now + timeOffset)
+      gain.gain.linearRampToValueAtTime(vol, now + timeOffset + 0.005)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + duration)
+
+      osc.connect(filter)
+      filter.connect(gain)
+      gain.connect(destination)
+
+      osc.start(now + timeOffset)
+      osc.stop(now + timeOffset + duration + 0.1)
+
+      setTimeout(() => {
+        osc.disconnect()
+        filter.disconnect()
+        gain.disconnect()
+      }, (timeOffset + duration + 0.2) * 1000)
+    }
+
+    // Play a quick loud rhythmic burst: fundamental, octave, fifth
+    playNote(0, f0, 0.1, 0.6)
+    playNote(0.08, f0 * 2, 0.1, 0.4)
+    playNote(0.16, f0 * 1.5, 0.15, 0.5)
+  }
+
+  /**
+   * Heavy, deep, punchy FM synth bass
+   */
+  private playCyberBass(ctx: AudioContext, destination: AudioNode, f0: number): void {
+    const now = ctx.currentTime
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    const distortion = ctx.createWaveShaper()
+
+    osc.type = "square"
+    // Drop 2 octaves for deep bass
+    osc.frequency.setValueAtTime(f0 * 0.25, now)
+    
+    // Quick pitch drop for punch (kick drum effect)
+    osc.frequency.exponentialRampToValueAtTime(f0 * 0.125, now + 0.1)
+
+    // Distortion curve for aggression
+    const curve = new Float32Array(400)
+    for (let i = 0; i < 400; ++i) {
+      const x = (i * 2) / 400 - 1
+      curve[i] = ((3 + 20) * x * 20 * (Math.PI / 180)) / (Math.PI + 20 * Math.abs(x))
+    }
+    distortion.curve = curve
+    distortion.oversample = "4x"
+
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(0.7, now + 0.01) // Very loud attack
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25)
+
+    osc.connect(distortion)
+    distortion.connect(gain)
+    gain.connect(destination)
+
+    osc.start(now)
+    osc.stop(now + 0.3)
+
+    setTimeout(() => {
+      osc.disconnect()
+      distortion.disconnect()
+      gain.disconnect()
+    }, 400)
+  }
+
+  /**
+   * 8-bit arcade arpeggio
+   */
+  private playRetroArcade(ctx: AudioContext, destination: AudioNode, f0: number): void {
+    const now = ctx.currentTime
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+
+    osc.type = "square"
+    // Rapid arpeggio (fundamental -> major third -> perfect fifth -> octave)
+    osc.frequency.setValueAtTime(f0, now)
+    osc.frequency.setValueAtTime(f0 * 1.25, now + 0.05)
+    osc.frequency.setValueAtTime(f0 * 1.5, now + 0.1)
+    osc.frequency.setValueAtTime(f0 * 2, now + 0.15)
+
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(0.4, now + 0.01)
+    // Keep volume steady during arpeggio, then drop
+    gain.gain.setValueAtTime(0.4, now + 0.15)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25)
+
+    osc.connect(gain)
+    gain.connect(destination)
+
+    osc.start(now)
+    osc.stop(now + 0.3)
+
+    setTimeout(() => {
+      osc.disconnect()
+      gain.disconnect()
+    }, 400)
+  }
+
+  /**
+   * Loud, squelchy synth zap with high resonance
+   */
+  private playTechnoZap(ctx: AudioContext, destination: AudioNode, f0: number): void {
+    const now = ctx.currentTime
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    const filter = ctx.createBiquadFilter()
+
+    osc.type = "sawtooth"
+    osc.frequency.setValueAtTime(f0, now)
+
+    filter.type = "bandpass"
+    filter.frequency.setValueAtTime(5000, now)
+    filter.frequency.exponentialRampToValueAtTime(300, now + 0.15)
+    filter.Q.value = 15 // Very resonant and squelchy
+
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(1.0, now + 0.01) // Very loud
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2)
+
+    osc.connect(filter)
+    filter.connect(gain)
+    gain.connect(destination)
+
+    osc.start(now)
+    osc.stop(now + 0.25)
+
+    setTimeout(() => {
+      osc.disconnect()
+      filter.disconnect()
+      gain.disconnect()
+    }, 300)
+  }
+
+  /**
+   * Aggressive, loud mechanical click/clank
+   */
+  private playHeavyClick(ctx: AudioContext, destination: AudioNode): void {
+    const now = ctx.currentTime
+
+    const osc = ctx.createOscillator()
+    const noise = ctx.createBufferSource()
+    const gain = ctx.createGain()
+    
+    // Create a burst of white noise
+    const bufferSize = ctx.sampleRate * 0.1 // 100ms
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1
+    }
+    noise.buffer = buffer
+
+    osc.type = "square"
+    osc.frequency.setValueAtTime(100, now)
+    osc.frequency.exponentialRampToValueAtTime(10, now + 0.05)
+
+    gain.gain.setValueAtTime(0, now)
+    gain.gain.linearRampToValueAtTime(0.8, now + 0.002) // Extremely fast attack
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1) // Snappy decay
+
+    osc.connect(gain)
+    noise.connect(gain)
+    gain.connect(destination)
+
+    osc.start(now)
+    noise.start(now)
+    osc.stop(now + 0.15)
+    noise.stop(now + 0.15)
+
+    setTimeout(() => {
+      osc.disconnect()
+      noise.disconnect()
+      gain.disconnect()
+    }, 200)
+  }
+
   private hoverAudioBuffer: AudioBuffer | null = null
   private hoverAudioLoading = false
   private lastHoverSoundTime = 0
@@ -334,7 +545,7 @@ export class ChimeSynthesizer {
    * Plays the preloaded acoustic audio sample through the master bus,
    * with fallback to an ultra-refined synthesized micro-chime.
    */
-  public playButtonHover(volume: number = 0.35): void {
+  public playButtonHover(_volume: number = 0.35, index: number = 0): void {
     if (this.isHoverSuppressed()) return
 
     const nowMs = performance.now()
@@ -342,62 +553,14 @@ export class ChimeSynthesizer {
     this.lastHoverSoundTime = nowMs
 
     const ctx = this.initContext()
-    if (!ctx || !this.compressor) {
-      // HTML Audio fallback
-      try {
-        const audio = new Audio('/audio/hover-sound.mp3')
-        audio.volume = Math.max(0, Math.min(1, volume))
-        audio.play().catch(() => {})
-      } catch {}
-      return
-    }
+    if (!ctx || !this.compressor) return
 
-    // If preloaded buffer is ready, play through dedicated gain
-    if (this.hoverAudioBuffer) {
-      try {
-        const source = ctx.createBufferSource()
-        source.buffer = this.hoverAudioBuffer
-        const gain = ctx.createGain()
-        gain.gain.setValueAtTime(Math.max(0, Math.min(1, volume)), ctx.currentTime)
-        source.connect(gain)
-        gain.connect(this.compressor)
-        source.start(0)
-        return
-      } catch {
-        // Fallback to synthesis below
-      }
-    }
+    // Pick a pentatonic scale note based on index for variety
+    const scaleLength = SCALE_FREQUENCIES.length
+    const fundamental = SCALE_FREQUENCIES[Math.min(scaleLength - 1, index % scaleLength)] || 440
 
-    // Try preloading for future hovers if not loaded yet
-    if (!this.hoverAudioBuffer && !this.hoverAudioLoading) {
-      this.preloadHoverSound()
-    }
-
-    // High-end synthesized acoustic micro-chime / metallic tick fallback
-    try {
-      const t = ctx.currentTime
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-
-      // Pure metallic glass-like tick at 1480Hz dropping to 880Hz
-      osc.type = "sine"
-      osc.frequency.setValueAtTime(1480, t)
-      osc.frequency.exponentialRampToValueAtTime(880, t + 0.035)
-
-      gain.gain.setValueAtTime(0, t)
-      gain.gain.linearRampToValueAtTime(volume * 0.28, t + 0.002)
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08)
-
-      osc.connect(gain)
-      gain.connect(this.compressor)
-      osc.start(t)
-      osc.stop(t + 0.085)
-
-      setTimeout(() => {
-        osc.disconnect()
-        gain.disconnect()
-      }, 100)
-    } catch {}
+    // Temporarily boost master gain for this note to match volume requested
+    this.playGlockenspielBar(ctx, this.compressor, fundamental)
   }
 
   public setVolume(volume: number): void {

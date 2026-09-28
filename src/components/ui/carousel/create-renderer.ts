@@ -12,6 +12,7 @@ export interface ThreeContext {
   lensCam: THREE.OrthographicCamera;
   lensMat: THREE.ShaderMaterial;
   lensQuad: THREE.Mesh;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lensUniforms: Record<string, { value: any }>;
   sources: Source[];
   pool: PoolItem[];

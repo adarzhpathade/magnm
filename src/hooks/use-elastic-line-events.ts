@@ -32,6 +32,7 @@ export function useElasticLineEvents(
       const isOutsideBounds = x < 0 || x > width || y < 0 || y > height
 
       if (isOutsideBounds) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsGrabbed(false)
         return
       }
