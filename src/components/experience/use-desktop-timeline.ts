@@ -137,6 +137,7 @@ export function useDesktopTimeline(
       y: initialYOffset,
     };
 
+    let p4EntryTriggered = false;
     const scrollTl = gsap.timeline({
       scrollTrigger: {
         trigger: refs.pinnedStage.current,
@@ -220,6 +221,18 @@ export function useDesktopTimeline(
             }
             refs.page4Container.current.style.pointerEvents =
               isPage4Active ? 'auto' : 'none';
+
+            // Incoming animation: plays ONCE when scrolling forward into Section 4
+            // Does NOT play in reverse scroll, eliminating all reverse jitter
+            if (progress >= 0.82 && self.direction === 1 && !p4EntryTriggered) {
+              p4EntryTriggered = true;
+              refs.projectsHandle.current?.playEntry();
+            } else if (progress < 0.72) {
+              if (p4EntryTriggered) {
+                p4EntryTriggered = false;
+                refs.projectsHandle.current?.resetEntry?.();
+              }
+            }
           }
         },
       },
@@ -593,10 +606,7 @@ export function useDesktopTimeline(
       scrollTl,
       refs.page4Container.current,
       TIMINGS.page4SlideUp.start,
-      TIMINGS.page4SlideUp.duration,
-      () => {
-        refs.projectsHandle.current?.playEntry();
-      }
+      TIMINGS.page4SlideUp.duration
     );
     scrollTl.set(refs.page4Container.current, { pointerEvents: 'auto' }, 0.82);
   });

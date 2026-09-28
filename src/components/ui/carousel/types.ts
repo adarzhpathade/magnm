@@ -34,7 +34,8 @@ export type LiquidGlassCarouselHandle = {
   closeFocus: () => void;
   next: () => void;
   previous: () => void;
-  playEntry: () => void;
+  playEntry: (force?: boolean) => void;
+  resetEntry?: () => void;
   destroy: () => void;
 };
 

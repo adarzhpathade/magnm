@@ -10,17 +10,24 @@ export function createEntryController(
   updateCursor: () => void,
   onEntryDone: (done: boolean) => void
 ) {
-  function playEntry() {
+  let hasPlayed = false;
+
+  function playEntry(force = false) {
     if (!entryOn) {
       onEntryDone(true);
       return;
     }
-    if (state.entryAnim) state.entryAnim.kill();
-    for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 0;
-    state.entryActive = true;
-    state.entrySettled = false;
-    onEntryDone(false);
-    state.focusState.lensFx = 0;
+    // Prevent interrupting an already-playing entrance animation mid-flight
+    if (state.entryActive) return;
+    // Prevent duplicate triggers if already played (eliminates jitter on entry)
+    if (hasPlayed && !force) return;
+    hasPlayed = true;
+
+    if (state.entryAnim) {
+      state.entryAnim.kill();
+      state.entryAnim = null;
+    }
+
     state.target = layoutEngine.centerForIndex(
       layoutEngine.nearestIndex(state.scroll)
     );
@@ -34,7 +41,38 @@ export function createEntryController(
       if (state.lastCenterX[k] !== undefined) visible.push(k);
     }
 
-    const tl = gsap.timeline({ delay: ENTRY.delay });
+    if (visible.length === 0) {
+      // Fallback: If no cards are visible yet (e.g. layout pending or offscreen), ensure all are 1
+      state.entryActive = false;
+      state.entrySettled = false;
+      for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+      onEntryDone(true);
+      return;
+    }
+
+    // Keep offscreen cards at 1, only zero out visible cards that will ripple in
+    for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+    visible.forEach((idx) => {
+      state.pEntry[idx] = 0;
+    });
+
+    state.entryActive = true;
+    state.entrySettled = false;
+    onEntryDone(false);
+    state.focusState.lensFx = 0;
+    layoutEngine.layout();
+
+    const tl = gsap.timeline({
+      delay: ENTRY.delay,
+      onComplete: () => {
+        state.entryActive = false;
+        state.entrySettled = false;
+        for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+        updateCursor();
+        state.lastActivity = performance.now();
+        onEntryDone(true);
+      },
+    });
     const half = state.W / 2;
     let maxRiseEnd = 0;
     const riseDuration = ENTRY.riseDuration;
@@ -72,20 +110,20 @@ export function createEntryController(
       Math.min(0.40, maxRiseEnd * 0.48)
     );
 
-    tl.call(
-      () => {
-        state.entryActive = false;
-        state.entrySettled = false;
-        for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
-        updateCursor();
-        state.lastActivity = performance.now();
-      },
-      [],
-      maxRiseEnd
-    );
-
     state.entryAnim = tl;
   }
 
-  return { playEntry };
+  function resetEntry() {
+    if (state.entryAnim) {
+      state.entryAnim.kill();
+      state.entryAnim = null;
+    }
+    state.entryActive = false;
+    state.entrySettled = false;
+    hasPlayed = false;
+    for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+    onEntryDone(true);
+  }
+
+  return { playEntry, resetEntry };
 }

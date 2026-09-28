@@ -1,5 +1,5 @@
 import { gsap } from "gsap";
-import { prefersReducedMotion, REPEATS } from "./constants";
+import { prefersReducedMotion, REPEATS, HORIZONTAL_ASPECT } from "./constants";
 import type {
   CarouselState,
   CreateCarouselOptions,
@@ -24,9 +24,14 @@ export function createCarousel(
 
   let W = Math.max(1, mount.clientWidth);
   let H = Math.max(1, mount.clientHeight);
-  const panelHFor = () =>
-    Math.max(100, Math.min(options.panelHeight, Math.round(H * 0.28)));
-  let PANEL_H = panelHFor();
+  const panelHFor = (w = W, h = H) => {
+    // Keep a clean margin on left and right on mobile/tablet viewports so cards are never edge-to-edge
+    const maxCardW = Math.min(options.panelHeight * HORIZONTAL_ASPECT, w * 0.80);
+    const hFromW = Math.round(maxCardW / HORIZONTAL_ASPECT);
+    const hFromH = Math.round(h * 0.28);
+    return Math.max(100, Math.min(options.panelHeight, hFromW, hFromH));
+  };
+  let PANEL_H = panelHFor(W, H);
   options.onPanelHChange?.(PANEL_H);
   const GAP = options.gap;
   const EASE = reduced ? 0.28 : 0.09;
@@ -214,6 +219,9 @@ export function createCarousel(
         ? SNAP_EASE
         : EASE;
     state.scroll += (state.target - state.scroll) * follow;
+    if (Math.abs(state.target - state.scroll) < 0.05 && state.velocity === 0) {
+      state.scroll = state.target;
+    }
 
     const ci = layoutEngine.centerIndex(state.scroll);
     if (ci !== state.lastCenter) {
@@ -258,7 +266,7 @@ export function createCarousel(
   function onResize() {
     state.W = Math.max(1, mount.clientWidth);
     state.H = Math.max(1, mount.clientHeight);
-    state.PANEL_H = panelHFor();
+    state.PANEL_H = panelHFor(state.W, state.H);
     options.onPanelHChange?.(state.PANEL_H);
     layoutEngine.recomputeTotal();
     ctx.renderer.setSize(state.W, state.H);
@@ -288,7 +296,7 @@ export function createCarousel(
       state.lastActivity = performance.now();
       startLoop();
     }
-  });
+  }, { threshold: [0, 0.15, 0.5] });
   intersection.observe(mount);
 
   const onVisibility = () => {
@@ -335,7 +343,12 @@ export function createCarousel(
     closeFocus: () => focusController.closeFocus(),
     next: () => inputController.step(1),
     previous: () => inputController.step(-1),
-    playEntry: () => entryController.playEntry(),
+    playEntry: (force?: boolean) => {
+      entryController.playEntry(force);
+    },
+    resetEntry: () => {
+      entryController.resetEntry();
+    },
     destroy,
   };
 }

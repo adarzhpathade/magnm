@@ -175,8 +175,9 @@ src/
   - Slides onto Section 3 with the exact same motion language: Section 3 stays locked, scales to `0.94`, dims to `0.35`, and Section 4 locks at `top: 0`.
   - Supported by `mobilePage3SpacerRef` (`25svh`) and `mobilePage4SpacerRef` (`25svh`) docking cushions.
 - **WebGL Carousel Engine Features**:
+  - **Heading & Copy**: Responsive display heading (`text-[28px] sm:text-[34px] md:text-5xl lg:text-[4.2rem] xl:text-[4.8rem]` in Familjen Grotesk, bold and prominent on 1 line across mobile devices) and editorial description (*"A curated archive of selected spatial systems, tactile digital interfaces, and interactive brand experiences engineered with precision."*, `text-[13px] sm:text-[14px] md:text-[15px]` with `max-w-[340px]`, docked 36px below the card to eliminate empty space).
   - **Symmetrical Card Ripple Entry**: Uniform card heights (`PANEL_H = 230px`), Card 0 mathematically centered (`x = 0`), symmetrical center-outward ripple (`staggerDelay = normDist * 0.16`).
-  - **Auto-Advance Progress Line**: Exact-width line (`2px` track, `#171717` fill) 14px below active frame, fills 0% to 100% over 3.5s idle interval, advances to next card and resets.
+  - **Auto-Advance Progress Line**: Hairline indicator: refined `h-[1px]` stroke with compact `max-w-[76px]` on mobile, `max-w-[110px]` on tablet, and `max-w-[280px]` on desktop. Fills 0% to 100% over 3.5s interval without resetting on hover or micro-moves.
   - **Interactions**: Drag/swipe with velocity physics, touch direction disambiguation (vertical scroll passes through to page; horizontal swipes control carousel), click-to-focus modal with card-drop animation, background click to dismiss.
 
 ---
@@ -204,38 +205,41 @@ export const TIMINGS = {
    - *Cause*: `rep !== midRep` pool culling and custom offset summation in earlier code caused uneven left/right distribution and an ugly left blank gap.
    - *Fix*: Maintained true infinite repeating loop coordinate math during entrance so cards tile symmetrically across both viewport edges.
 2. **Hover Resetting Progress Line**:
-   - *Cause*: Any pointer movement was updating `lastActivity = performance.now()`, restarting the 3.5s auto-scroll timer whenever the mouse hovered over the card.
-   - *Fix*: Decoupled mouse hover from `lastActivity`. Only actual drag, swipe, wheel scrub, or modal focus pauses/resets the timer.
+   - *Cause*: `onPointerMove` had an active check `if (moveDist > 2) { state.lastActivity = performance.now(); }` which continuously updated `lastActivity` on every sub-pixel cursor movement over the canvas (near the progress line or on cards), resetting elapsed time to 0 and dropping the progress line back to 0%. In addition, `onPointerDown`, `onPointerUp`, and `onClick` were prematurely resetting `lastActivity` on empty clicks, and React re-renders were reconciling `transform: scaleX(0)` in JSX.
+   - *Fix*: Completely removed `lastActivity` mutation from `onPointerMove`, `onPointerDown`, `onPointerUp`, and empty clicks in `input.ts`. Added `progressValRef` in `LiquidGlassCarousel` so React reconciles with the current progress rather than hardcoded 0. Added zero-drift `< 0.05` snap in `create-carousel.ts`. Now, hovering near the progress line or over cards allows the auto-advance line to fill smoothly without interruption or reset. Only genuine navigation actions (drags, horizontal wheel scrubs, side card clicks, arrow keys, and modal open/close) reset the timer.
 3. **Mobile Sticky Stacking Loss**:
    - *Cause*: `overflow-hidden` on parent containers broke CSS `position: sticky`.
    - *Fix*: Used `overflow-x-clip lg:overflow-x-hidden` on the main container and dedicated SVH scroll spacers (`mobileHeroSpacerRef`, `mobilePage3SpacerRef`, `mobilePage4SpacerRef`).
 4. **Touch Event Blocking**:
    - *Cause*: WebGL canvas pointer capture swallowed vertical swipe gestures on mobile devices.
    - *Fix*: Implemented touch direction detection in `input.ts`. If `totalDy > totalDx`, pointer capture is immediately released so natural page scrolling occurs seamlessly.
+5. **Scrollbar Removal**:
+   - *Fix*: Added universal CSS rules in `src/app/globals.css` (`scrollbar-width: none !important; -ms-overflow-style: none !important; ::-webkit-scrollbar { display: none !important; }`) to remove visible scrollbars across all viewports and browsers while preserving Lenis smooth scrolling on desktop and native momentum scroll on mobile.
+6. **Card Entrance Animation Triggering**:
+   - *Cause*: On desktop, `animateSheetSlideUp` called `playEntry()` at `start` (0.74), when Section 4 was completely off-screen at `y: 100%`, finishing the 0.85s rise before the section even became visible. On mobile, `slideOnP4Tl` was spamming `playEntry()` continuously on every touch scroll tick after `0.05` progress, repeatedly killing the animation while off-screen. Furthermore, cards were initialized at `pEntry: 1` instead of starting hidden in their entrance pose.
+   - *Fix*: In `animation-helpers.ts`, moved `onEnter` to `start + duration * 0.7` so cards animate right as Section 4 arrives in view. In `use-mobile-timeline.ts`, gated trigger with `p4EntryTriggered` flag at `self.progress >= 0.65`. In `entry.ts`, added `if (state.entryActive) return;` to prevent killing active runs. In `create-carousel.ts`, initialized `pEntry: fill(entryOn ? 0 : 1)` and added a threshold fallback in `IntersectionObserver` so entrance animation is 100% guaranteed to play.
+7. **Projects Page Blank State Elimination**:
+   - *Cause*: `entryDone` was initialized to `false` and hardcoded `opacity-0` was placed on `titleRef` and `counterRef` classNames, while `pEntry` in `entry.ts` zeroed out all cards (including offscreen ones) and would get permanently stuck if interrupted mid-flight or if premature `engine.playEntry()` was triggered on mount while Section 4 was offscreen.
+   - *Fix*: Initialized `entryDone: true` and `pEntry: fill(1)` by default so content is immediately visible. Removed hardcoded `opacity-0` CSS classes from `titleRef` and `counterRef` (allowing GSAP `fromTo` to handle blur/fade gracefully without permanently blanking). In `entry.ts`, safeguarded `playEntry()` with `if (state.entryActive) return;`, kept offscreen cards at `1` so scrolling/dragging during entry never reveals invisible cards, and added an `onComplete` fallback to guarantee `state.entryActive = false` and `onEntryDone(true)`.
+8. **Mobile Carousel Card Margin & Side Gaps**:
+   - *Cause*: `panelHFor()` calculated card height strictly from `H * 0.28` (or `panelHeight = 230px`), making the card width `230 * 1.778 = 409px`. On phones (width 375–390px), this forced the card to be wider than the viewport, spanning edge-to-edge with 0 margin.
+   - *Fix*: Updated `panelHFor(w, h)` in `create-carousel.ts` to clamp maximum card width to `Math.min(panelHeight * HORIZONTAL_ASPECT, w * 0.80)`. On a 390px viewport, card width is scaled to 312px, leaving a clean 39px margin on both sides with adjacent cards peeking in by 25px. The React UI (`titleRef`, `progressContainerRef`, `counterRef`) automatically docks at the updated height.
+9. **Duplicate Entrance Animation & Reverse Scroll Jitter**:
+   - *Cause*: Two separate, uncoordinated mechanisms were calling `playEntry()`: `IntersectionObserver` in `create-carousel.ts` fired at 15% visibility, and `tl.call()` embedded inside the scrubbed `animateSheetSlideUp` timeline fired at 70% progress. Because `tl.call` inside a scrubbed GSAP timeline executes both forward and reverse, scrolling backwards across the position re-executed `playEntry()` in reverse, causing cards to violently reset and jump.
+   - *Fix*: Removed `tl.call` from `animateSheetSlideUp` and removed the animation trigger from `IntersectionObserver`. Centralized entrance triggering in `use-desktop-timeline.ts` and `use-mobile-timeline.ts` inside `onUpdate` with explicit `self.direction === 1` checks (`progress >= 0.82 && self.direction === 1 && !p4EntryTriggered`). Added `hasPlayed` state latch inside `entry.ts` and implemented `resetEntry()` that only resets when Section 4 is completely off-screen (`progress < 0.72`). In reverse scroll, no animation executes and cards stay settled.
 
 ---
 
 ## 8. Immediate Next Steps / Roadmap to Completion
 
-To complete the website as fast as possible:
-
-### Phase A: Section 5 — Footer Component
-1. Build `src/components/Footer.tsx`:
-   - Monochromatic dark background (`#000000` or `#171717`) or contrast white/light card.
-   - Giant stylized `MAGNM` logo signature watermark.
-   - Studio navigation links (Work, About, Services, Careers, Contact).
-   - Social links (X/Twitter, Instagram, LinkedIn, GitHub).
-   - Kinetic Contact CTA: "LET'S WORK TOGETHER" or "START A PROJECT".
-   - Current time (UTC/local) + status indicator ("AVAILABLE FOR Q2/Q3 PROJECTS").
-   - Copyright, privacy, and imprint lines.
-2. Wire Footer into `MainExperience.tsx`:
-   - Desktop: Animate Section 4 scale-down or reveal Footer naturally after Section 4.
-   - Mobile: Slide-on card sheet or natural scroll docking below Section 4.
+### Section 5 (Footer) Removed
+- As requested, the Footer component and its transitions have been completely removed.
+- Section 4 (Projects Showcase with Liquid Glass Carousel) is the final section of the landing page.
 
 ### Phase B: Contact / Project Inquiry Modal (Optional/Interactive)
 1. Add an overlay inquiry drawer or full-screen contact form triggered by all `DISCUSS YOUR PROJECT +` buttons.
 2. Keep it minimal, monochromatic, with smooth entrance animation and audio chime feedback.
 
 ### Phase C: Final Performance & Visual Polish
-1. Run lighthouse / memory profile to ensure WebGL context disposal and Three.js memory allocations remain low.
-2. Verify all breakpoints (mobile 375px/390px/430px, tablet 768px/1024px, desktop 1440px/1920px).
+1. Verify all breakpoints (mobile 375px/390px/430px, tablet 768px/1024px, desktop 1440px/1920px).
+2. Ensure Three.js memory allocations and WebGL contexts remain clean and disposed on unmount.

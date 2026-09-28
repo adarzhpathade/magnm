@@ -7,7 +7,8 @@ import {
 } from '@/components/ui/liquid-glass-carousel';
 
 export interface ProjectsHandle {
-  playEntry: () => void;
+  playEntry: (force?: boolean) => void;
+  resetEntry: () => void;
 }
 
 export interface ProjectsProps {
@@ -22,7 +23,8 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
     useImperativeHandle(
       ref,
       () => ({
-        playEntry: () => carouselRef.current?.playEntry(),
+        playEntry: (force?: boolean) => carouselRef.current?.playEntry(force),
+        resetEntry: () => carouselRef.current?.resetEntry?.(),
       }),
       [],
     );
@@ -37,7 +39,7 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
         <LiquidGlassCarousel
           ref={carouselRef}
           heading="Our Projects"
-          description="Selected spatial systems, digital interfaces & interactive works."
+          description="A curated archive of selected spatial systems, tactile digital interfaces, and interactive brand experiences engineered with precision."
           panelHeight={230}
           background="#cccccc"
           entry={true}

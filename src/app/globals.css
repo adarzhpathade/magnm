@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+/* ==========================================================================
+   Global Scrollbar Removal
+   Completely removes visible scrollbars across all browsers while preserving
+   native and smooth scrolling functionality.
+   ========================================================================== */
+
+/* Firefox */
+html,
+body,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+/* Chrome, Safari, Edge, Opera, and WebKit-based browsers */
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}

@@ -24,8 +24,7 @@ export function animateSheetSlideUp(
   tl: gsap.core.Timeline,
   el: HTMLElement | null,
   start: number,
-  duration = 0.12,
-  onEnter?: () => void
+  duration = 0.12
 ) {
   if (!el) return;
   tl.fromTo(
@@ -42,9 +41,6 @@ export function animateSheetSlideUp(
     },
     start
   );
-  if (onEnter) {
-    tl.call(onEnter, [], start);
-  }
 }
 
 /**

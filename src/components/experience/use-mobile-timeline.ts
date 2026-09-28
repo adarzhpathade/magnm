@@ -276,6 +276,7 @@ export function useMobileTimeline(
     // Section 4 slides ON TO Page 3 in the exact same way:
     // As Section 4's top moves from bottom of viewport to top of viewport,
     // Page 3 underneath subtly scales down and dims, while remaining held at top: 0
+    let p4EntryTriggered = false;
     const slideOnP4Tl = gsap.timeline({
       scrollTrigger: {
         trigger: refs.page4Container.current,
@@ -288,8 +289,14 @@ export function useMobileTimeline(
             refs.page3Wrapper.current.style.visibility =
               self.progress >= 0.99 ? 'hidden' : 'visible';
           }
-          if (self.progress > 0.05) {
+          if (self.progress >= 0.55 && self.direction === 1 && !p4EntryTriggered) {
+            p4EntryTriggered = true;
             refs.projectsHandle.current?.playEntry();
+          } else if (self.progress < 0.15) {
+            if (p4EntryTriggered) {
+              p4EntryTriggered = false;
+              refs.projectsHandle.current?.resetEntry?.();
+            }
           }
         },
       },

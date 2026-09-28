@@ -60,6 +60,7 @@ export default function MainExperience() {
   const page4ContainerRef = useRef<HTMLDivElement>(null);
   const mobileHeroSpacerRef = useRef<HTMLDivElement>(null);
   const mobilePage3SpacerRef = useRef<HTMLDivElement>(null);
+  const mobilePage4SpacerRef = useRef<HTMLDivElement>(null);
   const ourWorkHandleRef = useRef<OurWorkHandle | null>(null);
   const projectsHandleRef = useRef<ProjectsHandle | null>(null);
 
@@ -281,6 +282,7 @@ export default function MainExperience() {
 
           {/* Mobile Scroll Spacer: allows Section 4 to stay docked at top: 0 comfortably */}
           <div
+            ref={mobilePage4SpacerRef}
             className="relative w-full h-[25svh] lg:hidden pointer-events-none"
             aria-hidden="true"
           />

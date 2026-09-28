@@ -68,7 +68,7 @@ export const LiquidGlassCarousel = forwardRef<
     entry = true,
     autoScroll = true,
     heading = "Our Projects",
-    description = "Selected spatial systems, digital interfaces & interactive works.",
+    description = "A curated archive of selected spatial systems, tactile digital interfaces, and interactive brand experiences engineered with precision.",
     className,
     style,
     showTitle = true,
@@ -86,9 +86,10 @@ export const LiquidGlassCarousel = forwardRef<
   const revealPlayedRef = useRef(false);
   const [active, setActive] = useState(0);
   const [focused, setFocused] = useState(false);
-  const [entryDone, setEntryDone] = useState(!entry);
+  const [entryDone, setEntryDone] = useState(true);
   const [failed, setFailed] = useState(false);
   const [panelH, setPanelH] = useState(panelHeight);
+  const progressValRef = useRef(0);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const progressContainerRef = useRef<HTMLDivElement>(null);
   const labelId = useId();
@@ -105,7 +106,8 @@ export const LiquidGlassCarousel = forwardRef<
       closeFocus: () => engineRef.current?.closeFocus(),
       next: () => engineRef.current?.next(),
       previous: () => engineRef.current?.previous(),
-      playEntry: () => engineRef.current?.playEntry(),
+      playEntry: (force?: boolean) => engineRef.current?.playEntry(force),
+      resetEntry: () => engineRef.current?.resetEntry?.(),
       destroy: () => engineRef.current?.destroy(),
     }),
     [],
@@ -133,6 +135,7 @@ export const LiquidGlassCarousel = forwardRef<
       onEntryDone: setEntryDone,
       onPanelHChange: (h) => setPanelH(h),
       onAutoScrollProgress: (progress) => {
+        progressValRef.current = progress;
         if (progressFillRef.current) {
           progressFillRef.current.style.transform = `scaleX(${progress})`;
         }
@@ -143,6 +146,7 @@ export const LiquidGlassCarousel = forwardRef<
       return;
     }
     engineRef.current = engine;
+
     return () => {
       engine.destroy();
       engineRef.current = null;
@@ -296,7 +300,7 @@ export const LiquidGlassCarousel = forwardRef<
       {showTitle && (
         <p
           ref={titleRef}
-          className="pointer-events-none absolute left-1/2 z-10 m-0 text-center text-[14px] sm:text-[15px] md:text-[16px] font-normal tracking-[-0.01em] text-[#171717] opacity-0 whitespace-nowrap select-none will-change-[filter,opacity,transform] px-3 py-1"
+          className="pointer-events-none absolute left-1/2 z-10 m-0 text-center text-[14px] sm:text-[15px] md:text-[16px] font-normal tracking-[-0.01em] text-[#171717] whitespace-nowrap select-none will-change-[filter,opacity,transform] px-3 py-1"
           style={{
             bottom: `calc(50% + ${panelH / 2}px + 14px)`,
           }}
@@ -309,35 +313,37 @@ export const LiquidGlassCarousel = forwardRef<
         <div
           ref={progressContainerRef}
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 transition-opacity duration-300 select-none"
+          className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 transition-opacity duration-300 select-none max-w-[76px] sm:max-w-[110px] lg:max-w-[280px]"
           style={{
-            top: `calc(50% + ${panelH / 2}px + 14px)`,
+            top: `calc(50% + ${panelH / 2}px + 12px)`,
             width: Math.round(panelH * (current?.aspect || 16 / 9)),
-            maxWidth: "calc(100vw - 32px)",
-            opacity: entryDone && !focused ? 1 : 0,
+            opacity: focused ? 0 : 1,
           }}
         >
-          <div className="relative h-[2px] w-full rounded-full bg-[#171717]/15 overflow-hidden">
+          <div className="relative h-[1px] w-full rounded-full bg-[#171717]/15 overflow-hidden">
             <div
               ref={progressFillRef}
               className="absolute inset-y-0 left-0 w-full bg-[#171717] origin-left will-change-transform"
-              style={{ transform: "scaleX(0)" }}
+              style={{ transform: `scaleX(${progressValRef.current})` }}
             />
           </div>
         </div>
       )}
       <div
         ref={counterRef}
-        className="pointer-events-none absolute bottom-[6.5%] sm:bottom-[8%] md:bottom-[9%] left-1/2 z-10 m-0 text-center opacity-0 flex flex-col items-center gap-1.5 sm:gap-2.5 select-none px-4 max-w-[90vw] will-change-[filter,opacity,transform]"
+        className="pointer-events-none absolute left-1/2 z-10 m-0 text-center flex flex-col items-center gap-2 sm:gap-2.5 select-none px-4 w-full max-w-[92vw] will-change-[filter,opacity,transform] lg:!top-auto lg:bottom-[7.5%]"
+        style={{
+          top: `calc(50% + ${panelH / 2}px + 36px)`,
+        }}
       >
         <h2
           style={{ fontFamily: 'var(--font-familjen), "Familjen Grotesk", sans-serif' }}
-          className="font-normal text-3xl sm:text-4xl md:text-5xl lg:text-[3.6rem] xl:text-[4.2rem] tracking-[-0.04em] leading-none text-[#171717]"
+          className="font-normal text-[28px] sm:text-[34px] md:text-5xl lg:text-[4.2rem] xl:text-[4.8rem] tracking-[-0.035em] sm:tracking-[-0.04em] leading-tight sm:leading-none text-[#171717] whitespace-nowrap"
         >
           {heading || "Our Projects"}
         </h2>
-        <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] font-normal tracking-[-0.015em] text-[#171717]/65 max-w-[460px] text-center leading-relaxed select-none">
-          {description || "Selected spatial systems, digital interfaces & interactive works."}
+        <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] font-normal tracking-[-0.015em] text-[#171717]/70 max-w-[340px] sm:max-w-[480px] md:max-w-[620px] text-center leading-relaxed select-none">
+          {description || "A curated archive of selected spatial systems, tactile digital interfaces, and interactive brand experiences engineered with precision."}
         </p>
       </div>
 

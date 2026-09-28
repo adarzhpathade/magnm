@@ -122,7 +122,6 @@ export function setupInput(
 
   function onPointerDown(e: PointerEvent) {
     state.suppressClick = false;
-    state.lastActivity = performance.now();
     if (state.focusState.active) return;
     if (inputLocked()) return;
     if (state.dragging) return;
@@ -161,12 +160,6 @@ export function setupInput(
 
   function onPointerMove(e: PointerEvent) {
     const p = localPoint(e);
-    const moveDist = Number.isFinite(state.lastPointerX)
-      ? Math.hypot(p.x - state.lastPointerX, p.y - state.lastPointerY)
-      : 0;
-    if (moveDist > 2) {
-      state.lastActivity = performance.now();
-    }
     if (state.dragging && e.pointerId === state.dragPointerId) {
       // For touch, distinguish horizontal swipe vs vertical scroll
       if (state.dragPointerType === "touch" && !state.touchDirectionDetermined) {
@@ -222,7 +215,6 @@ export function setupInput(
   }
 
   function onPointerUp(e?: PointerEvent) {
-    state.lastActivity = performance.now();
     if (!state.dragging) return;
     if (e && state.dragPointerId !== null && e.pointerId !== state.dragPointerId) {
       return;
@@ -262,7 +254,6 @@ export function setupInput(
   }
 
   function onClick(e: MouseEvent) {
-    state.lastActivity = performance.now();
     if (state.suppressClick) {
       state.suppressClick = false;
       return;
@@ -291,6 +282,7 @@ export function setupInput(
     );
     state.snapped = true;
     state.pendingFocus = { srcIndex: hit.srcIndex };
+    state.lastActivity = performance.now();
     setView(false);
   }
 
