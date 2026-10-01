@@ -2,7 +2,7 @@ import type { RefObject, MutableRefObject } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TIMINGS } from './timings';
-import { animateSheetScaleDown, animateSheetSlideUp, getTransformTargets } from './animation-helpers';
+import { animateSheetScaleDown, animateSheetSlideUp, getTransformTargets, getNavToFooterFontTargets } from './animation-helpers';
 import { chimeSynth } from '@/lib/chime-synth';
 import type { OurWorkHandle } from '../OurWork';
 import type { ProjectsHandle } from '../Projects';
@@ -37,6 +37,10 @@ export interface DesktopTimelineRefs {
   cameraController: MutableRefObject<CameraController>;
   ourWorkHandle: MutableRefObject<OurWorkHandle | null>;
   projectsHandle: MutableRefObject<ProjectsHandle | null>;
+  footer?: RefObject<HTMLDivElement | null>;
+  footerWrapper?: RefObject<HTMLDivElement | null>;
+  footerMagnm?: RefObject<HTMLSpanElement | null>;
+  navbarHeader?: RefObject<HTMLElement | null>;
 }
 
 export function useDesktopTimeline(
@@ -78,12 +82,13 @@ export function useDesktopTimeline(
       refs.navBrand.current.style.opacity = '1';
       refs.navBrand.current.style.transform = 'none';
     }
-    gsap.set('.nav-logo-container', { opacity: 0 });
-    gsap.set('.nav-brand-divider', { opacity: 0, backgroundColor: 'rgba(255, 255, 255, 0.22)' });
-    gsap.set('.nav-brand-text', { opacity: 0 });
+    gsap.set('.nav-logo-container', { opacity: 0, filter: 'none', y: 0 });
+    gsap.set('.nav-brand-divider', { opacity: 0, filter: 'none', y: 0, backgroundColor: 'rgba(255, 255, 255, 0.22)' });
+    gsap.set('.nav-brand-text', { opacity: 0, filter: 'none', y: 0, x: 0, scale: 1, color: '#171717', transformOrigin: '0 0', clearProps: 'fontSize,lineHeight' });
     if (refs.navActions.current) {
       refs.navActions.current.style.opacity = '0';
       refs.navActions.current.style.transform = 'none';
+      refs.navActions.current.style.filter = 'none';
       refs.navActions.current.style.pointerEvents = 'none';
     }
 
@@ -101,6 +106,20 @@ export function useDesktopTimeline(
     if (refs.heroAboutStage.current) {
       gsap.set(refs.heroAboutStage.current, { clearProps: 'all' });
       refs.heroAboutStage.current.style.visibility = 'visible';
+    }
+    if (refs.heroContainer.current) {
+      refs.heroContainer.current.style.pointerEvents = 'auto';
+      refs.heroContainer.current.style.opacity = '1';
+    }
+    if (refs.heroMagnm.current) {
+      gsap.set(refs.heroMagnm.current, {
+        clearProps: 'transform',
+        transformOrigin: '0 0',
+        scale: 1,
+        x: 0,
+        y: 0,
+        opacity: 1,
+      });
     }
     if (refs.whiteBackdrop.current) {
       gsap.set(refs.whiteBackdrop.current, { opacity: 0 });
@@ -132,6 +151,15 @@ export function useDesktopTimeline(
       refs.page4Container.current.style.visibility = 'visible';
     }
 
+    // Footer initial state: strictly hidden so it NEVER covers Hero on load
+    if (refs.footerWrapper?.current) {
+      gsap.set(refs.footerWrapper.current, {
+        visibility: 'hidden',
+        pointerEvents: 'none',
+      });
+    }
+    gsap.set('#page-footer-bg', { visibility: 'hidden' });
+
     // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 -> Page 4 transition
     const cameraObj = {
       tilt: 36,
@@ -146,14 +174,14 @@ export function useDesktopTimeline(
       scrollTrigger: {
         trigger: refs.pinnedStage.current,
         start: 'top top',
-        end: '+=780%',
+        end: '+=850%',
         pin: true,
         scrub: 0.15,
         snap: {
           snapTo: (progress: number) => {
-            // Snap points for the 6 services in Phase 6: 0.44 -> 0.70
-            const sStart = 0.44;
-            const sEnd = 0.70;
+            // Snap points for the 6 services in Phase 6
+            const sStart = TIMINGS.servicesScroll.start;
+            const sEnd = TIMINGS.servicesScroll.end;
             if (progress >= sStart - 0.02 && progress <= sEnd + 0.02) {
               const step = (sEnd - sStart) / 5; // 6 services, 5 gaps
               const nearestIdx = Math.round((progress - sStart) / step);
@@ -161,7 +189,11 @@ export function useDesktopTimeline(
               return sStart + clamped * step;
             }
             // Snap to fully docked Page 4
-            if (progress >= 0.90) {
+            if (progress >= 0.82 && progress <= 0.88) {
+              return 0.85;
+            }
+            // Snap to Footer
+            if (progress >= 0.94) {
               return 1.0;
             }
             // Before services zone or during card transition — let it flow freely
@@ -222,7 +254,7 @@ export function useDesktopTimeline(
 
           // Section 4 (Page 4 Projects Card)
           if (refs.page4Container.current) {
-            const isPage4Active = progress >= 0.78;
+            const isPage4Active = progress >= 0.74 && progress < 0.88;
             if (isPage4Active && refs.page4Container.current.style.pointerEvents !== 'auto') {
               chimeSynth.suppressHover(600);
             }
@@ -230,15 +262,28 @@ export function useDesktopTimeline(
               isPage4Active ? 'auto' : 'none';
 
             // Incoming animation: plays ONCE when scrolling forward into Section 4
-            // Does NOT play in reverse scroll, eliminating all reverse jitter
-            if (progress >= 0.82 && self.direction === 1 && !p4EntryTriggered) {
+            if (progress >= 0.76 && self.direction === 1 && !p4EntryTriggered) {
               p4EntryTriggered = true;
               refs.projectsHandle.current?.playEntry();
-            } else if (progress < 0.72) {
+            } else if (progress < 0.70) {
               if (p4EntryTriggered) {
                 p4EntryTriggered = false;
                 refs.projectsHandle.current?.resetEntry?.();
               }
+            }
+          }
+
+          // Section 5 (Footer)
+          if (refs.footerWrapper?.current) {
+            const isFooterActive = progress >= 0.88;
+            refs.footerWrapper.current.style.pointerEvents =
+              isFooterActive ? 'auto' : 'none';
+            if (progress < 0.85) {
+              refs.footerWrapper.current.style.visibility = 'hidden';
+              gsap.set('#page-footer-bg', { visibility: 'hidden' });
+            } else {
+              refs.footerWrapper.current.style.visibility = 'visible';
+              gsap.set('#page-footer-bg', { visibility: 'visible' });
             }
           }
         },
@@ -671,6 +716,69 @@ export function useDesktopTimeline(
       TIMINGS.page4SlideUp.start,
       TIMINGS.page4SlideUp.duration
     );
-    scrollTl.set(refs.page4Container.current, { pointerEvents: 'auto' }, 0.82);
+    scrollTl.set(refs.page4Container.current, { pointerEvents: 'auto' }, 0.80);
+
+    // Phase 9: Page 4 slides UP & OFF to reveal Footer underneath (0.88 -> 1.00)
+    // 0. Ensure Footer background and helix are visible right before Page 4 lifts
+    if (refs.footerWrapper?.current) {
+      scrollTl.set(
+        [refs.footerWrapper.current, '#page-footer-bg'],
+        { visibility: 'visible', pointerEvents: 'auto' },
+        0.85
+      );
+    }
+
+    // 1. Page 4 slides up and off the top of the viewport
+    scrollTl.to(
+      refs.page4Container.current,
+      {
+        y: '-100%',
+        boxShadow: '0 30px 90px rgba(0, 0, 0, 0.5)',
+        duration: TIMINGS.footerReveal.duration,
+        ease: 'power2.inOut',
+      },
+      TIMINGS.footerReveal.start
+    );
+
+    // 2. Navbar items stay visible while Page 4 lifts, then leave with optical blur when Page 4 is ~80% gone
+    const navLeaveElements: (string | HTMLElement)[] = ['.nav-logo-container', '.nav-brand-divider'];
+    if (refs.navActions.current) {
+      navLeaveElements.push(refs.navActions.current);
+    }
+    scrollTl.to(
+      navLeaveElements,
+      {
+        opacity: 0,
+        filter: 'blur(16px)',
+        y: -14,
+        duration: 0.04,
+        ease: 'power1.out',
+      },
+      0.96
+    );
+
+    // 3. The SAME Navbar MAGNM text grows its real fontSize from nav size to hero size (reverse of hero→nav)
+    //    Starts at 0.95 (Page 4 ~60% gone) and completes by 1.0 (Page 4 fully gone, footer fully revealed)
+    //    x: shifts left to align with page padding (compensating for logo+divider offset ~60px)
+    //    y: shifts down to compensate for items-center overflow when font grows
+    //       (at 248px font × 0.8 lineHeight = 198px tall, centered in 44px container → overflows 77px upward)
+    scrollTl.to(
+      '.nav-brand-text',
+      {
+        fontSize: () =>
+          getNavToFooterFontTargets(
+            refs.navBrand?.current ?? null,
+            refs.footerMagnm?.current ?? null
+          ).fontSize,
+        x: -85,
+        y: 75,
+        lineHeight: 0.8,
+        letterSpacing: '-0.035em',
+        color: '#cccccc',
+        duration: 0.05,
+        ease: 'power2.inOut',
+      },
+      0.95
+    );
   });
 }

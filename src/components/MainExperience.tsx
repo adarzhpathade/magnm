@@ -16,6 +16,7 @@ import OurWork, { type OurWorkHandle } from './OurWork';
 import Projects, { type ProjectsHandle } from './Projects';
 import ProjectModal from './ProjectModal';
 import AboutModal from './AboutModal';
+import Footer from './Footer';
 
 import { useResponsiveWheel } from './experience/use-responsive-wheel';
 import { useDesktopTimeline } from './experience/use-desktop-timeline';
@@ -68,6 +69,10 @@ export default function MainExperience() {
   const mobilePage4SpacerRef = useRef<HTMLDivElement>(null);
   const ourWorkHandleRef = useRef<OurWorkHandle | null>(null);
   const projectsHandleRef = useRef<ProjectsHandle | null>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const footerWrapperRef = useRef<HTMLDivElement>(null);
+  const footerMagnmRef = useRef<HTMLSpanElement>(null);
+  const mobilePageFooterSpacerRef = useRef<HTMLDivElement>(null);
 
   // Persistent 3D Wheel refs and controllers
   const wheelWrapperRef = useRef<HTMLDivElement>(null);
@@ -110,6 +115,10 @@ export default function MainExperience() {
           cameraController: cameraControllerRef,
           ourWorkHandle: ourWorkHandleRef,
           projectsHandle: projectsHandleRef,
+          footer: footerRef,
+          footerWrapper: footerWrapperRef,
+          footerMagnm: footerMagnmRef,
+          navbarHeader: navbarHeaderRef,
         },
         mm
       );
@@ -133,6 +142,10 @@ export default function MainExperience() {
           wheelWrapper: wheelWrapperRef,
           cameraController: cameraControllerRef,
           projectsHandle: projectsHandleRef,
+          footer: footerRef,
+          footerWrapper: footerWrapperRef,
+          footerMagnm: footerMagnmRef,
+          navbarHeader: navbarHeaderRef,
         },
         mm
       );
@@ -144,7 +157,7 @@ export default function MainExperience() {
 
   return (
     <SmoothScroll>
-      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-clip lg:overflow-x-hidden">
+      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-clip lg:overflow-x-clip">
         {/* Sticky Fixed Navbar (z-50) */}
         <Navbar
           headerRef={navbarHeaderRef}
@@ -186,7 +199,10 @@ export default function MainExperience() {
         )}
 
         {/* Master Stage: Pinned on Desktop, Natural Vertical Flow on Mobile */}
-        <div ref={pinnedStageRef} className="relative z-20 w-full lg:h-screen lg:overflow-hidden">
+        <div
+          ref={pinnedStageRef}
+          className="relative w-full lg:h-screen lg:overflow-hidden bg-[#000000] shadow-[0_25px_80px_rgba(0,0,0,0.6)]"
+        >
           {/* Hero & About Combined Stage (Sticky on Mobile so Section 3 slides directly on to it) */}
           <div
             ref={heroAboutStageRef}
@@ -282,7 +298,7 @@ export default function MainExperience() {
             aria-hidden="true"
           />
 
-          {/* Section 4 (Page 4): Projects Showcase — slides up on to Page 3 on mobile */}
+          {/* Section 4 (Page 4): Projects Showcase — sits at z-40 on desktop directly on top of the Footer */}
           <div
             id="page-4"
             ref={page4ContainerRef}
@@ -291,10 +307,37 @@ export default function MainExperience() {
             <Projects ref={projectsHandleRef} />
           </div>
 
+          {/* Section 5a: Footer Background — sits at z-38 on desktop, directly UNDERNEATH Page 4 (z-40) */}
+          <div
+            id="page-footer-bg"
+            className="sticky top-0 lg:absolute lg:inset-0 z-38 w-full h-[100svh] lg:h-full pointer-events-none bg-[#000000] lg:invisible"
+            aria-hidden="true"
+          />
+
+          {/* Section 5b: Footer Interactive Helix & Content — sits at z-55 on desktop, in FRONT of Navbar MAGNM text (z-50) */}
+          <div
+            id="page-footer"
+            ref={footerWrapperRef}
+            className="sticky top-0 lg:absolute lg:inset-0 z-55 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform lg:invisible"
+          >
+            <Footer
+              ref={footerRef}
+              magnmRef={footerMagnmRef}
+              onStartProject={() => { setModalSource('hero'); setIsProjectModalOpen(true); }}
+            />
+          </div>
+
           {/* Mobile Scroll Spacer: allows Section 4 to stay docked at top: 0 comfortably */}
           <div
             ref={mobilePage4SpacerRef}
             className="relative w-full h-[25svh] lg:hidden pointer-events-none"
+            aria-hidden="true"
+          />
+
+          {/* Mobile Scroll Spacer: track for Footer reveal */}
+          <div
+            ref={mobilePageFooterSpacerRef}
+            className="relative w-full h-[35svh] lg:hidden pointer-events-none"
             aria-hidden="true"
           />
         </div>

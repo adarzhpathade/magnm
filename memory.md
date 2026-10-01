@@ -1,6 +1,6 @@
 # Memory — MAGNM Creative Studio Landing Page
 
-Last updated: 2026-09-28 01:45
+Last updated: 2026-10-01 23:25
 Repository: `https://github.com/adarzhpathade/magnm.git`
 Branch: `main`
 
@@ -10,7 +10,7 @@ Branch: `main`
 
 MAGNM is a motion-driven, ultra-minimalist, monochromatic digital creative studio landing page. It is engineered with high visual fidelity, seamless 3D WebGL scenes, fluid scroll-driven GSAP sequences, and an interactive spatial soundscape.
 
-The codebase has undergone a complete architectural refactoring: both monolithic bottlenecks (`MainExperience.tsx` and `carousel-engine.ts`) have been broken down into modular, single-responsibility files under `src/components/experience/` and `src/components/ui/carousel/`.
+The codebase features a modular, single-responsibility architecture across `src/components/experience/` (timeline hooks, master timings, animation helpers) and `src/components/ui/carousel/` (Three.js WebGL carousel engine). All 5 core sections—including the Footer stage with 3D XylophoneHelix and reverse MAGNM font expansion—are fully implemented, responsive, and synchronized across both desktop and mobile viewports.
 
 ---
 
@@ -42,7 +42,7 @@ The codebase has undergone a complete architectural refactoring: both monolithic
 
 | Token | Hex | Role | Usage |
 |---|---|---|---|
-| Background Dark | `#000000` | Main deep background | Viewport background, Hero stage, dark sections |
+| Background Dark | `#000000` | Main deep background | Viewport background, Hero stage, dark sections, Footer stage |
 | Dark Surface / Primary Text | `#171717` | High-contrast text & cards | Primary typography on light surfaces, button fill |
 | Medium Dark Accent | `#4D4D4D` | Subtle borders & muted text | Borders, secondary labels, disabled states |
 | Light Surface Primary | `#cccccc` | Light surface for Sec 3 & 4 | Our Work background, Projects card backdrop |
@@ -63,14 +63,15 @@ src/
 ├── app/
 │   ├── page.tsx                          — Entry point, renders <MainExperience />
 │   ├── layout.tsx                        — Font optimization (Geist, Martian Mono), root HTML
-│   └── globals.css                       — Base Tailwind, custom utilities, selection styles
+│   └── globals.css                       — Base Tailwind, custom utilities, scrollbar hiding
 ├── components/
-│   ├── MainExperience.tsx                — (~260 lines) Orchestrator: refs, useGSAP lifecycle, JSX stage tree
+│   ├── MainExperience.tsx                — Orchestrator: refs, useGSAP lifecycle, JSX stage tree (Pages 1–5)
 │   ├── Navbar.tsx                        — Fixed sticky navbar (z-50) with Brand dock target & action buttons
 │   ├── Hero.tsx                          — Minimalist hero header, kinetic tagline, bottom-left CTA
 │   ├── AboutManifesto.tsx                — Section 2 manifesto with progressive word illumination
 │   ├── OurWork.tsx                       — Section 3: desktop OptionWheel wrapper + mobile tap-to-expand services
 │   ├── Projects.tsx                      — Section 4: Projects title + LiquidGlassCarousel wrapper
+│   ├── Footer.tsx                        — Section 5: monochromatic footer with 3D XylophoneHelix, kinetic tagline & CTA
 │   ├── OptionWheel.tsx                   — Desktop interactive 3D circular service carousel
 │   ├── ParallaxStripTransition.tsx       — 12-strip vertical wipe from Section 2 to Section 3
 │   ├── SmoothScroll.tsx                  — Lenis smooth scrolling (desktop only; bypassed on mobile)
@@ -80,8 +81,8 @@ src/
 │   ├── FloatingRock.tsx                  — Decorative 3D asset with subtle inertia float
 │   │
 │   ├── experience/                       — 🎯 EXTRACTED FROM MAINEXPERIENCE MONOLITH
-│   │   ├── timings.ts                    — Master TIMINGS config object for all 8 scroll phases
-│   │   ├── animation-helpers.ts          — animateSheetScaleDown, animateSheetSlideUp, getTransformTargets
+│   │   ├── timings.ts                    — Master TIMINGS config object for all 9 scroll phases
+│   │   ├── animation-helpers.ts          — Sheet scale/slide tweens, getTransformTargets, getNavToFooterFontTargets
 │   │   ├── use-responsive-wheel.ts       — Wheel scale state (54/70/90), resize listener, scrollRestoration
 │   │   ├── use-desktop-timeline.ts       — Desktop pinned ScrollTrigger master timeline (min-width: 1024px)
 │   │   └── use-mobile-timeline.ts        — Mobile sequential ScrollTrigger timelines (max-width: 1023px)
@@ -132,12 +133,12 @@ src/
   - Sticky fixed header (`z-50`) across the entire page.
   - Left brand target (`.nav-logo-light`, `.nav-logo-dark` + `.nav-brand-divider` + `.nav-brand-text`): dual origami metallic logo emblems (light on dark surfaces, dark on light surfaces; sized `h-[34px] sm:h-[35px] md:h-[36px] aspect-[1.5/1]`).
   - **Mobile vs Desktop Distinction**:
-    - **Desktop (`>= 1024px`)**: Dual logo container (`md:h-[36px]`) separated by a refined thin vertical divider line (`.nav-brand-divider w-[1px] h-[20px] bg-white/20`) and paired with refined `MAGNM` wordmark (`.nav-brand-text font-['Familjen_Grotesk'] text-[1.65rem] uppercase`). Unified scale-down: `heroMagnmRef` in `Hero.tsx` scales down smoothly and docks beside `.nav-logo-container` and `.nav-brand-divider` (`0.04 -> 0.14`), locking together as ONE cohesive unit. In Section 3, `.nav-brand-divider` dynamically inverts to `rgba(23, 23, 23, 0.22)` on the light background at scroll `0.38`.
+    - **Desktop (`>= 1024px`)**: Dual logo container (`md:h-[36px]`) separated by a refined thin vertical divider line (`.nav-brand-divider w-[1px] h-[20px] bg-white/20`) and paired with refined `MAGNM` wordmark (`.nav-brand-text font-['Familjen_Grotesk'] text-[1.65rem] uppercase origin-top-left will-change-[transform,font-size]`). Unified scale-down: `heroMagnmRef` in `Hero.tsx` scales down smoothly and docks beside `.nav-logo-container` and `.nav-brand-divider` (`0.04 -> 0.14`), locking together as ONE cohesive unit. In Section 3, `.nav-brand-divider` dynamically inverts to `rgba(23, 23, 23, 0.22)` on the light background at scroll `0.38`.
     - **Mobile (`< 1024px`)**: In mobile view, the navbar strictly displays **only the logo** — `.nav-brand-divider`, `.nav-brand-text`, and nav actions are hidden (`hidden lg:block` / `hidden lg:inline-block` / `hidden lg:flex`). The logo size is increased specifically on mobile (`h-[34px]` vs previously `28px`). On scroll (`0.0 -> 0.22`), the hero monolithic `MAGNM` title softly blurs and fades out (`opacity: 0, filter: 'blur(12px)', y: -14`), leaving only the enlarged logo cleanly illuminated in the navbar throughout Sections 2, 3, and 4.
   - Right action buttons (`ABOUT US` & `START A PROJECT`): strictly **not visible on the Hero section** (`opacity: 0, pointer-events: none`). Paired flat and minimal design with zero depth or shadow (`boxShadow: none`), matching compact proportions (`h-[27px] sm:h-[28px] md:h-[29px]`, padding `px-3 md:px-4`, font `text-[9.5px] md:text-[10.5px] tracking-[0.05em]`).
     - `ABOUT US`: Outline / without fill (`border border-white/20 bg-transparent text-[#cccccc] hover:border-white/50 hover:text-white`), smoothly scrolling to the About Manifesto section (Section 2). In Section 3 & 4 on the light background, dynamically inverts to `border-[#171717]/25 text-[#171717]`.
-    - `START A PROJECT`: Filled pill button (`bg-white text-[#171717]`), dynamically inverting to dark (`bg-[#171717] text-white`) on light backgrounds. Smoothly navigates to the Projects section (`#page-4`).
-    - Both reveal together when scrolling past the Hero section (from scroll `0.16` on desktop and `0.25` on mobile) and automatically fade back to `opacity: 0` when scrolling back up to Hero.
+    - `START A PROJECT`: Filled pill button (`bg-white text-[#171717]`), dynamically inverting to dark (`bg-[#171717] text-white`) on light backgrounds. Smoothly opens the project intake modal.
+    - Both reveal together when scrolling past the Hero section (from scroll `0.12` on desktop and `0.25` on mobile) and automatically fade back to `opacity: 0` when scrolling back up to Hero.
 - **Hero ([Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx))**:
   - Monolithic `MAGNM` typography scaled across the full width, styled in `Familjen Grotesk` with `tracking-[-0.035em]` to match the navbar wordmark.
   - On desktop scroll (`0.0 -> 0.16`), `heroMagnmRef` scales down and translates directly into the top-left Navbar position via `getTransformTargets()`, settling smoothly beside the newly revealed logo.
@@ -163,7 +164,7 @@ src/
 
 ### Section 3: Our Work (Services)
 - **Desktop (OptionWheel)**:
-  - Active during scroll `0.44 -> 0.70`.
+  - Active during scroll `0.44 -> 0.68`.
   - Pinned timeline scrubs a virtual index (`0 -> 5`), invoking `ourWorkHandleRef.current.setPositionDirect(index)`.
   - ScrollTrigger has discrete snap points (`snapTo`) for each service index with `0.35s` easing and `chimeSynth` tick audio.
 - **Mobile (Card Sheet Slide-On)**:
@@ -174,9 +175,9 @@ src/
 
 ### Section 4: Projects Showcase (Liquid Glass Carousel)
 - **Desktop**:
-  - At scroll `0.70 -> 0.82`, Section 3 scales down to `0.8` (`animateSheetScaleDown`), revealing the white backdrop flash (`whiteBackdropRef`).
+  - At scroll `0.68 -> 0.78`, Section 3 scales down to `0.8` (`animateSheetScaleDown`), revealing the white backdrop flash (`whiteBackdropRef`).
   - Section 4 (`page4ContainerRef`) slides up from bottom (`100% -> 0%`, `animateSheetSlideUp`).
-  - On arrival, triggers `projectsHandleRef.current.playEntry()` for the carousel intro sequence.
+  - At `progress >= 0.76`, triggers `projectsHandleRef.current.playEntry()` for the carousel intro sequence.
 - **Mobile**:
   - Slides onto Section 3 with the exact same motion language: Section 3 stays locked, scales to `0.94`, dims to `0.35`, and Section 4 locks at `top: 0`.
   - Supported by `mobilePage3SpacerRef` (`25svh`) and `mobilePage4SpacerRef` (`25svh`) docking cushions.
@@ -185,6 +186,35 @@ src/
   - **Symmetrical Card Ripple Entry**: Uniform card heights (`PANEL_H = 230px`), Card 0 mathematically centered (`x = 0`), symmetrical center-outward ripple (`staggerDelay = normDist * 0.16`).
   - **Auto-Advance Progress Line**: Hairline indicator: refined `h-[1px]` stroke with compact `max-w-[76px]` on mobile, `max-w-[110px]` on tablet, and `max-w-[280px]` on desktop. Fills 0% to 100% over 3.5s interval without resetting on hover or micro-moves.
   - **Interactions**: Drag/swipe with velocity physics, touch direction disambiguation (vertical scroll passes through to page; horizontal swipes control carousel), click-to-focus modal with card-drop animation, background click to dismiss.
+
+### Section 5: Footer & Reverse MAGNM Expansion Behind 3D Helix
+- **Layering & Z-Index Architecture**:
+  - `#page-footer-bg` (`z-38`): Dedicated dark stage backdrop (`#000000`) sitting underneath Page 4 (`z-40`), revealed as Page 4 lifts.
+  - `#page-4` (`z-40`): Pinned Section 4 container covering the footer completely until scroll `0.88`.
+  - `.nav-brand-text` (`z-50`): The live navbar brand text element, styled in `Familjen Grotesk`, set to `will-change-[transform,font-size]` with `origin-top-left`.
+  - `#page-footer` (`z-55`): Houses `Footer.tsx`. Contains the centered 3D `XylophoneHelix` at `z-20` (in FRONT of the navbar MAGNM text) and layout anchors at `z-10`.
+- **Card Slide-Up Reveal (Scroll 0.88 &rarr; 1.00)**:
+  - Page 4 container slides up and offscreen (`y: '0%'` &rarr; `'-100%'`, `ease: 'power2.inOut'`, duration `0.12`).
+  - Dark shadow (`boxShadow: '0 30px 90px rgba(0, 0, 0, 0.5)'`) adds optical depth as Page 4 unmasks the stationary footer.
+- **Navbar Partial Blur Departure**:
+  - The non-text navbar items (`.nav-logo-container`, `.nav-brand-divider`, and action buttons) remain fully visible while Page 4 lifts, and only leave with optical blur (`filter: blur(16px)`, `opacity: 0`, `y: -14`) when Page 4 has lifted ~80% (progress `0.96`, duration `0.04`).
+- **Reverse MAGNM Expansion (Pure Font-Size Interpolation)**:
+  - Instead of CSS `scale` or a duplicate component, the live `.nav-brand-text` inside the fixed Navbar expands its actual `fontSize` from navbar size (`~26.4px`) up to the hero size (`clamp(4.25rem, 16vw, 15.5rem)`, computed dynamically via `getHeroFontSizePx()` at runtime).
+  - Starts at progress `0.95` and settles at `1.00` (`duration: 0.05`, `ease: 'power2.inOut'`).
+  - Spatial Offsets:
+    - `x: -85`: shifts left to compensate for the brand logo + divider offset (~80px) and align with page horizontal padding and the tagline below.
+    - `y: 75`: shifts down to compensate for vertical baseline drift when font size expands from ~26px to ~248px inside the flex row container.
+    - Color shifts smoothly from nav tone (`#cccccc`) to hero display tone.
+- **Behind the 3D Helix**:
+  - In `Footer.tsx`, the 3D `XylophoneHelix` sits at `z-20` with responsive scale (140 on desktop, 115 on tablet, 88 on mobile) and glockenspiel hover audio.
+  - The expanding navbar MAGNM text (`z-50`) expands directly behind the rotating metallic bars of the helix (`z-55 / z-20`).
+- **Dynamic Tagline & Actions**:
+  - Headline slot in `Footer.tsx` reserves `minHeight: calc(clamp(4.25rem, 16vw, 15.5rem) * 0.8)` so the dynamic tagline (`LET'S CREATE. / EXPLORE. / BUILD. / SHIP.`) with optical blur transitions (`AnimatePresence`) sits cleanly below the massive MAGNM headline without overlapping.
+  - Bottom row features `KineticShiftButton` (`DISCUSS YOUR PROJECT`) linked to the project intake modal and monospace copyright timestamp.
+- **Mobile Section 5 Parity**:
+  - Controlled by dedicated `mobileFooterTl` ScrollTrigger (`trigger: footer, start: 'top 65%', end: 'top 10%', scrub: 0.3`).
+  - Page 4 slides up (`y: -100%`), mobile logo fades with optical blur at `0.3`, and mobile footer text (`.footer-magnm-mobile`) blurs into view (`opacity: 0 -> 1, filter: blur(12px) -> blur(0px)`) behind the scaled mobile helix (`scale: 88`).
+  - Dynamic navbar color listener updates contrast depending on whether viewport is over light Sections 3 & 4 or dark Footer.
 
 ---
 
@@ -197,9 +227,10 @@ export const TIMINGS = {
   aboutManifesto:  { start: 0.14, duration: 0.16 }, // Words progressive illumination
   wheel3D:         { start: 0.00, duration: 0.26 }, // Wheel rotates upright
   stripWipe:       { start: 0.34, duration: 0.10 }, // Parallax 12-strip transition
-  servicesScroll:  { start: 0.44, end: 0.70, duration: 0.26 }, // OptionWheel 6 services
-  page3ScaleDown:  { start: 0.70, duration: 0.12 }, // Section 3 scales to 80%
-  page4SlideUp:    { start: 0.74, duration: 0.18 }, // Section 4 slides up from bottom
+  servicesScroll:  { start: 0.44, end: 0.68, duration: 0.24 }, // OptionWheel 6 services
+  page3ScaleDown:  { start: 0.68, duration: 0.10 }, // Section 3 scales to 80%
+  page4SlideUp:    { start: 0.72, duration: 0.14 }, // Section 4 slides up from bottom
+  footerReveal:    { start: 0.88, duration: 0.12 }, // Section 5 Footer: Page 4 lifts & MAGNM scales up
 };
 ```
 
@@ -215,7 +246,7 @@ export const TIMINGS = {
    - *Fix*: Completely removed `lastActivity` mutation from `onPointerMove`, `onPointerDown`, `onPointerUp`, and empty clicks in `input.ts`. Added `progressValRef` in `LiquidGlassCarousel` so React reconciles with the current progress rather than hardcoded 0. Added zero-drift `< 0.05` snap in `create-carousel.ts`. Now, hovering near the progress line or over cards allows the auto-advance line to fill smoothly without interruption or reset. Only genuine navigation actions (drags, horizontal wheel scrubs, side card clicks, arrow keys, and modal open/close) reset the timer.
 3. **Mobile Sticky Stacking Loss**:
    - *Cause*: `overflow-hidden` on parent containers broke CSS `position: sticky`.
-   - *Fix*: Used `overflow-x-clip lg:overflow-x-hidden` on the main container and dedicated SVH scroll spacers (`mobileHeroSpacerRef`, `mobilePage3SpacerRef`, `mobilePage4SpacerRef`).
+   - *Fix*: Used `overflow-x-clip lg:overflow-x-hidden` on the main container and dedicated SVH scroll spacers (`mobileHeroSpacerRef`, `mobilePage3SpacerRef`, `mobilePage4SpacerRef`, `mobilePageFooterSpacerRef`).
 4. **Touch Event Blocking**:
    - *Cause*: WebGL canvas pointer capture swallowed vertical swipe gestures on mobile devices.
    - *Fix*: Implemented touch direction detection in `input.ts`. If `totalDy > totalDx`, pointer capture is immediately released so natural page scrolling occurs seamlessly.
@@ -233,21 +264,39 @@ export const TIMINGS = {
 9. **Duplicate Entrance Animation & Reverse Scroll Jitter**:
    - *Cause*: Two separate, uncoordinated mechanisms were calling `playEntry()`: `IntersectionObserver` in `create-carousel.ts` fired at 15% visibility, and `tl.call()` embedded inside the scrubbed `animateSheetSlideUp` timeline fired at 70% progress. Because `tl.call` inside a scrubbed GSAP timeline executes both forward and reverse, scrolling backwards across the position re-executed `playEntry()` in reverse, causing cards to violently reset and jump.
    - *Fix*: Removed `tl.call` from `animateSheetSlideUp` and removed the animation trigger from `IntersectionObserver`. Centralized entrance triggering in `use-desktop-timeline.ts` and `use-mobile-timeline.ts` inside `onUpdate` with explicit `self.direction === 1` checks (`progress >= 0.82 && self.direction === 1 && !p4EntryTriggered`). Added `hasPlayed` state latch inside `entry.ts` and implemented `resetEntry()` that only resets when Section 4 is completely off-screen (`progress < 0.72`). In reverse scroll, no animation executes and cards stay settled.
+10. **Nav MAGNM Text to Footer Scale-Up (Pure Font-Size Interpolation vs. Scale Transform)**:
+    - *Cause*: Initial implementation tried using CSS `transform: scale()`, which caused blurry font edges at high scales and introduced layout clipping issues with the surrounding navbar elements. Furthermore, using a separate duplicated footer text broke visual continuity because the text in the navbar and footer did not feel like the exact same element.
+    - *Fix*: Kept `.nav-brand-text` inside the fixed Navbar (`z-50`) and directly animated its `fontSize` via `getNavToFooterFontTargets()` to match `clamp(4.25rem, 16vw, 15.5rem)` in pixels, exactly reversing the hero-to-nav scaling. Added `will-change-[transform,font-size]` for silky smooth 60fps interpolation.
+11. **Premature Navbar Departure & Timing Alignment**:
+    - *Cause*: Navbar elements (`.nav-logo-container`, `.nav-brand-divider`, action buttons) were exiting at scroll progress `0.91`, vanishing while Page 4 was barely lifting, creating an awkward empty screen gap.
+    - *Fix*: Delayed the navbar elements exit to `0.96` (when Page 4 is ~80% off-screen) with optical blur (`filter: blur(16px)`). Synchronized the MAGNM font-size expansion from `0.95` to `1.00`, so the text expands precisely as the footer content is uncovered.
+12. **Horizontal and Vertical Drift of Expanded Nav Text**:
+    - *Cause*: In the navbar, `.nav-brand-text` sits to the right of the brand logo and divider (~80px offset). Additionally, growing font-size from 26px to ~248px inside a vertical flex row (`items-center`) centered the glyphs, causing the top of the text to push upwards out of view, while overlapping the tagline below.
+    - *Fix*: Applied `x: -85` in the GSAP tween to pull the text left to align with the standard page padding, and `y: 75` to counteract the upward flex expansion. In `Footer.tsx`, set `minHeight: calc(clamp(4.25rem, 16vw, 15.5rem) * 0.8)` on the headline slot container so the layout reserves the exact vertical height of the expanded headline, ensuring the dynamic `LET'S CREATE.` tagline stays cleanly positioned below it.
+13. **Z-Index Layering for 3D Helix Over Expanding Text**:
+    - *Cause*: If `Footer` was placed at `z-30`, the navbar MAGNM text (`z-50`) rendered on top of the 3D Xylophone Helix rather than behind it.
+    - *Fix*: Split the footer structure in `MainExperience.tsx` into:
+      - `#page-footer-bg` at `z-38` (behind Page 4 at `z-40`), providing the black stage.
+      - `#page-footer` at `z-55` (in front of Navbar at `z-50`), with the 3D `XylophoneHelix` at `z-20` inside Footer, and the text layout anchor at `z-10`. This puts the expanding MAGNM text (`z-50`) visually behind the rotating metallic helix (`z-55 / z-20`) while sitting in front of the black background (`z-38`).
 
 ---
 
-## 8. Immediate Next Steps / Roadmap to Completion
+## 8. Current State & Completed Roadmap
 
-### Section 5 (Footer) Removed
-- As requested, the Footer component and its transitions have been completely removed.
-- Section 4 (Projects Showcase with Liquid Glass Carousel) is the final section of the landing page.
+### Phase A: Core Experience & Section Implementation (COMPLETED)
+- [x] Section 1: Hero monolithic display heading & navbar docking transition.
+- [x] Section 2: Pinned manifesto stage with progressive word illumination & centered 3D helix.
+- [x] Section 2 &rarr; 3: Parallax 12-strip transition slice.
+- [x] Section 3: Our Work desktop OptionWheel with chime synth audio & mobile accordion cards.
+- [x] Section 4: Liquid Glass WebGL projects carousel with ripple entrance, continuous auto-advance, and card-drop focus modal.
+- [x] Section 5: Monochromatic Footer stage with Page 4 slide-up, reverse MAGNM font-size expansion behind 3D XylophoneHelix, kinetic tagline, and contact action.
 
-### Phase B: Completed - Modal System & Intelligent Theme Detection
-1. Built `ProjectModal.tsx` and `AboutModal.tsx` using `createPortal` to render above all 3D content.
-2. Integrated intelligent theme detection: the modals calculate the opacity of the `.nav-logo-dark` element to determine the current background context (light/dark) and switch their `data-theme` accordingly for maximum contrast.
-3. Implemented custom `AnimatePresence` dropdowns to replace native HTML `<select>` elements, maintaining the premium monochromatic aesthetic across all devices.
-4. Reused the `LetterSwapPingPong` component inside the modal buttons for consistent kinetic hover effects.
-5. Removed unhooked/redundant "BOOK A 30-MINUTE CALL" and Budget inputs to adhere to the extreme minimalism requested by the user.
+### Phase B: Modal System & Intelligent Theme Detection (COMPLETED)
+- [x] Built `ProjectModal.tsx` and `AboutModal.tsx` using `createPortal` to render above all 3D content.
+- [x] Integrated intelligent theme detection: modals calculate the opacity of the `.nav-logo-dark` element to determine the current background context (light/dark) and switch their `data-theme` accordingly for maximum contrast.
+- [x] Implemented custom `AnimatePresence` dropdowns to replace native HTML `<select>` elements, maintaining the premium monochromatic aesthetic across all devices.
+- [x] Reused the `LetterSwapPingPong` component inside modal buttons for consistent kinetic hover effects.
+- [x] Removed unhooked/redundant "BOOK A 30-MINUTE CALL" and Budget inputs to adhere to the extreme minimalism requested by the user.
 
 ### Phase C: Final Performance & Visual Polish
 1. Verify all breakpoints (mobile 375px/390px/430px, tablet 768px/1024px, desktop 1440px/1920px).

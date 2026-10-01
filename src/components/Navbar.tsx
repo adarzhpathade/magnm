@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
               priority
             />
             <Image
-              src="/magnm dark.png"
+              src="/Magnm Dark Logo.png"
               alt="MAGNM Logo Dark"
               width={1536}
               height={1024}
@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
             aria-hidden="true"
           />
 
-          <span className="nav-brand-text hidden lg:inline-block font-['Familjen_Grotesk',sans-serif] text-[1.35rem] sm:text-[1.5rem] md:text-[1.65rem] font-normal tracking-[-0.035em] text-[#cccccc] group-hover:text-white transition-colors duration-200 uppercase leading-none opacity-0">
+          <span className="nav-brand-text hidden lg:inline-block font-['Familjen_Grotesk',sans-serif] text-[1.35rem] sm:text-[1.5rem] md:text-[1.65rem] font-normal tracking-[-0.035em] text-[#cccccc] group-hover:text-white transition-colors duration-200 uppercase leading-none opacity-0 origin-top-left will-change-[transform,font-size]">
             MAGNM
           </span>
         </button>

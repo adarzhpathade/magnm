@@ -23,6 +23,10 @@ export interface MobileTimelineRefs {
   wheelWrapper: RefObject<HTMLDivElement | null>;
   cameraController: MutableRefObject<CameraController>;
   projectsHandle: MutableRefObject<ProjectsHandle | null>;
+  footer?: RefObject<HTMLDivElement | null>;
+  footerWrapper?: RefObject<HTMLDivElement | null>;
+  footerMagnm?: RefObject<HTMLSpanElement | null>;
+  navbarHeader?: RefObject<HTMLElement | null>;
 }
 
 export function useMobileTimeline(
@@ -106,6 +110,15 @@ export function useMobileTimeline(
       refs.page4Container.current.style.opacity = '1';
       refs.page4Container.current.style.visibility = 'visible';
       refs.page4Container.current.style.pointerEvents = 'auto';
+    }
+    if (refs.footerWrapper?.current) {
+      gsap.set(refs.footerWrapper.current, { clearProps: 'all' });
+      refs.footerWrapper.current.style.visibility = 'visible';
+      refs.footerWrapper.current.style.pointerEvents = 'auto';
+    }
+    if (refs.footerMagnm?.current) {
+      gsap.set(refs.footerMagnm.current, { clearProps: 'all' });
+      refs.footerMagnm.current.style.opacity = '1';
     }
 
     // Dedicated Mobile ScrollTrigger timeline for Hero -> About Wheel Transition
@@ -337,9 +350,12 @@ export function useMobileTimeline(
     // Navbar dynamic color updater when scrolling through Section 3 & 4
     const updateMobileNav = () => {
       const p3El = refs.page3Wrapper.current;
+      const footerEl = refs.footer?.current;
       if (p3El && refs.navBrand.current) {
         const p3Top = p3El.getBoundingClientRect().top;
-        const isLightBg = p3Top <= 60;
+        const footerTop = footerEl ? footerEl.getBoundingClientRect().top : Infinity;
+        const isLightBg = p3Top <= 60 && footerTop > window.innerHeight * 0.5;
+        
         const brandText = refs.navBrand.current.querySelector('.nav-brand-text') as HTMLElement | null;
         const logoLight = refs.navBrand.current.querySelector('.nav-logo-light') as HTMLElement | null;
         const logoDark = refs.navBrand.current.querySelector('.nav-logo-dark') as HTMLElement | null;
@@ -369,6 +385,62 @@ export function useMobileTimeline(
 
     window.addEventListener('scroll', updateMobileNav, { passive: true });
     updateMobileNav();
+
+    const footerTriggerTarget = refs.footerWrapper?.current || refs.footer?.current;
+    if (footerTriggerTarget) {
+      const mobileFooterTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: footerTriggerTarget,
+          start: 'top 65%',
+          end: 'top 10%',
+          scrub: 0.3,
+        },
+      });
+
+      // 1. Page 4 slides up and off the screen
+      if (refs.page4Container?.current) {
+        mobileFooterTl.to(
+          refs.page4Container.current,
+          {
+            y: '-100%',
+            duration: 1,
+            ease: 'power2.inOut',
+          },
+          0
+        );
+      }
+
+      // 2. Mobile navbar logo leaves with partial optical blur (delayed so it doesn't leave prematurely)
+      mobileFooterTl.to(
+        '.nav-logo-container',
+        {
+          opacity: 0,
+          filter: 'blur(16px)',
+          y: -14,
+          duration: 0.5,
+          ease: 'power1.out',
+        },
+        0.3
+      );
+
+      // 3. Footer MAGNM reveals smoothly behind the mobile 3D helix
+      mobileFooterTl.fromTo(
+        '.footer-magnm-mobile',
+        {
+          opacity: 0,
+          filter: 'blur(12px)',
+          y: 10,
+        },
+        {
+          opacity: 1,
+          filter: 'blur(0px)',
+          y: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+        },
+        0.2
+      );
+    }
 
     return () => {
       window.removeEventListener('scroll', updateMobileNav);
