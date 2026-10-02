@@ -1,6 +1,6 @@
 # Memory — MAGNM Creative Studio Landing Page
 
-Last updated: 2026-10-02 11:51
+Last updated: 2026-10-02 18:00
 Repository: `https://github.com/adarzhpathade/magnm.git`
 Branch: `main`
 
@@ -96,7 +96,9 @@ src/
 │   │   └── use-mobile-timeline.ts        — Mobile sequential ScrollTrigger timelines (max-width: 1023px)
 │   │
 │   ├── ui/
-│   │   ├── liquid-glass-carousel.tsx     — React forwardRef component wrapping the carousel engine
+│   │   ├── flex-carousel.tsx             — React Bits WebGL (OGL) curved/flat multi-card showcase engine
+│   │   ├── flex-carousel.css             — Split captions, animated counter digits & auto-scroll progress styling
+│   │   ├── liquid-glass-carousel.tsx     — React forwardRef component wrapping earlier Three.js carousel engine
 │   │   ├── letter-3d-swap.tsx            — Letter swap hover physics
 │   │   ├── orbital-rings.tsx             — Decorative canvas/SVG orbital rings
 │   │   ├── text-repel.tsx                — Interactive mouse-repelling text
@@ -387,19 +389,27 @@ export const TIMINGS = {
     - In both [ProjectModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ProjectModal.tsx) and [AboutModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutModal.tsx), increased the top spacing of the circular cross close button container from `mt-8 sm:mt-10` / `mt-10` to `mt-14 sm:mt-16`.
     - This shifts the cross button downward so it sits directly in the vertical center of the blank area between the email footer text (`Prefer email? hello@magnm.com`) and the modal card's bottom border.
 
-28. **Comprehensive Claude SEO Suite Installation & Implementation**:
-    - *Skill Integration*: Cloned `claude-seo` (v2.4.1) and installed all 26 specialized SEO skills into `.agents/skills/` (and globally to `$env:USERPROFILE\.claude\skills`) for direct Antigravity access.
-    - *Metadata & Social Graph*: In [layout.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/layout.tsx), implemented production metadata including title templates, 174-character keyword-rich description, Open Graph images/tags, Twitter Card (`summary_large_image`), canonical URLs, viewport (`#0c0c0c` dark theme), and robot crawler instructions.
-    - *Schema.org JSON-LD*: Embedded server-rendered connected `@graph` (`Organization`, `WebSite`, `WebPage`, `ImageObject`, `PostalAddress`, `Person`) attributing founders Pranav Dubey and Adarsh Pathade and core studio capabilities.
-    - *Sitemap & Robots*: Created dynamic [sitemap.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/sitemap.ts) (`/sitemap.xml`) and [robots.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/robots.ts) (`/robots.txt`) with modern AI crawler governance (authorizing OAI-SearchBot, Claude-SearchBot, PerplexityBot).
-    - *GEO & AI Citability*: Added [llms.txt](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/public/llms.txt) for semantic grounding in LLM engines.
-    - *Image SEO*: Upgraded all image `alt` attributes in [Navbar.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Navbar.tsx) and [Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx) to descriptive, keyword-rich labels.
-    - *Verification*: Zero build or TypeScript errors (`npx tsc --noEmit` passed code 0); zero visual or motion regressions.
+30. **React Bits FlexCarousel Integration & Layout Tuning (Section 4)**:
+    - *Engine Integration*: Integrated the high-performance WebGL (OGL) `FlexCarousel` component into [Projects.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Projects.tsx) and [flex-carousel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/flex-carousel.tsx).
+    - *Flat Strip & Dimension Scaling*: Replaced spherical/cylindrical lens distortion with a clean horizontal strip by setting `bend={0}`, `dispersion={0}`, and `squeeze={0.15}`. Scaled `cardHeight` down to `0.28` (a ~20% reduction) to create generous vertical breathing room for typography and captions.
+    - *Asset Updates*: Replaced Sentinel mockup image with updated high-resolution asset `public/mockup/sentinel-mockup (1).webp` in [default-items.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/carousel/default-items.ts).
+    - *Swipe Physics*: Softened spring stiffness down to `25` in the frame physics loop for tranquil, silky-smooth auto-advances and manual drags.
 
-29. **Mobile View 3D Helix Drastic Rotation Speed Reduction**:
-    - In [Footer.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Footer.tsx), introduced dynamic `helixSpeed` state.
-    - On mobile viewports (`w < 640`), drastically reduced the continuous auto-rotation speed from `45` down to `4` (an ~91% decrease), while preserving desktop speed at `45` and tablet at `25`.
-    - This keeps the 3D helix in its elegant diagonal pose, providing a serene, subtle kinetic drift that prevents it from spinning rapidly away from its iconic composition.
+31. **Projects Split Caption Architecture & Auto-Scroll Progress Indicator**:
+    - *Top Caption*: Project title + monospace rolling counter (`01 / 07`) anchored above the cards (`bottom: calc(50% + half + 24px)`), always visible and continuously updating during swipes.
+    - *Bottom Caption (Click-to-Reveal)*: 3-line project description (`max-width: 300px`, `line-height: 1.5`, `opacity: 0.65`) placed below cards (`top: calc(50% + half + 24px)`), revealed with smooth optical blur (`filter: blur(10px) -> blur(0px)`) and height transition only when clicking a card.
+    - *Progress Indicator*: Added a clean auto-advance progress track (`.flex-carousel__progress`) anchored directly below the cards, driven by CSS variables in sync with carousel autoplay interval.
+    - *Audio Tuning*: Preserved tactile click audio on cards while eliminating redundant hover chime loops.
+
+32. **Elimination of Artificial Incoming Animation & Root-Cause Fix for the Unnatural Blink on Scroll**:
+    - *No Artificial Incoming Animation*: Completely removed artificial card entrance sequences (`intro="none"`, removed `entry={true}` prop, removed delayed `gsap.fromTo` on `headingRef`, and removed `invisible` class from heading). The carousel cards, progress bar, title, and description now sit statically on the page sheet without artificial delays or triggers.
+    - *Root Cause of the Unnatural Blink*: In [use-desktop-timeline.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/use-desktop-timeline.ts), `scrollTl.set(refs.page4Container.current, { visibility: 'visible' }, 0.80)` was placed at `0.80`, while `TIMINGS.page4SlideUp.start` was `0.70`. Because GSAP enforced `visibility: 'hidden'` prior to `0.80`, `#page-4` completed its entire slide-up (`y: 100% -> 0%`) invisibly, and then abruptly popped into visibility at `0.80` in a single jarring frame ("blink").
+    - *The Fix*:
+      1. In [use-desktop-timeline.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/use-desktop-timeline.ts), set `#page-4` visibility to `'visible'` right at `TIMINGS.page4SlideUp.start` (`0.70`).
+      2. Initialized `page4Container` with `opacity: 1` and `boxShadow: '0 -25px 80px rgba(0, 0, 0, 0.22)'`.
+      3. Added `immediateRender: false` to `animateSheetSlideUp` in [animation-helpers.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/animation-helpers.ts) to prevent premature evaluation.
+      4. Removed `p4EntryTriggered` logic from both desktop and mobile timeline loops.
+    - *Result*: As the user scrolls past Section 3, Section 4 (with all cards and headings already seated) smoothly and physically slides up from the bottom of the viewport directly locked to the scroll wheel. When reversing, it slides smoothly down and exits below the viewport.
 
 ## 8. Current State & Completed Roadmap
 
@@ -408,7 +418,7 @@ export const TIMINGS = {
 - [x] Section 2: Pinned manifesto stage with progressive word illumination & centered 3D helix.
 - [x] Section 2 &rarr; 3: Parallax 12-strip transition slice.
 - [x] Section 3: Our Work desktop OptionWheel with chime synth audio & mobile accordion cards.
-- [x] Section 4: Liquid Glass WebGL projects carousel with ripple entrance, continuous auto-advance, and card-drop focus modal.
+- [x] Section 4: Projects showcase with WebGL carousel and responsive metadata.
 - [x] Section 5: Monochromatic Footer stage with Page 4 slide-up, reverse MAGNM font-size expansion behind 3D XylophoneHelix, kinetic tagline, and contact action.
 
 ### Phase B: Modal System & Intelligent Theme Detection (COMPLETED)
@@ -439,7 +449,16 @@ export const TIMINGS = {
 - [x] Generative Engine Optimization: created standardized `public/llms.txt` for AI search grounding.
 - [x] Image SEO: upgraded all brand logo and emblem `alt` attributes to descriptive, keyword-rich labels.
 
-### Phase E: Verification & Build Quality
+### Phase E: Projects WebGL Carousel Overhaul & Motion Refinements (COMPLETED)
+- [x] Migrated Section 4 to React Bits `FlexCarousel` WebGL engine (OGL) with custom shaders.
+- [x] Scaled `cardHeight` to `0.28`, removed lens curvature distortion (`bend=0`, `dispersion=0`, `squeeze=0.15`).
+- [x] Structured split captions: persistent title + counter on top, click-to-reveal 3-line description with optical blur below cards.
+- [x] Integrated auto-scroll progress track anchored 24px below the carousel cards.
+- [x] Updated Sentinel cover asset to `sentinel-mockup (1).webp`.
+- [x] Completely removed artificial incoming animations (`intro="none"`, no delayed `playEntry`, no 3-second blur delays).
+- [x] Diagnosed and fixed the desktop scroll pop-in bug: `#page-4` visibility is enabled at `0.70` (the start of slide-up) with full opacity and shadow, delivering a natural, scroll-synchronized physical card slide.
+
+### Phase F: Verification & Build Quality
 - [x] Zero TypeScript compilation errors (`npx tsc --noEmit` exited code 0).
 - [x] Verified endpoints: `/robots.txt` (200), `/sitemap.xml` (200), `/llms.txt` (200), and SSR HTML `<head>`/`<body>`.
 - [x] Preserved 100% of 3D WebGL scenes, GSAP ScrollTrigger timelines, and monochromatic design fidelity.

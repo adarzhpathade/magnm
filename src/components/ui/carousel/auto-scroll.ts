@@ -31,7 +31,7 @@ export function createAutoScrollController(
       !state.focusState.closing &&
       !state.dragging &&
       !state.entryActive &&
-      !state.entrySettled;
+      state.entryCompleted;
 
     if (!canAutoAdvance || !isSettledAtTarget) {
       state.lastActivity = now;

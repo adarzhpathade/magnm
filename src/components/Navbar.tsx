@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import Image from 'next/image';
 import LetterSwapPingPong from './ui/letter-swap-pingpong-anim';
-import { ChimeSynthesizer } from '@/lib/chime-synth';
+import { chimeSynth } from '@/lib/chime-synth';
 
 interface NavbarProps {
   headerRef?: React.RefObject<HTMLElement | null>;
@@ -14,11 +14,8 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBrandRef, onStartProject, onAboutClick }) => {
-  const chimeRef = useRef<ChimeSynthesizer | null>(null);
-
   const playHoverSound = (index: number) => {
-    if (!chimeRef.current) chimeRef.current = new ChimeSynthesizer();
-    chimeRef.current.strike(index, 10, 'glockenspiel');
+    chimeSynth.playCelesta(0.2, index);
   };
 
   return (

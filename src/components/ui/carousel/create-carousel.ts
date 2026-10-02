@@ -106,9 +106,10 @@ export function createCarousel(
     drop: new Array(totalPoolSize).fill(0),
     focusScale: 1,
     lastCenterX: new Array(totalPoolSize),
-    pEntry: new Array(totalPoolSize).fill(1),
+    pEntry: new Array(totalPoolSize).fill(entryOn ? 0 : 1),
     entryActive: false,
     entrySettled: false,
+    entryCompleted: !entryOn,
     entryAnim: null,
     lensFxFull: {},
     panelRects: [],
@@ -162,7 +163,9 @@ export function createCarousel(
     layoutEngine,
     (on) => inputController.setView(on),
     () => inputController.updateCursor(),
-    options.onFocusChange
+    options.onFocusChange,
+    options.onCardsDropped,
+    options.onFocusScale
   );
 
   inputController = setupInput(
@@ -171,7 +174,8 @@ export function createCarousel(
     state,
     layoutEngine,
     () => focusController.openFocus(),
-    () => focusController.closeFocus()
+    () => focusController.closeFocus(),
+    options.onEntryDone
   );
 
   entryController = createEntryController(

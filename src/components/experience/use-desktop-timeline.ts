@@ -147,14 +147,15 @@ export function useDesktopTimeline(
       gsap.set(refs.page4Container.current, {
         clearProps: 'all',
         y: '100%',
-        opacity: 0,
+        opacity: 1,
         scale: 1,
-        boxShadow: 'none',
+        boxShadow: '0 -25px 80px rgba(0, 0, 0, 0.22)',
         transformOrigin: 'center center',
         pointerEvents: 'none',
         visibility: 'hidden',
       });
       refs.page4Container.current.style.visibility = 'hidden';
+      refs.page4Container.current.style.opacity = '1';
     }
 
     // Footer initial state: strictly hidden so it NEVER covers Hero on load
@@ -176,7 +177,6 @@ export function useDesktopTimeline(
       y: initialYOffset,
     };
 
-    let p4EntryTriggered = false;
     const scrollTl = gsap.timeline({
       scrollTrigger: {
         trigger: refs.pinnedStage.current,
@@ -196,8 +196,8 @@ export function useDesktopTimeline(
               return sStart + clamped * step;
             }
             // Snap to fully docked Page 4
-            if (progress >= 0.82 && progress <= 0.88) {
-              return 0.85;
+            if (progress >= 0.78 && progress <= 0.89) {
+              return 0.84;
             }
             // Snap to Footer
             if (progress >= 0.94) {
@@ -263,8 +263,8 @@ export function useDesktopTimeline(
 
           // Section 4 (Page 4 Projects Card)
           if (refs.page4Container.current) {
-            const isPage4Active = progress >= 0.72 && progress < 0.995;
-            const isPage4Interactive = progress >= 0.74 && progress < 0.88;
+            const isPage4Active = progress >= 0.70 && progress < 0.995;
+            const isPage4Interactive = progress >= 0.78 && progress < 0.90;
             if (isPage4Interactive && refs.page4Container.current.style.pointerEvents !== 'auto') {
               chimeSynth.suppressHover(600);
             }
@@ -272,23 +272,12 @@ export function useDesktopTimeline(
               isPage4Interactive ? 'auto' : 'none';
             refs.page4Container.current.style.visibility =
               isPage4Active ? 'visible' : 'hidden';
-
-            // Incoming animation: plays ONCE when scrolling forward into Section 4
-            if (progress >= 0.76 && self.direction === 1 && !p4EntryTriggered) {
-              p4EntryTriggered = true;
-              refs.projectsHandle.current?.playEntry();
-            } else if (progress < 0.70) {
-              if (p4EntryTriggered) {
-                p4EntryTriggered = false;
-                refs.projectsHandle.current?.resetEntry?.();
-              }
-            }
           }
 
           // Section 5 (Footer)
           if (refs.footerWrapper?.current) {
-            const isFooterVisible = progress >= 0.88;
-            const isFooterInteractive = progress >= 0.88;
+            const isFooterVisible = progress >= 0.90;
+            const isFooterInteractive = progress >= 0.90;
             refs.footerWrapper.current.style.pointerEvents =
               isFooterInteractive ? 'auto' : 'none';
             if (isFooterVisible) {
@@ -735,25 +724,38 @@ export function useDesktopTimeline(
     );
 
     // Phase 8: Page 4 (Projects Card) slides up from bottom
-    animateSheetSlideUp(
-      scrollTl,
-      refs.page4Container.current,
-      TIMINGS.page4SlideUp.start,
-      TIMINGS.page4SlideUp.duration
-    );
-    scrollTl.set(refs.page4Container.current, { visibility: 'visible', pointerEvents: 'auto' }, 0.80);
+    if (refs.page4Container.current) {
+      scrollTl.set(
+        refs.page4Container.current,
+        { visibility: 'visible' },
+        TIMINGS.page4SlideUp.start
+      );
 
-    // Phase 9: Page 4 slides UP & OFF to reveal Footer underneath (0.88 -> 1.00)
+      animateSheetSlideUp(
+        scrollTl,
+        refs.page4Container.current,
+        TIMINGS.page4SlideUp.start,
+        TIMINGS.page4SlideUp.duration
+      );
+
+      scrollTl.set(
+        refs.page4Container.current,
+        { pointerEvents: 'auto' },
+        TIMINGS.page4SlideUp.start + TIMINGS.page4SlideUp.duration
+      );
+    }
+
+    // Phase 9: Page 4 slides UP & OFF to reveal Footer underneath (0.90 -> 1.00)
     // 0. Ensure Footer background and helix are visible right as Page 4 lifts, and interactive
     if (refs.footerWrapper?.current) {
       scrollTl.set(
         [refs.footerWrapper.current, '#page-footer-bg'],
         { visibility: 'visible', pointerEvents: 'auto' },
-        0.88
+        TIMINGS.footerReveal.start
       );
     }
     if (refs.page4Container?.current) {
-      scrollTl.set(refs.page4Container.current, { pointerEvents: 'none' }, 0.88);
+      scrollTl.set(refs.page4Container.current, { pointerEvents: 'none' }, TIMINGS.footerReveal.start);
     }
 
     // 1. Page 4 slides up and off the top of the viewport like a physical curtain

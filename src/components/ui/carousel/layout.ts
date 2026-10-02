@@ -121,18 +121,38 @@ export function createLayoutEngine(
         y = -d * state.H * FOCUS.dropDist;
       }
 
-      p.mesh.visible = true;
       const finalX = centerX;
       let finalY = y;
-      const finalW = drawW;
-      const finalH = drawH;
+      let finalW = drawW;
+      let finalH = drawH;
 
-      if (state.entryActive || state.entrySettled) {
-        const pe = state.pEntry[poolIdx] !== undefined ? state.pEntry[poolIdx] : 1;
-        const riseDist = Math.min(state.H * 0.35, 140);
-        finalY = y - (1 - pe) * riseDist;
-        p.mat.opacity = Math.max(0, Math.min(1, pe));
+      if (!state.entryCompleted) {
+        if (!state.entryActive) {
+          // Entrance has not triggered yet: hide cards so they don't sit on screen before animating
+          p.mesh.visible = false;
+          p.mat.opacity = 0;
+        } else {
+          // Entrance is actively animating
+          const pe = state.pEntry[poolIdx] !== undefined ? state.pEntry[poolIdx] : 1;
+          const clampedPe = Math.max(0, Math.min(1, pe));
+          if (clampedPe <= 0.001) {
+            p.mesh.visible = false;
+            p.mat.opacity = 0;
+          } else {
+            p.mesh.visible = true;
+            // Dramatic scale bloom: cards start at 72% and expand to full size
+            const scaleFactor = 0.72 + 0.28 * clampedPe;
+            finalW = drawW * scaleFactor;
+            finalH = drawH * scaleFactor;
+            // Deep slide-up: cards rise from 60% of viewport height below
+            const riseDist = state.H * 0.6;
+            finalY = y - (1 - clampedPe) * riseDist;
+            p.mat.opacity = Math.min(1, clampedPe * 1.5); // fade in faster than rise
+          }
+        }
       } else {
+        // Entry is completed: always render at 100% opacity and visible!
+        p.mesh.visible = true;
         p.mat.opacity = 1;
       }
 

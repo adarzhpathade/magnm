@@ -247,7 +247,11 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
 
       if (soundMode && soundMode !== 'none') {
         if (!chimeRef.current) chimeRef.current = new ChimeSynthesizer();
-        chimeRef.current.strike(idx || 0, count, soundMode as SoundMode);
+        if (soundMode === 'marimba') {
+          chimeRef.current.playServiceSelect(1.3);
+        } else {
+          chimeRef.current.strike(idx || 0, count, soundMode as SoundMode);
+        }
         return;
       }
 
@@ -478,9 +482,9 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
         role="listbox"
         tabIndex={0}
         aria-label="Option wheel"
-        className={`relative h-full w-full select-none overflow-hidden outline-none [touch-action:none] ${
-          isDragging ? 'cursor-grabbing' : 'cursor-grab'
-        }${className ? ` ${className}` : ''}`}
+        className={`relative h-full w-full select-none overflow-hidden outline-none [touch-action:none] cursor-default${
+          className ? ` ${className}` : ''
+        }`}
         style={
           {
             '--ow-text-color': textColor,
@@ -503,7 +507,7 @@ export const OptionWheel = forwardRef<OptionWheelHandle, OptionWheelProps>(
             }}
             role="option"
             aria-selected={selectedIndex === index}
-            className={`absolute top-1/2 cursor-pointer whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] tracking-[-0.02em] ${
+            className={`absolute top-1/2 cursor-default whitespace-nowrap leading-none will-change-[transform,opacity,filter] [font-size:var(--ow-font-size)] tracking-[-0.02em] ${
               side === 'right'
                 ? 'right-[var(--ow-inset)] origin-right'
                 : 'left-[var(--ow-inset)] origin-left'

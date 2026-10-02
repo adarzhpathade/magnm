@@ -17,8 +17,6 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      // Play a subtle sound when opening
-      chimeSynth.playButtonHover(0.2, 3);
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -124,7 +122,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                     onClick={onClose}
                     className="group/close relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 group-data-[theme=dark]/modal:border-white/15 hover:border-black group-data-[theme=dark]/modal:hover:border-white/40 bg-transparent hover:bg-gray-100 group-data-[theme=dark]/modal:hover:bg-white/10 text-gray-400 group-data-[theme=dark]/modal:text-[#888888] hover:text-[#171717] group-data-[theme=dark]/modal:hover:text-white transition-all duration-200 focus:outline-none cursor-pointer"
                     aria-label="Close modal"
-                    onMouseEnter={() => chimeSynth.playButtonHover(0.15, 2)}
+                    onMouseEnter={() => chimeSynth.playWoodTap(0.2)}
                   >
                     <svg
                       width="12"

@@ -11,6 +11,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import BlurText from "@/components/BlurText";
 import { cn } from "@/lib/utils";
 import {
   WebGLErrorBoundary,
@@ -22,6 +24,7 @@ import {
   type LiquidGlassCarouselItem,
   liquidGlassCarouselDefaultItems,
 } from "./carousel";
+import { chimeSynth } from "@/lib/chime-synth";
 
 export type { LiquidGlassCarouselHandle, LiquidGlassCarouselItem };
 export { liquidGlassCarouselDefaultItems };
@@ -83,12 +86,15 @@ export const LiquidGlassCarousel = forwardRef<
   const engineRef = useRef<LiquidGlassCarouselHandle | null>(null);
   const titleRef = useRef<HTMLParagraphElement>(null);
   const counterRef = useRef<HTMLDivElement>(null);
+  const descRef = useRef<HTMLDivElement>(null);
   const revealPlayedRef = useRef(false);
   const [active, setActive] = useState(0);
   const [focused, setFocused] = useState(false);
-  const [entryDone, setEntryDone] = useState(true);
+  const [cardsDropped, setCardsDropped] = useState(false);
+  const [entryDone, setEntryDone] = useState(() => !entry || prefersReducedMotion());
   const [failed, setFailed] = useState(false);
   const [panelH, setPanelH] = useState(panelHeight);
+  const focusScaleRef = useRef(1);
   const progressValRef = useRef(0);
   const progressFillRef = useRef<HTMLDivElement>(null);
   const progressContainerRef = useRef<HTMLDivElement>(null);
@@ -130,7 +136,11 @@ export const LiquidGlassCarousel = forwardRef<
       },
       onFocusChange: (open) => {
         setFocused(open);
+        if (!open) setCardsDropped(false);
         onFocusChangeRef.current?.(open);
+      },
+      onCardsDropped: (dropped) => {
+        setCardsDropped(dropped);
       },
       onEntryDone: setEntryDone,
       onPanelHChange: (h) => setPanelH(h),
@@ -138,6 +148,24 @@ export const LiquidGlassCarousel = forwardRef<
         progressValRef.current = progress;
         if (progressFillRef.current) {
           progressFillRef.current.style.transform = `scaleX(${progress})`;
+        }
+      },
+      onFocusScale: (scale) => {
+        focusScaleRef.current = scale;
+        // Per-frame DOM update: position title above the scaled card
+        const pH = panelHeight;
+        const scaledHalf = (pH * scale) / 2;
+        const baseHalf = pH / 2;
+        const titleEl = titleRef.current;
+        if (titleEl) {
+          const extraLift = scaledHalf - baseHalf;
+          titleEl.style.bottom = `calc(50% + ${baseHalf}px + 14px)`;
+          titleEl.style.transform = `translateX(-50%) translateY(-${extraLift}px)`;
+        }
+        // Per-frame DOM update: position description below the scaled card
+        const descEl = descRef.current;
+        if (descEl) {
+          descEl.style.top = `calc(50% + ${scaledHalf}px + 14px)`;
         }
       },
     });
@@ -158,7 +186,11 @@ export const LiquidGlassCarousel = forwardRef<
     const counter = counterRef.current;
     if (!title && !counter) return;
     const reduced = prefersReducedMotion();
-    if (title) gsap.set(title, { xPercent: -50 });
+    if (title) {
+      // Don't use gsap xPercent — inline transform handles centering via onFocusScale
+      gsap.set(title, { clearProps: "transform" });
+      title.style.transform = `translateX(-50%) translateY(0px)`;
+    }
     if (counter) gsap.set(counter, { xPercent: -50 });
 
     if (!entryDone && entry && !reduced) {
@@ -168,17 +200,15 @@ export const LiquidGlassCarousel = forwardRef<
       return;
     }
 
-    const y = focused ? window.innerHeight * -0.05 : 0;
     if (entryDone && !focused && !revealPlayedRef.current) {
       revealPlayedRef.current = true;
       if (title) {
         gsap.fromTo(
           title,
-          { autoAlpha: 0, filter: "blur(12px)", y: 8 },
+          { autoAlpha: 0, filter: "blur(12px)" },
           {
             autoAlpha: 1,
             filter: "blur(0px)",
-            y: 0,
             duration: reduced ? 0 : 0.55,
             ease: "power2.out",
           },
@@ -203,20 +233,34 @@ export const LiquidGlassCarousel = forwardRef<
 
     if (title) {
       gsap.to(title, {
-        y,
         autoAlpha: 1,
         duration: reduced ? 0 : 0.35,
         ease: "power3.out",
       });
+      // Reset transform when unfocusing (scale callback won't fire at scale=1)
+      if (!focused) {
+        title.style.transform = `translateX(-50%) translateY(0px)`;
+      }
     }
     if (counter) {
       gsap.to(counter, {
         autoAlpha: focused ? 0 : 1,
+        filter: focused ? "blur(10px)" : "blur(0px)",
         duration: reduced ? 0 : 0.35,
         ease: "power3.out",
       });
     }
-  }, [focused, entryDone, entry]);
+  }, [focused, entryDone, entry, panelH]);
+
+  const prevFocusedRef = useRef(focused);
+  useEffect(() => {
+    if (prevFocusedRef.current !== focused) {
+      if (focused) {
+        chimeSynth.playCardClick();
+      }
+      prevFocusedRef.current = focused;
+    }
+  }, [focused]);
 
   const prevActiveRef = useRef(active);
   useEffect(() => {
@@ -232,8 +276,8 @@ export const LiquidGlassCarousel = forwardRef<
 
     gsap.fromTo(
       title,
-      { filter: "blur(8px)", opacity: 0.3, y: -3 },
-      { filter: "blur(0px)", opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }
+      { filter: "blur(8px)", opacity: 0.3 },
+      { filter: "blur(0px)", opacity: 1, duration: 0.3, ease: "power2.out" }
     );
   }, [active]);
 
@@ -250,6 +294,8 @@ export const LiquidGlassCarousel = forwardRef<
     }
   };
 
+  const isDetail = focused && cardsDropped;
+
   return (
     <div
       className={cn(
@@ -264,7 +310,11 @@ export const LiquidGlassCarousel = forwardRef<
       onKeyDown={onKeyDown}
       onClick={(e) => {
         if (!focused) return;
-        if ((e.target as HTMLElement).closest("button")) return;
+        if (
+          (e.target as HTMLElement).closest("button") ||
+          (e.target as HTMLElement).closest("a")
+        )
+          return;
         const canvas = mountRef.current?.querySelector("canvas");
         if (e.target !== canvas) {
           engineRef.current?.closeFocus();
@@ -297,6 +347,7 @@ export const LiquidGlassCarousel = forwardRef<
         )}
       </WebGLErrorBoundary>
 
+      {/* Top Heading above card: retained as it is */}
       {showTitle && (
         <p
           ref={titleRef}
@@ -329,20 +380,59 @@ export const LiquidGlassCarousel = forwardRef<
           </div>
         </div>
       )}
+
+      {/* Project Description docked directly on bottom of the focused card */}
+      <AnimatePresence>
+        {isDetail && (
+          <motion.div
+            ref={descRef}
+            key={`detail-desc-${current?.title}`}
+            initial={{ opacity: 0, filter: "blur(14px)", y: 6 }}
+            animate={{
+              opacity: 1,
+              filter: "blur(0px)",
+              y: 0,
+              transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
+            }}
+            exit={{
+              opacity: 0,
+              filter: "blur(10px)",
+              y: 6,
+              transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+            }}
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center select-none px-4 w-full max-w-[380px] sm:max-w-[480px] md:max-w-[560px] will-change-[filter,opacity,transform]"
+            style={{
+              top: `calc(50% + ${(panelH * focusScaleRef.current) / 2}px + 14px)`,
+            }}
+          >
+            <BlurText
+              key={`desc-${current?.title}`}
+              text={current?.desc || ""}
+              animateBy="words"
+              direction="none"
+              randomize={true}
+              delay={16}
+              startDelay={0}
+              stepDuration={0.16}
+              trigger={true}
+              className="font-sans text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.015em] text-[#171717]/80 text-center leading-relaxed select-none justify-center"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom Section Heading: "Our Projects" & overview description in unfocused mode */}
       <div
         ref={counterRef}
-        className="pointer-events-none absolute left-1/2 z-10 m-0 text-center flex flex-col items-center gap-2 sm:gap-2.5 select-none px-4 w-full max-w-[92vw] will-change-[filter,opacity,transform] lg:!top-auto lg:bottom-[7.5%]"
-        style={{
-          top: `calc(50% + ${panelH / 2}px + 36px)`,
-        }}
+        className="pointer-events-none absolute bottom-[6.5%] sm:bottom-[8%] md:bottom-[9%] left-1/2 z-10 m-0 text-center flex flex-col items-center gap-1.5 sm:gap-2.5 select-none px-4 max-w-[90vw] will-change-[filter,opacity,transform]"
       >
         <h2
           style={{ fontFamily: 'var(--font-familjen), "Familjen Grotesk", sans-serif' }}
-          className="font-normal text-[28px] sm:text-[34px] md:text-5xl lg:text-[4.2rem] xl:text-[4.8rem] tracking-[-0.035em] sm:tracking-[-0.04em] leading-tight sm:leading-none text-[#171717] whitespace-nowrap"
+          className="font-normal text-3xl sm:text-4xl md:text-5xl lg:text-[3.6rem] xl:text-[4.2rem] tracking-[-0.04em] leading-none text-[#171717]"
         >
           {heading || "Our Projects"}
         </h2>
-        <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] font-normal tracking-[-0.015em] text-[#171717]/70 max-w-[340px] sm:max-w-[480px] md:max-w-[620px] text-center leading-relaxed select-none">
+        <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] font-normal tracking-[-0.015em] text-[#171717]/65 max-w-[460px] text-center leading-relaxed select-none">
           {description || "A curated archive of selected spatial systems, tactile digital interfaces, and interactive brand experiences engineered with precision."}
         </p>
       </div>

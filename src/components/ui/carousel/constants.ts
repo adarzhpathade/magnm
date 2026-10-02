@@ -35,22 +35,22 @@ export const LENS = {
 };
 
 export const FOCUS = {
-  cardDuration: 0.7,
-  focusDuration: 0.9,
+  cardDuration: 0.65,
+  focusDuration: 0.8,
   cardEase: "power4.out",
-  focusEase: "power3.out",
-  stagger: 0.06,
+  focusEase: "power3.inOut",
+  stagger: 0.05,
   dropDist: 1.4,
   centerScale: 1.18,
   lensFade: 0.85,
 };
 
 export const ENTRY = {
-  delay: 0.04,
-  riseDuration: 0.85,
+  delay: 0.18,
+  riseDuration: 1.1,
   riseEase: "power3.out",
-  lensBloom: 0.6,
-  lensBloomEase: "power2.inOut",
+  lensBloom: 0.9,
+  lensBloomEase: "power2.out",
 };
 
 export const LENS_FX_KEYS = [

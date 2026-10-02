@@ -1,6 +1,6 @@
 'use client';
 
-import React, { forwardRef, useState, useEffect } from 'react';
+import React, { forwardRef, useState, useEffect, useRef } from 'react';
 import XylophoneHelix from './originkit/ui/xylophone-helix';
 import { AnimatePresence, motion } from 'motion/react';
 import KineticShiftButton from './KineticShiftButton';
@@ -74,6 +74,20 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
       return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
+    const isInteractive = Boolean(triggerProp || triggerProp === undefined);
+    const cameraControllerRef = useRef({
+      tilt: cameraSettings.tilt,
+      sideTilt: cameraSettings.sideTilt,
+      interactive: isInteractive,
+    });
+    cameraControllerRef.current.interactive = isInteractive;
+
+    useEffect(() => {
+      cameraControllerRef.current.tilt = cameraSettings.tilt;
+      cameraControllerRef.current.sideTilt = cameraSettings.sideTilt;
+      cameraControllerRef.current.interactive = Boolean(triggerProp || triggerProp === undefined);
+    }, [cameraSettings, triggerProp]);
+
     return (
       <footer
         ref={ref}
@@ -84,9 +98,14 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
         )}
       >
         {/* Interactive Xylophone Helix WebGL Background (z-20 renders above all text) */}
-        <div className="absolute inset-0 z-20 w-full h-full pointer-events-auto flex items-center justify-center -translate-y-2 sm:-translate-y-4 md:translate-y-0 translate-x-2 sm:translate-x-8 md:translate-x-16 lg:translate-x-24">
+        <div
+          className={cn(
+            'absolute inset-0 z-20 w-full h-full flex items-center justify-center -translate-y-2 sm:-translate-y-4 md:translate-y-0 translate-x-2 sm:translate-x-8 md:translate-x-16 lg:translate-x-24 transition-opacity duration-300',
+            isInteractive ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'
+          )}
+        >
           <XylophoneHelix
-            soundMode="glockenspiel"
+            soundMode="vibraphone"
             background="transparent"
             baseColor="#171717"
             bars={48}
@@ -97,6 +116,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
             metal={{ reflect: 90, polish: 100 }}
             hover={{ colors: ['#cccccc'], strength: 0, tint: 0, glow: 0 }}
             camera={cameraSettings}
+            cameraControllerRef={cameraControllerRef}
           />
         </div>
 
@@ -167,22 +187,34 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                 </span>
               </div>
 
-              {/* Contact Action Button directly below the tagline */}
-              <div className="pt-2 sm:pt-2.5 md:pt-3 pointer-events-auto">
+              {/* Mobile-only Contact Action Button directly below the tagline */}
+              <div className="pt-2 sm:pt-2.5 md:pt-3 pointer-events-auto lg:hidden">
                 <KineticShiftButton
                   text="CONTACT"
                   ariaLabel="Contact MAGNM"
-                  soundIndex={0}
+                  soundType="vibraphone"
+                  soundIndex={2}
                   onClick={onStartProject}
                 />
               </div>
             </div>
           </header>
 
-          {/* Bottom Row: Studio Location & Email + Developer Credits (Aligned to Right Bottom Part) */}
-          <div className="pointer-events-none relative z-30 w-full flex justify-end items-end pb-0.5 sm:pb-1">
+          {/* Bottom Row: Desktop Action Button (Bottom Left) + Studio Location & Developer Credits (Right) */}
+          <div className="pointer-events-none relative z-30 w-full flex justify-between items-end pb-0.5 sm:pb-1">
+            {/* Desktop-only: Discuss Your Project on the bottom left */}
+            <div className="pointer-events-auto hidden lg:flex items-center">
+              <KineticShiftButton
+                text="DISCUSS YOUR PROJECT"
+                ariaLabel="Discuss your project"
+                soundType="vibraphone"
+                soundIndex={2}
+                onClick={onStartProject}
+              />
+            </div>
+
             {/* Right: Studio Location & Email + Developer Credits */}
-            <div className="pointer-events-auto flex flex-col sm:flex-row items-end gap-6 sm:gap-8 md:gap-12 text-right select-none">
+            <div className="pointer-events-auto flex flex-col sm:flex-row items-end gap-6 sm:gap-8 md:gap-12 text-right select-none ml-auto">
               {/* Studio Info: Based in Indore & Contact Email */}
               <div className="flex flex-col items-end gap-1.5">
                 <span className="font-['Martian_Mono',monospace] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.14em] uppercase text-[#777777]">
@@ -190,7 +222,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                 </span>
                 <div className="flex flex-col items-end gap-1">
                   <div
-                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 0)}
+                    onMouseEnter={() => chimeSynth.playWoodTap(0.18)}
                     className="group relative inline-flex flex-col items-end cursor-default"
                   >
                     <div className="flex items-center py-0.5">
@@ -203,7 +235,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
 
                   <a
                     href="mailto:hello@magnm.com"
-                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 1)}
+                    onMouseEnter={() => chimeSynth.playWoodTap(0.22)}
                     className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
                     aria-label="Email hello@magnm.com"
                   >
@@ -227,7 +259,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                     href="https://github.com/pranavdubey"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 2)}
+                    onMouseEnter={() => chimeSynth.playWoodTap(0.18)}
                     className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
                     aria-label="Developer Pranav Dubey"
                   >
@@ -243,7 +275,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                     href="https://github.com/adarzhpathade"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 3)}
+                    onMouseEnter={() => chimeSynth.playWoodTap(0.18)}
                     className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
                     aria-label="Developer Adarsh Pathade"
                   >

@@ -10,7 +10,7 @@ import React, {
 import { AnimatePresence, motion } from 'framer-motion';
 import OptionWheel, { type OptionWheelHandle } from './OptionWheel';
 import BlurText from './BlurText';
-import { ChimeSynthesizer } from '@/lib/chime-synth';
+import { chimeSynth } from '@/lib/chime-synth';
 
 export interface OurWorkHandle {
   setTarget: (target: number) => void;
@@ -84,13 +84,11 @@ export const OurWork = forwardRef<OurWorkHandle, OurWorkProps>(function OurWork(
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(0);
   const wheelRef = useRef<OptionWheelHandle | null>(null);
-  const chimeRef = useRef<ChimeSynthesizer | null>(null);
 
   const toggleMobileExpand = (index: number) => {
     setMobileExpanded((prev) => (prev === index ? null : index));
     try {
-      if (!chimeRef.current) chimeRef.current = new ChimeSynthesizer();
-      chimeRef.current.strike(index, SERVICES_ITEMS.length, "glockenspiel");
+      chimeSynth.playServiceSelect();
     } catch {
       /* Audio play is best-effort */
     }
@@ -135,7 +133,7 @@ export const OurWork = forwardRef<OurWorkHandle, OurWorkProps>(function OurWork(
   return (
     <div
       ref={containerRef}
-      className={`relative z-35 w-full h-full lg:min-h-screen flex items-center justify-center select-none px-5 sm:px-10 md:px-14 lg:px-16 py-8 sm:py-12 ${className}`}
+      className={`relative z-35 w-full h-full lg:min-h-screen flex items-center justify-center select-none px-5 sm:px-10 md:px-14 lg:px-16 py-8 sm:py-12 cursor-default ${className}`}
     >
       {/* ===================== DESKTOP EXPERIENCE (OptionWheel) ===================== */}
       <div className="hidden md:flex w-full max-w-6xl mx-auto flex-row items-center justify-center gap-8 lg:gap-10">
@@ -196,8 +194,8 @@ export const OurWork = forwardRef<OurWorkHandle, OurWorkProps>(function OurWork(
             disableInternalWheel={true}
             activeColor="#171717"
             textColor="rgba(23, 23, 23, 0.28)"
-            soundMode="glockenspiel"
-            soundVolume={0.5}
+            soundMode="marimba"
+            soundVolume={0.75}
             onChange={(index) => setSelectedIndex(index)}
           />
         </div>

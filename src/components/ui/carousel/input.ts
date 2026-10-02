@@ -18,7 +18,8 @@ export function setupInput(
   state: CarouselState,
   layoutEngine: LayoutEngine,
   openFocus: () => void,
-  closeFocus: () => void
+  closeFocus: () => void,
+  onEntryDone: (done: boolean) => void
 ): InputController {
   const WHEEL = 1.4;
   const DRAG = 1.6;
@@ -60,7 +61,7 @@ export function setupInput(
   }
 
   function updateCursor() {
-    if (state.focusState.active || state.entryActive || state.entrySettled) {
+    if (state.focusState.active || state.entryActive) {
       return setCursor("");
     }
     if (state.dragging) return setCursor("grabbing");
@@ -84,7 +85,7 @@ export function setupInput(
   }
 
   function setView(on: boolean) {
-    if (state.entryActive || state.entrySettled) on = false;
+    if (state.entryActive) on = false;
     if (state.dragging) on = false;
     if (on === state.overPanel) {
       updateCursor();
@@ -103,11 +104,26 @@ export function setupInput(
   }
 
   function inputLocked() {
-    return state.focusState.active || state.entryActive || state.entrySettled;
+    return state.focusState.active;
+  }
+
+  function cancelOrCompleteEntry() {
+    if (state.entryActive || !state.entryCompleted) {
+      state.entryAnim?.kill();
+      state.entryAnim = null;
+      state.entryActive = false;
+      state.entrySettled = false;
+      state.entryCompleted = true;
+      for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+      layoutEngine.layout();
+      updateCursor();
+      onEntryDone(true);
+    }
   }
 
   function onWheel(e: WheelEvent) {
     if (inputLocked()) return;
+    cancelOrCompleteEntry();
     const isHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
     if (isHorizontal) {
       e.preventDefault();
@@ -123,7 +139,7 @@ export function setupInput(
   function onPointerDown(e: PointerEvent) {
     state.suppressClick = false;
     if (state.focusState.active) return;
-    if (inputLocked()) return;
+    cancelOrCompleteEntry();
     if (state.dragging) return;
     if (e.button !== 0 && e.pointerType === "mouse") return;
     state.dragging = true;

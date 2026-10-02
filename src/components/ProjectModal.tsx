@@ -32,8 +32,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      // Play a subtle sound when opening
-      chimeSynth.playButtonHover(0.2, 3);
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -105,7 +103,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
 
       if (response.status === 200) {
         setSubmitSuccess(true);
-        chimeSynth.playButtonHover(0.4, 7); // Success chime
+        chimeSynth.playSuccessChime(); // Harmonic acoustic success resolution
         
         // Reset after 3 seconds
         setTimeout(() => {
@@ -134,7 +132,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
       {isOpen && (
         <motion.div
           key="project-modal-backdrop-container"
-          className="fixed inset-0 z-[100] flex items-center justify-center lg:justify-end p-4 sm:p-6 lg:p-8 select-none"
+          className="fixed inset-0 z-[100] flex items-center justify-center lg:justify-end p-4 sm:p-6 lg:p-8 lg:py-10 select-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -163,11 +161,11 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
           >
 
             {/* Scrollable Content */}
-            <div className="flex-1 flex flex-col justify-center overflow-y-auto px-6 sm:px-8 py-8 sm:py-10 hide-scrollbar">
+            <div className="flex-1 flex flex-col justify-center overflow-y-auto px-6 sm:px-8 py-6 sm:py-8 hide-scrollbar">
               <h2 className="font-['Familjen_Grotesk',sans-serif] text-[1.5rem] sm:text-[1.75rem] leading-tight tracking-[-0.03em] text-[#171717] group-data-[theme=dark]/modal:text-white font-medium mb-1.5">
                 Let&apos;s build something great.
               </h2>
-              <p className="text-gray-500 group-data-[theme=dark]/modal:text-[#a3a3a3] text-[0.8rem] leading-snug mb-8 max-w-[90%]">
+              <p className="text-gray-500 group-data-[theme=dark]/modal:text-[#a3a3a3] text-[0.8rem] leading-snug mb-5 max-w-[90%]">
                 Tell us about your project, we usually reply within one business day.
               </p>
 
@@ -182,7 +180,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
                   <p className="text-gray-500 group-data-[theme=dark]/modal:text-[#a3a3a3] text-sm">We&apos;ve received your details and will get back to you shortly.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-1">
                   <input
                     type="text"
                     name="name"
@@ -257,7 +255,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
                     name="details"
                     required
                     placeholder="Share a little about your goals, timeline, and requirements..."
-                    rows={4}
+                    rows={3}
                     className="w-full px-0 py-2.5 rounded-none border-b border-gray-300 group-data-[theme=dark]/modal:border-white/20 bg-transparent text-[#171717] group-data-[theme=dark]/modal:text-white placeholder-gray-400 group-data-[theme=dark]/modal:placeholder-white/30 focus:outline-none focus:border-black group-data-[theme=dark]/modal:focus:border-white transition-colors text-[0.75rem] resize-none"
                   />
                   
@@ -268,12 +266,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
                   )}
 
                   {/* Submit Button aligned with design */}
-                  <div className="mt-4 pt-1">
+                  <div className="mt-3">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="group relative w-full flex items-center justify-center py-3 bg-[#171717] text-white hover:bg-black group-data-[theme=dark]/modal:bg-white group-data-[theme=dark]/modal:text-[#171717] group-data-[theme=dark]/modal:hover:bg-gray-200 rounded-lg focus:outline-none disabled:opacity-50 transition-colors mt-2"
-                      onMouseEnter={() => chimeSynth.playButtonHover(0.15, 1)}
+                      className="group relative w-full flex items-center justify-center py-3 bg-[#171717] text-white hover:bg-black group-data-[theme=dark]/modal:bg-white group-data-[theme=dark]/modal:text-[#171717] group-data-[theme=dark]/modal:hover:bg-gray-200 rounded-lg focus:outline-none disabled:opacity-50 transition-colors"
+                      onMouseEnter={() => chimeSynth.playAcousticHover('vibraphone', 0.2, 4)}
                     >
                       {isSubmitting ? (
                         <span className="font-['Martian_Mono',monospace] text-[0.75rem] tracking-[0.05em] font-medium uppercase">SENDING...</span>
@@ -289,19 +287,19 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
               )}
 
               {/* Footer Section */}
-              <div className="mt-8 flex flex-col items-center">
+              <div className="mt-5 flex flex-col items-center">
                 <div className="text-center text-[0.85rem] text-gray-500 group-data-[theme=dark]/modal:text-[#a3a3a3]">
                   Prefer email? <a href="mailto:hello@magnm.com" className="text-[#171717] hover:text-black group-data-[theme=dark]/modal:text-white hover:underline group-data-[theme=dark]/modal:hover:text-[#ccc] transition-colors">hello@magnm.com</a>
                 </div>
 
                 {/* Close Cross Button in Centre of Bottom Blank Part */}
-                <div className="mt-14 sm:mt-16 flex items-center justify-center">
+                <div className="mt-6 sm:mt-8 flex items-center justify-center">
                   <button
                     type="button"
                     onClick={onClose}
                     className="group/close relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 group-data-[theme=dark]/modal:border-white/15 hover:border-black group-data-[theme=dark]/modal:hover:border-white/40 bg-transparent hover:bg-gray-100 group-data-[theme=dark]/modal:hover:bg-white/10 text-gray-400 group-data-[theme=dark]/modal:text-[#888888] hover:text-[#171717] group-data-[theme=dark]/modal:hover:text-white transition-all duration-200 focus:outline-none cursor-pointer"
                     aria-label="Close form"
-                    onMouseEnter={() => chimeSynth.playButtonHover(0.15, 2)}
+                    onMouseEnter={() => chimeSynth.playWoodTap(0.2)}
                   >
                     <svg
                       width="12"

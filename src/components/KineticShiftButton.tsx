@@ -22,6 +22,8 @@ export interface KineticShiftButtonProps {
   soundVolume?: number;
   /** Index for the piano note to play on hover */
   soundIndex?: number;
+  /** Acoustic sound instrument type: 'glockenspiel' (default), 'vibraphone', 'marimba', 'celesta', 'kalimba', 'wood-tap' */
+  soundType?: 'glockenspiel' | 'vibraphone' | 'marimba' | 'celesta' | 'kalimba' | 'wood-tap';
 }
 
 /**
@@ -44,6 +46,7 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
   enableSound = true,
   soundVolume = 0.35,
   soundIndex = 0,
+  soundType = 'glockenspiel',
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const words = text.split(' ');
@@ -84,21 +87,29 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
     const now = performance.now();
     // Guard against premature trigger on section entrance or initial page reveal
     if (now - mountedAtRef.current > 600 && enableSound) {
-      chimeSynth.playButtonHover(soundVolume, soundIndex);
+      if (soundType === 'glockenspiel') {
+        chimeSynth.playButtonHover(soundVolume, soundIndex);
+      } else {
+        chimeSynth.playAcousticHover(soundType, soundVolume, soundIndex);
+      }
     }
     setIsHovered(true);
-  }, [enableSound, soundVolume, soundIndex]);
+  }, [enableSound, soundVolume, soundIndex, soundType]);
 
   const handleMouseMove = useCallback(() => {
     // If entered during a suppression window but user is now actively moving cursor
     if (!isHovered) {
       const now = performance.now();
       if (now - mountedAtRef.current > 600 && enableSound) {
-        chimeSynth.playButtonHover(soundVolume, soundIndex);
+        if (soundType === 'glockenspiel') {
+          chimeSynth.playButtonHover(soundVolume, soundIndex);
+        } else {
+          chimeSynth.playAcousticHover(soundType, soundVolume, soundIndex);
+        }
       }
       setIsHovered(true);
     }
-  }, [isHovered, enableSound, soundVolume, soundIndex]);
+  }, [isHovered, enableSound, soundVolume, soundIndex, soundType]);
 
   const handleFocus = useCallback(() => {
     // Keyboard focus handles accessibility focus outline only; never play hover sound on focus

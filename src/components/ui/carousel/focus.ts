@@ -16,7 +16,9 @@ export function createFocusController(
   layoutEngine: LayoutEngine,
   setView: (on: boolean) => void,
   updateCursor: () => void,
-  onFocusChange: (open: boolean) => void
+  onFocusChange: (open: boolean) => void,
+  onCardsDropped?: (dropped: boolean) => void,
+  onFocusScale?: (scale: number) => void
 ): FocusController {
   function openFocus() {
     if (state.focusState.active || !state.centeredPanel) return;
@@ -70,17 +72,30 @@ export function createFocusController(
         ease: FOCUS.focusEase,
         onUpdate() {
           state.focusScale = scaleProxy.v;
+          onFocusScale?.(scaleProxy.v);
         },
       },
       0
     );
+    let maxCardDropTime = 0;
     ranked.forEach((o) => {
+      const dropStart = o.rank * FOCUS.stagger;
+      const dropEnd = dropStart + FOCUS.cardDuration;
+      if (dropEnd > maxCardDropTime) maxCardDropTime = dropEnd;
       tl.to(
         state.drop,
         { [o.idx]: 1, duration: FOCUS.cardDuration, ease: FOCUS.cardEase },
-        o.rank * FOCUS.stagger
+        dropStart
       );
     });
+    // As soon as the other cards leave the screen, notify caller to transform typography
+    tl.call(
+      () => {
+        onCardsDropped?.(true);
+      },
+      [],
+      Math.max(0.42, maxCardDropTime * 0.68)
+    );
     state.focusState.anim = tl;
     setView(false);
     onFocusChange(true);
@@ -108,6 +123,7 @@ export function createFocusController(
     });
 
     onFocusChange(false);
+    onCardsDropped?.(false);
     const scaleProxy = { v: state.focusScale };
     const tl = gsap.timeline({
       onComplete: () => {
@@ -131,6 +147,7 @@ export function createFocusController(
         ease: FOCUS.focusEase,
         onUpdate() {
           state.focusScale = scaleProxy.v;
+          onFocusScale?.(scaleProxy.v);
         },
       },
       0

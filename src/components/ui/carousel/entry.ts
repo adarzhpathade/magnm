@@ -14,6 +14,8 @@ export function createEntryController(
 
   function playEntry(force = false) {
     if (!entryOn) {
+      state.entryCompleted = true;
+      state.entryActive = false;
       onEntryDone(true);
       return;
     }
@@ -45,12 +47,14 @@ export function createEntryController(
       // Fallback: If no cards are visible yet (e.g. layout pending or offscreen), ensure all are 1
       state.entryActive = false;
       state.entrySettled = false;
+      state.entryCompleted = true;
       for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+      layoutEngine.layout();
       onEntryDone(true);
       return;
     }
 
-    // Keep offscreen cards at 1, only zero out visible cards that will ripple in
+    // Keep offscreen cards at 1 so they are ready if scrolled into view; only ripple currently visible cards
     for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
     visible.forEach((idx) => {
       state.pEntry[idx] = 0;
@@ -58,6 +62,7 @@ export function createEntryController(
 
     state.entryActive = true;
     state.entrySettled = false;
+    state.entryCompleted = false;
     onEntryDone(false);
     state.focusState.lensFx = 0;
     layoutEngine.layout();
@@ -67,7 +72,9 @@ export function createEntryController(
       onComplete: () => {
         state.entryActive = false;
         state.entrySettled = false;
+        state.entryCompleted = true;
         for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+        layoutEngine.layout();
         updateCursor();
         state.lastActivity = performance.now();
         onEntryDone(true);
@@ -81,12 +88,14 @@ export function createEntryController(
       const cx = state.lastCenterX[idx] ?? 0;
       const distFromCenter = Math.abs(cx);
       const normDist = Math.min(1.2, distFromCenter / Math.max(1, half));
-      const staggerDelay = normDist * 0.16; // elegant symmetrical center-outward ripple
+      // Wider stagger for cinematic center-outward cascading wave
+      const staggerDelay = normDist * 0.18;
       const totalTime = staggerDelay + riseDuration;
       if (totalTime > maxRiseEnd) maxRiseEnd = totalTime;
 
-      tl.to(
+      tl.fromTo(
         state.pEntry,
+        { [idx]: 0 },
         {
           [idx]: 1,
           duration: riseDuration,
@@ -96,18 +105,20 @@ export function createEntryController(
       );
     });
 
-    tl.to(
+    tl.fromTo(
       state.focusState,
+      { lensFx: 0 },
       { lensFx: 1, duration: ENTRY.lensBloom, ease: ENTRY.lensBloomEase },
-      0.08
+      0.06
     );
 
+    // Fire title reveal after center card has risen ~55% — looks intentional
     tl.call(
       () => {
         onEntryDone(true);
       },
       [],
-      Math.min(0.40, maxRiseEnd * 0.48)
+      Math.min(0.50, maxRiseEnd * 0.45)
     );
 
     state.entryAnim = tl;
@@ -120,9 +131,14 @@ export function createEntryController(
     }
     state.entryActive = false;
     state.entrySettled = false;
+    state.entryCompleted = true;
     hasPlayed = false;
-    for (let k = 0; k < state.pEntry.length; k++) state.pEntry[k] = 1;
+    for (let k = 0; k < state.pEntry.length; k++) {
+      state.pEntry[k] = 1;
+    }
+    state.focusState.lensFx = 0;
     onEntryDone(true);
+    layoutEngine.layout();
   }
 
   return { playEntry, resetEntry };

@@ -6,6 +6,7 @@ export interface LiquidGlassCarouselItem {
   src: string;
   title: string;
   desc?: string;
+  liveUrl?: string;
   /** Width / height. Measured from the image when omitted. */
   aspect?: number;
 }
@@ -71,9 +72,11 @@ export interface CreateCarouselOptions {
   autoScroll?: boolean | { delay?: number; interval?: number };
   onActiveChange: (index: number) => void;
   onFocusChange: (open: boolean) => void;
+  onCardsDropped?: (dropped: boolean) => void;
   onEntryDone: (done: boolean) => void;
   onPanelHChange?: (panelH: number) => void;
   onAutoScrollProgress?: (progress: number) => void;
+  onFocusScale?: (scale: number) => void;
 }
 
 export interface FocusState {
@@ -135,6 +138,7 @@ export interface CarouselState {
   pEntry: number[];
   entryActive: boolean;
   entrySettled: boolean;
+  entryCompleted: boolean;
   entryAnim: gsap.core.Timeline | null;
   lensFxFull: Record<string, number>;
   panelRects: PanelRect[];

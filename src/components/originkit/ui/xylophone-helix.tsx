@@ -1757,18 +1757,58 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
             input.deltaSpinX += dxClient / gesture.width
         }
 
+        const isElementVisibleAndInteractive = (): boolean => {
+            if (!root) return false
+            if (cameraControllerRef?.current?.interactive === false) return false
+
+            // Walk ancestor chain to check visibility, display, and opacity
+            // (Note: Do NOT check pointerEvents because 3D overlays deliberately use
+            // pointer-events: none in CSS so underlying HTML buttons remain clickable)
+            let curr: HTMLElement | null = root
+            while (curr && curr !== document.body) {
+                const style = window.getComputedStyle(curr)
+                if (
+                    style.visibility === "hidden" ||
+                    style.display === "none" ||
+                    parseFloat(style.opacity || "1") === 0
+                ) {
+                    return false
+                }
+                curr = curr.parentElement
+            }
+            return true
+        }
+
         const readPointer = (clientX: number, clientY: number) => {
-            // When interactive is explicitly false, suppress hover
-            if (cameraControllerRef?.current?.interactive === false) {
+            if (!isElementVisibleAndInteractive()) {
                 input.hasPointer = false
+                lastHitIndex = -1
                 return
             }
+
+            const rect = root.getBoundingClientRect()
+            if (rect.width <= 0 || rect.height <= 0) {
+                input.hasPointer = false
+                lastHitIndex = -1
+                return
+            }
+
+            // Ensure cursor is physically within this component's bounds
+            if (
+                clientX < rect.left ||
+                clientX > rect.right ||
+                clientY < rect.top ||
+                clientY > rect.bottom
+            ) {
+                input.hasPointer = false
+                lastHitIndex = -1
+                return
+            }
+
             if (audioCtxRef.current?.state === "suspended") {
                 audioCtxRef.current.resume()
             }
             chimeSynth.resume()
-            const rect = root.getBoundingClientRect()
-            if (rect.width <= 0 || rect.height <= 0) return
             const fx = (clientX - rect.left) / rect.width
             const fy = (clientY - rect.top) / rect.height
             input.ndcX = fx * 2 - 1
@@ -1782,13 +1822,22 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
 
         const onPointerDown = (event: PointerEvent) => {
             if (event.pointerType === "touch") return
+            if (!isElementVisibleAndInteractive()) return
             const target = event.target as HTMLElement | null
             if (target && target.closest('button, a, [role="button"], input, textarea, select')) {
                 return
             }
-            chimeSynth.resume()
             const rect = root.getBoundingClientRect()
-            if (rect.width <= 0) return
+            if (rect.width <= 0 || rect.height <= 0) return
+            if (
+                event.clientX < rect.left ||
+                event.clientX > rect.right ||
+                event.clientY < rect.top ||
+                event.clientY > rect.bottom
+            ) {
+                return
+            }
+            chimeSynth.resume()
             gesture.pointerId = event.pointerId
             gesture.prevX = event.clientX
             gesture.width = rect.width
@@ -1807,12 +1856,11 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
 
         const onPointerLeave = () => {
             input.hasPointer = false
-
             lastHitIndex = -1
         }
 
         const onWheel = (event: WheelEvent) => {
-            if (cameraControllerRef?.current?.interactive === false) return
+            if (!isElementVisibleAndInteractive()) return
             event.preventDefault()
             let delta = event.deltaY
             if (event.deltaMode === 1) delta *= 16
@@ -1821,15 +1869,24 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const onTouchStart = (event: TouchEvent) => {
-            if (cameraControllerRef?.current?.interactive === false) return
+            if (!isElementVisibleAndInteractive()) return
             const touch = event.touches[0]
             if (!touch) return
             const target = event.target as HTMLElement | null
             if (target && target.closest('button, a, [role="button"], input, textarea, select')) {
                 return
             }
-            chimeSynth.resume()
             const rect = root.getBoundingClientRect()
+            if (rect.width <= 0 || rect.height <= 0) return
+            if (
+                touch.clientX < rect.left ||
+                touch.clientX > rect.right ||
+                touch.clientY < rect.top ||
+                touch.clientY > rect.bottom
+            ) {
+                return
+            }
+            chimeSynth.resume()
             gesture.startX = touch.clientX
             gesture.startY = touch.clientY
             gesture.prevX = touch.clientX
@@ -1840,9 +1897,10 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const onTouchMove = (event: TouchEvent) => {
-            if (cameraControllerRef?.current?.interactive === false) return
+            if (!isElementVisibleAndInteractive()) return
             const touch = event.touches[0] ?? event.changedTouches[0]
             if (!touch) return
+
             readPointer(touch.clientX, touch.clientY)
 
             if (gesture.axis === "none") {
@@ -2166,7 +2224,10 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
         }
 
         const updateStrike = () => {
-            if (!input.hasPointer) return
+            if (!input.hasPointer || !isElementVisibleAndInteractive()) {
+                lastHitIndex = -1
+                return
+            }
 
             const aspect = viewHeight > 0 ? viewWidth / viewHeight : 1
 
