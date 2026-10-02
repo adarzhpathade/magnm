@@ -41,6 +41,7 @@ export interface DesktopTimelineRefs {
   footerWrapper?: RefObject<HTMLDivElement | null>;
   footerMagnm?: RefObject<HTMLSpanElement | null>;
   navbarHeader?: RefObject<HTMLElement | null>;
+  onFooterRevealChange?: (revealed: boolean) => void;
 }
 
 export function useDesktopTimeline(
@@ -84,7 +85,10 @@ export function useDesktopTimeline(
     }
     gsap.set('.nav-logo-container', { opacity: 0, filter: 'none', y: 0 });
     gsap.set('.nav-brand-divider', { opacity: 0, filter: 'none', y: 0, backgroundColor: 'rgba(255, 255, 255, 0.22)' });
-    gsap.set('.nav-brand-text', { opacity: 0, filter: 'none', y: 0, x: 0, scale: 1, color: '#171717', transformOrigin: '0 0', clearProps: 'fontSize,lineHeight' });
+    gsap.set('.nav-brand-text', { opacity: 0, filter: 'none', y: 0, x: 0, scale: 1, color: '#171717', transformOrigin: '0 0', clearProps: 'fontSize,lineHeight,letterSpacing' });
+    if (refs.navbarHeader?.current) {
+      refs.navbarHeader.current.style.zIndex = '50';
+    }
     if (refs.navActions.current) {
       refs.navActions.current.style.opacity = '0';
       refs.navActions.current.style.transform = 'none';
@@ -132,8 +136,9 @@ export function useDesktopTimeline(
         boxShadow: 'none',
         transformOrigin: 'center center',
         pointerEvents: 'none',
+        visibility: 'hidden',
       });
-      refs.page3Wrapper.current.style.visibility = 'visible';
+      refs.page3Wrapper.current.style.visibility = 'hidden';
     }
     if (refs.page3Container.current) {
       gsap.set(refs.page3Container.current, { opacity: 0, filter: 'blur(16px)', y: 0 });
@@ -147,8 +152,9 @@ export function useDesktopTimeline(
         boxShadow: 'none',
         transformOrigin: 'center center',
         pointerEvents: 'none',
+        visibility: 'hidden',
       });
-      refs.page4Container.current.style.visibility = 'visible';
+      refs.page4Container.current.style.visibility = 'hidden';
     }
 
     // Footer initial state: strictly hidden so it NEVER covers Hero on load
@@ -157,6 +163,7 @@ export function useDesktopTimeline(
         visibility: 'hidden',
         pointerEvents: 'none',
       });
+      refs.footerWrapper.current.style.zIndex = '38';
     }
     gsap.set('#page-footer-bg', { visibility: 'hidden' });
 
@@ -250,16 +257,21 @@ export function useDesktopTimeline(
             }
             refs.page3Wrapper.current.style.pointerEvents =
               isPage3Active ? 'auto' : 'none';
+            refs.page3Wrapper.current.style.visibility =
+              isPage3Active ? 'visible' : 'hidden';
           }
 
           // Section 4 (Page 4 Projects Card)
           if (refs.page4Container.current) {
-            const isPage4Active = progress >= 0.74 && progress < 0.88;
-            if (isPage4Active && refs.page4Container.current.style.pointerEvents !== 'auto') {
+            const isPage4Active = progress >= 0.72 && progress < 0.995;
+            const isPage4Interactive = progress >= 0.74 && progress < 0.88;
+            if (isPage4Interactive && refs.page4Container.current.style.pointerEvents !== 'auto') {
               chimeSynth.suppressHover(600);
             }
             refs.page4Container.current.style.pointerEvents =
-              isPage4Active ? 'auto' : 'none';
+              isPage4Interactive ? 'auto' : 'none';
+            refs.page4Container.current.style.visibility =
+              isPage4Active ? 'visible' : 'hidden';
 
             // Incoming animation: plays ONCE when scrolling forward into Section 4
             if (progress >= 0.76 && self.direction === 1 && !p4EntryTriggered) {
@@ -275,15 +287,28 @@ export function useDesktopTimeline(
 
           // Section 5 (Footer)
           if (refs.footerWrapper?.current) {
-            const isFooterActive = progress >= 0.88;
+            const isFooterVisible = progress >= 0.88;
+            const isFooterInteractive = progress >= 0.88;
             refs.footerWrapper.current.style.pointerEvents =
-              isFooterActive ? 'auto' : 'none';
-            if (progress < 0.85) {
-              refs.footerWrapper.current.style.visibility = 'hidden';
-              gsap.set('#page-footer-bg', { visibility: 'hidden' });
-            } else {
+              isFooterInteractive ? 'auto' : 'none';
+            if (isFooterVisible) {
               refs.footerWrapper.current.style.visibility = 'visible';
               gsap.set('#page-footer-bg', { visibility: 'visible' });
+            } else {
+              refs.footerWrapper.current.style.visibility = 'hidden';
+              gsap.set('#page-footer-bg', { visibility: 'hidden' });
+            }
+
+            if (refs.navbarHeader?.current) {
+              if (progress >= 0.96) {
+                refs.navbarHeader.current.style.zIndex = '37';
+              } else {
+                refs.navbarHeader.current.style.zIndex = '50';
+              }
+            }
+
+            if (refs.onFooterRevealChange) {
+              refs.onFooterRevealChange(progress >= 0.88);
             }
           }
         },
@@ -669,7 +694,7 @@ export function useDesktopTimeline(
         0.36
       );
 
-      scrollTl.set('#page-3', { pointerEvents: 'auto' }, 0.36);
+      scrollTl.set('#page-3', { visibility: 'visible', pointerEvents: 'auto' }, 0.36);
     }
 
     // Phase 6: Pinned Services Scroll (0.44 -> 0.70)
@@ -716,19 +741,22 @@ export function useDesktopTimeline(
       TIMINGS.page4SlideUp.start,
       TIMINGS.page4SlideUp.duration
     );
-    scrollTl.set(refs.page4Container.current, { pointerEvents: 'auto' }, 0.80);
+    scrollTl.set(refs.page4Container.current, { visibility: 'visible', pointerEvents: 'auto' }, 0.80);
 
     // Phase 9: Page 4 slides UP & OFF to reveal Footer underneath (0.88 -> 1.00)
-    // 0. Ensure Footer background and helix are visible right before Page 4 lifts
+    // 0. Ensure Footer background and helix are visible right as Page 4 lifts, and interactive
     if (refs.footerWrapper?.current) {
       scrollTl.set(
         [refs.footerWrapper.current, '#page-footer-bg'],
         { visibility: 'visible', pointerEvents: 'auto' },
-        0.85
+        0.88
       );
     }
+    if (refs.page4Container?.current) {
+      scrollTl.set(refs.page4Container.current, { pointerEvents: 'none' }, 0.88);
+    }
 
-    // 1. Page 4 slides up and off the top of the viewport
+    // 1. Page 4 slides up and off the top of the viewport like a physical curtain
     scrollTl.to(
       refs.page4Container.current,
       {
@@ -741,7 +769,10 @@ export function useDesktopTimeline(
     );
 
     // 2. Navbar items stay visible while Page 4 lifts, then leave with optical blur when Page 4 is ~80% gone
-    const navLeaveElements: (string | HTMLElement)[] = ['.nav-logo-container', '.nav-brand-divider'];
+    const navLeaveElements: (string | HTMLElement)[] = [
+      '.nav-logo-container',
+      '.nav-brand-divider',
+    ];
     if (refs.navActions.current) {
       navLeaveElements.push(refs.navActions.current);
     }
@@ -770,8 +801,16 @@ export function useDesktopTimeline(
             refs.navBrand?.current ?? null,
             refs.footerMagnm?.current ?? null
           ).fontSize,
-        x: -85,
-        y: 75,
+        x: () =>
+          getNavToFooterFontTargets(
+            refs.navBrand?.current ?? null,
+            refs.footerMagnm?.current ?? null
+          ).x,
+        y: () =>
+          getNavToFooterFontTargets(
+            refs.navBrand?.current ?? null,
+            refs.footerMagnm?.current ?? null
+          ).y,
         lineHeight: 0.8,
         letterSpacing: '-0.035em',
         color: '#cccccc',
@@ -780,5 +819,9 @@ export function useDesktopTimeline(
       },
       0.95
     );
+
+    if (refs.navbarHeader?.current) {
+      scrollTl.set(refs.navbarHeader.current, { zIndex: 37 }, 0.96);
+    }
   });
 }

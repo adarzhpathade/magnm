@@ -4,6 +4,9 @@ import React, { forwardRef, useState, useEffect } from 'react';
 import XylophoneHelix from './originkit/ui/xylophone-helix';
 import { AnimatePresence, motion } from 'motion/react';
 import KineticShiftButton from './KineticShiftButton';
+import LetterSwapPingPong from './ui/letter-swap-pingpong-anim';
+import BlurText from './BlurText';
+import { chimeSynth } from '@/lib/chime-synth';
 import { cn } from '@/lib/utils';
 
 const DYNAMIC_WORDS = ['CREATE.', 'EXPLORE.', 'BUILD.', 'SHIP.'];
@@ -14,6 +17,7 @@ export interface FooterProps {
   prefix?: string;
   magnmRef?: React.RefObject<HTMLSpanElement | null>;
   onStartProject?: () => void;
+  triggerReveal?: boolean;
 }
 
 const Footer = forwardRef<HTMLDivElement, FooterProps>(
@@ -24,33 +28,50 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
       prefix = 'Let’s',
       magnmRef,
       onStartProject,
+      triggerReveal: triggerProp,
     },
     ref
   ) => {
     const [wordIndex, setWordIndex] = useState(0);
-    const [helixScale, setHelixScale] = useState(140);
+    const [helixScale, setHelixScale] = useState(210);
+    const [cameraSettings, setCameraSettings] = useState({ tilt: 42, sideTilt: -38 });
+    const [helixSpeed, setHelixSpeed] = useState(45);
+    const [hasRevealed, setHasRevealed] = useState(false);
 
     useEffect(() => {
+      if (triggerProp || triggerProp === undefined) {
+        setHasRevealed(true);
+      }
+    }, [triggerProp]);
+
+    useEffect(() => {
+      if (!hasRevealed) return;
       const timer = setInterval(() => {
         setWordIndex((prev) => (prev + 1) % DYNAMIC_WORDS.length);
       }, 3200);
       return () => clearInterval(timer);
-    }, []);
+    }, [hasRevealed]);
 
     useEffect(() => {
-      const updateScale = () => {
+      const updateDimensions = () => {
         const w = window.innerWidth;
         if (w < 640) {
-          setHelixScale(88);
+          setHelixScale(185);
+          setCameraSettings({ tilt: 42, sideTilt: -30 });
+          setHelixSpeed(4); // Drastically decreased rotation in mobile view only
         } else if (w < 1024) {
-          setHelixScale(115);
+          setHelixScale(175);
+          setCameraSettings({ tilt: 43, sideTilt: -34 });
+          setHelixSpeed(25);
         } else {
-          setHelixScale(140);
+          setHelixScale(210);
+          setCameraSettings({ tilt: 42, sideTilt: -38 });
+          setHelixSpeed(45);
         }
       };
-      updateScale();
-      window.addEventListener('resize', updateScale);
-      return () => window.removeEventListener('resize', updateScale);
+      updateDimensions();
+      window.addEventListener('resize', updateDimensions);
+      return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
     return (
@@ -63,29 +84,29 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
         )}
       >
         {/* Interactive Xylophone Helix WebGL Background (z-20 renders above all text) */}
-        <div className="absolute inset-0 z-20 w-full h-full pointer-events-auto flex items-center justify-center">
+        <div className="absolute inset-0 z-20 w-full h-full pointer-events-auto flex items-center justify-center -translate-y-2 sm:-translate-y-4 md:translate-y-0 translate-x-2 sm:translate-x-8 md:translate-x-16 lg:translate-x-24">
           <XylophoneHelix
             soundMode="glockenspiel"
             background="transparent"
             baseColor="#171717"
             bars={48}
             shape="helix"
-            speed={45}
+            speed={helixSpeed}
             drag={100}
             scale={helixScale}
             metal={{ reflect: 90, polish: 100 }}
             hover={{ colors: ['#cccccc'], strength: 0, tint: 0, glow: 0 }}
-            camera={{ tilt: 40, sideTilt: -25 }}
+            camera={cameraSettings}
           />
         </div>
 
-        {/* Foreground Content: Layout matches Hero precisely (z-10 sits behind helix) */}
-        <div className="relative z-10 w-full h-full pointer-events-none px-4 sm:px-6 md:px-8 lg:px-10 pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6 md:pb-7 flex flex-col justify-between">
+        {/* Foreground Content: Layout matches Hero precisely (header sits at z-10 behind helix; bottom row sits at z-30 above helix) */}
+        <div className="relative w-full h-full pointer-events-none px-4 sm:px-6 md:px-8 lg:px-10 pt-8 sm:pt-10 md:pt-12 pb-5 sm:pb-6 md:pb-7 flex flex-col justify-between">
           <header className="relative w-full flex flex-col pointer-events-none">
             {/* Main MAGNM Display Heading Slot (layout anchor for nav MAGNM text on desktop) */}
             <div
               ref={magnmRef as unknown as React.RefObject<HTMLDivElement>}
-              className="w-full flex items-start pointer-events-none"
+              className="relative z-10 w-full flex items-start pointer-events-none"
               style={{
                 /* Reserve the exact height the hero-sized MAGNM occupies: fontSize × lineHeight (0.8) */
                 minHeight: 'calc(clamp(4.25rem, 16vw, 15.5rem) * 0.8)',
@@ -93,53 +114,148 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
             >
               {/* Mobile-only: visible MAGNM text (on desktop, the nav-brand-text grows via fontSize animation instead) */}
               <span
-                className="footer-magnm-mobile lg:hidden font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] uppercase opacity-0"
-                aria-hidden="true"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="footer-magnm-mobile lg:hidden font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] uppercase opacity-0 pointer-events-auto cursor-pointer -ml-[0.055em]"
+                role="button"
+                tabIndex={0}
+                aria-label="MAGNM Home"
               >
                 MAGNM
               </span>
             </div>
 
-            {/* Tagline matching Hero Tagline positioning exactly */}
-            <div className="relative z-10 mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-0.5 sm:space-y-1">
-              <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
-                <span className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] uppercase">
-                  LET'S
-                </span>
+            {/* Tagline matching Hero Tagline positioning exactly with Page 3's signature BlurText effect */}
+            <div className="relative z-30 mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-2 sm:space-y-2.5">
+              <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] -ml-[0.055em]">
+                <BlurText
+                  key={hasRevealed ? 'lets-revealed' : 'lets-idle'}
+                  text="LET'S"
+                  animateBy="letters"
+                  direction="none"
+                  randomize={true}
+                  delay={24}
+                  startDelay={0}
+                  stepDuration={0.2}
+                  trigger={hasRevealed}
+                  className="!inline-flex items-baseline m-0 p-0"
+                  spanClassName="font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] uppercase"
+                />
                 <span className="inline-block relative ml-[0.28em] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] uppercase">
                   <AnimatePresence mode="wait">
-                    <motion.span
+                    <motion.div
                       key={wordIndex}
-                      initial={{ filter: 'blur(18px)', opacity: 0, y: 8 }}
-                      animate={{ filter: ['blur(18px)', 'blur(8px)', 'blur(0px)'], opacity: [0, 0.6, 1], y: [8, 2, 0] }}
-                      exit={{ filter: ['blur(0px)', 'blur(8px)', 'blur(18px)'], opacity: [1, 0.4, 0], y: [0, -2, -8] }}
-                      transition={{ duration: 0.48, times: [0, 0.45, 1], ease: [0.22, 1, 0.36, 1] }}
-                      style={{ display: 'inline-block', willChange: 'transform, filter, opacity' }}
+                      initial={{ opacity: 1 }}
+                      exit={{ filter: 'blur(12px)', opacity: 0 }}
+                      transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                      className="inline-block will-change-[filter,opacity]"
                     >
-                      <span className="inline-block will-change-[filter,opacity]">
-                        {DYNAMIC_WORDS[wordIndex]}
-                      </span>
-                    </motion.span>
+                      <BlurText
+                        key={wordIndex}
+                        text={DYNAMIC_WORDS[wordIndex]}
+                        animateBy="letters"
+                        direction="none"
+                        randomize={true}
+                        delay={24}
+                        startDelay={0}
+                        stepDuration={0.2}
+                        trigger={hasRevealed}
+                        className="!inline-flex items-baseline m-0 p-0"
+                        spanClassName="font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] uppercase"
+                      />
+                    </motion.div>
                   </AnimatePresence>
                 </span>
+              </div>
+
+              {/* Contact Action Button directly below the tagline */}
+              <div className="pt-2 sm:pt-2.5 md:pt-3 pointer-events-auto">
+                <KineticShiftButton
+                  text="CONTACT"
+                  ariaLabel="Contact MAGNM"
+                  soundIndex={0}
+                  onClick={onStartProject}
+                />
               </div>
             </div>
           </header>
 
-          {/* Bottom Row: Action Button & Copyright */}
-          <div className="pointer-events-auto relative z-30 w-full flex justify-between items-end pb-0.5 sm:pb-1">
-            <div className="flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
-              <KineticShiftButton
-                text="DISCUSS YOUR PROJECT"
-                ariaLabel="Discuss your project"
-                soundIndex={0}
-                onClick={onStartProject}
-              />
-            </div>
-            <div className="hidden sm:flex items-center gap-3 text-[10px] md:text-xs font-mono tracking-wider text-[#777777] uppercase select-none">
-              <span>© {new Date().getFullYear()} MAGNM</span>
-              <span>•</span>
-              <span>ALL RIGHTS RESERVED</span>
+          {/* Bottom Row: Studio Location & Email + Developer Credits (Aligned to Right Bottom Part) */}
+          <div className="pointer-events-none relative z-30 w-full flex justify-end items-end pb-0.5 sm:pb-1">
+            {/* Right: Studio Location & Email + Developer Credits */}
+            <div className="pointer-events-auto flex flex-col sm:flex-row items-end gap-6 sm:gap-8 md:gap-12 text-right select-none">
+              {/* Studio Info: Based in Indore & Contact Email */}
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="font-['Martian_Mono',monospace] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.14em] uppercase text-[#777777]">
+                  STUDIO
+                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <div
+                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 0)}
+                    className="group relative inline-flex flex-col items-end cursor-default"
+                  >
+                    <div className="flex items-center py-0.5">
+                      <LetterSwapPingPong
+                        label="Based in Indore"
+                        className="font-['Familjen_Grotesk',sans-serif] text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.01em] text-[#cccccc] group-hover:text-white transition-colors duration-200 leading-none"
+                      />
+                    </div>
+                  </div>
+
+                  <a
+                    href="mailto:hello@magnm.com"
+                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 1)}
+                    className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
+                    aria-label="Email hello@magnm.com"
+                  >
+                    <div className="flex items-center py-0.5">
+                      <LetterSwapPingPong
+                        label="hello@magnm.com"
+                        className="font-['Familjen_Grotesk',sans-serif] text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.01em] text-[#cccccc] group-hover:text-white transition-colors duration-200 leading-none"
+                      />
+                    </div>
+                  </a>
+                </div>
+              </div>
+
+              {/* Developer Credits — Matches Reference Design */}
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="font-['Martian_Mono',monospace] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.14em] uppercase text-[#777777]">
+                  DEVELOPED BY
+                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <a
+                    href="https://github.com/pranavdubey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 2)}
+                    className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
+                    aria-label="Developer Pranav Dubey"
+                  >
+                    <div className="flex items-center py-0.5">
+                      <LetterSwapPingPong
+                        label="Pranav Dubey"
+                        className="font-['Familjen_Grotesk',sans-serif] text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.01em] text-[#cccccc] group-hover:text-white transition-colors duration-200 leading-none"
+                      />
+                    </div>
+                  </a>
+
+                  <a
+                    href="https://github.com/adarzhpathade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onMouseEnter={() => chimeSynth.playButtonHover(0.2, 3)}
+                    className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
+                    aria-label="Developer Adarsh Pathade"
+                  >
+                    <div className="flex items-center py-0.5">
+                      <LetterSwapPingPong
+                        label="Adarsh Pathade"
+                        className="font-['Familjen_Grotesk',sans-serif] text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.01em] text-[#cccccc] group-hover:text-white transition-colors duration-200 leading-none"
+                      />
+                    </div>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -151,4 +267,3 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
 Footer.displayName = 'Footer';
 
 export default Footer;
-

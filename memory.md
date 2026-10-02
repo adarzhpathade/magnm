@@ -1,6 +1,6 @@
 # Memory — MAGNM Creative Studio Landing Page
 
-Last updated: 2026-10-01 23:25
+Last updated: 2026-10-02 11:51
 Repository: `https://github.com/adarzhpathade/magnm.git`
 Branch: `main`
 
@@ -8,7 +8,7 @@ Branch: `main`
 
 ## 1. Executive Summary & Project Mission
 
-MAGNM is a motion-driven, ultra-minimalist, monochromatic digital creative studio landing page. It is engineered with high visual fidelity, seamless 3D WebGL scenes, fluid scroll-driven GSAP sequences, and an interactive spatial soundscape.
+MAGNM is a motion-driven, ultra-minimalist, monochromatic digital creative studio landing page. It is engineered with high visual fidelity, seamless 3D WebGL scenes, fluid scroll-driven GSAP sequences, an interactive spatial soundscape, and comprehensive modern SEO/GEO architecture.
 
 The codebase features a modular, single-responsibility architecture across `src/components/experience/` (timeline hooks, master timings, animation helpers) and `src/components/ui/carousel/` (Three.js WebGL carousel engine). All 5 core sections—including the Footer stage with 3D XylophoneHelix and reverse MAGNM font expansion—are fully implemented, responsive, and synchronized across both desktop and mobile viewports.
 
@@ -59,10 +59,18 @@ The codebase features a modular, single-responsibility architecture across `src/
 ## 4. Full Codebase Inventory & Modular Architecture
 
 ```
+public/
+├── llms.txt                              — Generative Engine Optimization (GEO) grounding text
+├── magnm light.png                       — Metallic high-res logo emblem
+├── Magnm Dark Logo.png                   — Dark metallic logo emblem
+└── favicon.ico                           — Browser shortcut icon
+
 src/
 ├── app/
 │   ├── page.tsx                          — Entry point, renders <MainExperience />
-│   ├── layout.tsx                        — Font optimization (Geist, Martian Mono), root HTML
+│   ├── layout.tsx                        — Font optimization, Open Graph, Twitter cards & Schema.org JSON-LD
+│   ├── robots.ts                         — Dynamic robots.txt generation with AI search crawler rules
+│   ├── sitemap.ts                        — Dynamic XML sitemap generation (/sitemap.xml)
 │   └── globals.css                       — Base Tailwind, custom utilities, scrollbar hiding
 ├── components/
 │   ├── MainExperience.tsx                — Orchestrator: refs, useGSAP lifecycle, JSX stage tree (Pages 1–5)
@@ -143,7 +151,7 @@ src/
   - Monolithic `MAGNM` typography scaled across the full width, styled in `Familjen Grotesk` with `tracking-[-0.035em]` to match the navbar wordmark.
   - On desktop scroll (`0.0 -> 0.16`), `heroMagnmRef` scales down and translates directly into the top-left Navbar position via `getTransformTargets()`, settling smoothly beside the newly revealed logo.
   - Secondary elements (`heroTaglineRef`, `heroEmblemRef`, `heroBottomRef`) lift `-14px` and blur out with randomized optical blur.
-  - On mobile, `Hero` follows Minimalist Direction: no paragraph clutter, emblem hidden, single bottom-left CTA button, 3D wheel scaled to `54`.
+  - Dual bottom-left CTA buttons (`DISCUSS YOUR PROJECT` and `ABOUT US`), 3D wheel scaled to `54` on mobile and `90` on desktop.
 
 ### Section 2: Centered About Manifesto
 - **Manifesto ([AboutManifesto.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutManifesto.tsx))**:
@@ -206,14 +214,14 @@ src/
     - `y: 75`: shifts down to compensate for vertical baseline drift when font size expands from ~26px to ~248px inside the flex row container.
     - Color shifts smoothly from nav tone (`#cccccc`) to hero display tone.
 - **Behind the 3D Helix**:
-  - In `Footer.tsx`, the 3D `XylophoneHelix` sits at `z-20` with responsive scale (140 on desktop, 115 on tablet, 88 on mobile) and glockenspiel hover audio.
+  - In `Footer.tsx`, the 3D `XylophoneHelix` sits at `z-20` with responsive scale (210 on desktop, 165 on tablet, 130 on mobile), rightward tilt (`tilt: 42, sideTilt: -38`), rightward offset (`translate-x-8 sm:translate-x-12 md:translate-x-16 lg:translate-x-24`), and glockenspiel hover audio.
   - The expanding navbar MAGNM text (`z-50`) expands directly behind the rotating metallic bars of the helix (`z-55 / z-20`).
 - **Dynamic Tagline & Actions**:
   - Headline slot in `Footer.tsx` reserves `minHeight: calc(clamp(4.25rem, 16vw, 15.5rem) * 0.8)` so the dynamic tagline (`LET'S CREATE. / EXPLORE. / BUILD. / SHIP.`) with optical blur transitions (`AnimatePresence`) sits cleanly below the massive MAGNM headline without overlapping.
-  - Bottom row features `KineticShiftButton` (`DISCUSS YOUR PROJECT`) linked to the project intake modal and monospace copyright timestamp.
+  - Bottom row features `KineticShiftButton` (`DISCUSS YOUR PROJECT`) on the left, and a prominent, enlarged light metallic MAGNM logo (`/magnm light.png`, `h-16 sm:h-20 md:h-24 lg:h-28 xl:h-32`) on the right bottom corner. Both units reveal smoothly together via `.footer-action-btn` GSAP ScrollTrigger timeline.
 - **Mobile Section 5 Parity**:
   - Controlled by dedicated `mobileFooterTl` ScrollTrigger (`trigger: footer, start: 'top 65%', end: 'top 10%', scrub: 0.3`).
-  - Page 4 slides up (`y: -100%`), mobile logo fades with optical blur at `0.3`, and mobile footer text (`.footer-magnm-mobile`) blurs into view (`opacity: 0 -> 1, filter: blur(12px) -> blur(0px)`) behind the scaled mobile helix (`scale: 88`).
+  - Page 4 slides up (`y: -100%`), mobile logo fades with optical blur at `0.3`, and mobile footer text (`.footer-magnm-mobile`) blurs into view (`opacity: 0 -> 1, filter: blur(12px) -> blur(0px)`) behind the scaled mobile helix (`scale: 100`).
   - Dynamic navbar color listener updates contrast depending on whether viewport is over light Sections 3 & 4 or dark Footer.
 
 ---
@@ -273,13 +281,125 @@ export const TIMINGS = {
 12. **Horizontal and Vertical Drift of Expanded Nav Text**:
     - *Cause*: In the navbar, `.nav-brand-text` sits to the right of the brand logo and divider (~80px offset). Additionally, growing font-size from 26px to ~248px inside a vertical flex row (`items-center`) centered the glyphs, causing the top of the text to push upwards out of view, while overlapping the tagline below.
     - *Fix*: Applied `x: -85` in the GSAP tween to pull the text left to align with the standard page padding, and `y: 75` to counteract the upward flex expansion. In `Footer.tsx`, set `minHeight: calc(clamp(4.25rem, 16vw, 15.5rem) * 0.8)` on the headline slot container so the layout reserves the exact vertical height of the expanded headline, ensuring the dynamic `LET'S CREATE.` tagline stays cleanly positioned below it.
-13. **Z-Index Layering for 3D Helix Over Expanding Text**:
-    - *Cause*: If `Footer` was placed at `z-30`, the navbar MAGNM text (`z-50`) rendered on top of the 3D Xylophone Helix rather than behind it.
-    - *Fix*: Split the footer structure in `MainExperience.tsx` into:
-      - `#page-footer-bg` at `z-38` (behind Page 4 at `z-40`), providing the black stage.
-      - `#page-footer` at `z-55` (in front of Navbar at `z-50`), with the 3D `XylophoneHelix` at `z-20` inside Footer, and the text layout anchor at `z-10`. This puts the expanding MAGNM text (`z-50`) visually behind the rotating metallic helix (`z-55 / z-20`) while sitting in front of the black background (`z-38`).
+13. **Z-Index Layering for 3D Helix Over Expanding Text & Isolation from Projects Page**:
+    - *Cause*: `#page-footer` was previously set to `z-55` to sit above `Navbar` (`z-50`). But because Page 4 (`#page-4`, Projects Showcase) is at `z-40`, setting `#page-footer` to `z-55` caused `#page-footer` (`55 > 40`) to render on top of the Projects page, showing the 3D Helix and "LET'S CREATE" text prematurely over the carousel.
+    - *Fix*:
+      1. Placed the Footer's `MAGNM` heading directly inside `Footer.tsx` (`.footer-magnm-heading`) at `z-10`.
+      2. In `Footer.tsx`, `XylophoneHelix` sits at `z-20`, rendering directly **above** the `MAGNM` heading (`20 > 10`).
+      3. Set `#page-footer` to `z-38` and `#page-footer-bg` to `z-36`, strictly **underneath** `#page-4` (`z-40`). Page 4 now completely covers the Footer until scroll progress `0.88`, ensuring zero bleed-through on the Projects page.
+      4. In Hero, `heroContainerRef` sits at `z-10` while `wheelWrapperRef` sits at `z-20` (`20 > 10`), so the 3D Wheel renders directly **above** the Hero `MAGNM` text.
+      5. `Navbar` (`z-50`) stays strictly on top of all stages without obstruction.
+14. **Hero Page Button Clickability (Pointer-Events Stacking Isolation)**:
+    - *Cause*: Section 3 (`#page-3`, Our Work) was styled as `lg:absolute lg:inset-0 z-35`, spanning the entire desktop viewport. In `use-desktop-timeline.ts`, it was initialized with `visibility: 'visible'` (even though `opacity: 0`), and inside `OurWork.tsx`, `<div ref={containerRef}>` had hardcoded `pointer-events-auto`. In CSS, descendant elements with `pointer-events: auto` override ancestor `pointer-events: none` as long as `visibility` is `visible`. Consequently, `OurWork` and `OptionWheel` at `z-35` intercepted all mouse clicks across the desktop viewport, completely blocking clicks to the Hero action buttons (`DISCUSS YOUR PROJECT` and `ABOUT US`) located at `z-10`.
+    - *Fix*:
+      1. In `MainExperience.tsx`, added `lg:invisible` to `#page-3` and `#page-4` so they remain strictly hidden on desktop during Hero view.
+      2. In `OurWork.tsx`, removed hardcoded `pointer-events-auto` from the full-screen root container, allowing pointer-events to follow the wrapper lifecycle.
+      3. In `use-desktop-timeline.ts`, initialized `refs.page3Wrapper.current` and `refs.page4Container.current` with `visibility: 'hidden'` and `pointerEvents: 'none'`. In `onUpdate`, dynamically set `visibility` and `pointerEvents` to `visible` / `auto` strictly when their respective section is active (`0.38 - 0.78` for Sec 3, `0.74 - 0.88` for Sec 4), and `hidden` / `none` when off-section or returning to Hero.
+15. **True Scroll-Driven Footer Reveal with Partial Optical Blur**:
+    - *Problem*: The Footer was revealing directly / popping in instantaneously instead of being smoothly revealed by scroll. This had two root causes:
+      1. In `use-desktop-timeline.ts`, `isPage4Active` was set to `progress >= 0.74 && progress < 0.88`, which set `page4Container.style.visibility = 'hidden'` the instant `progress` reached `0.88`. Because Page 4 vanished in a single frame, its GSAP timeline tween (`y: '0%' -> '-100%'`) was animating a hidden element, causing the curtain to pop off and expose the footer directly without a smooth slide-up.
+      2. In `Footer.tsx`, `BlurText` was driven by an autonomous timer triggered by state (`trigger={isRevealed}`) rather than being scrubbed with the user's scrollbar.
+    - *Fix*:
+      1. In `use-desktop-timeline.ts`, updated `isPage4Active` to `progress >= 0.72 && progress <= 1.0` so Page 4 remains visible throughout its entire slide-up off-screen animation (`0.88 -> 1.00`), creating a physical theatre curtain reveal of the stationary footer underneath. Page 4's `pointerEvents` are gated to `progress >= 0.74 && progress < 0.88`.
+      2. In `use-desktop-timeline.ts`, set the Footer and `#page-footer-bg` to `visibility: 'visible'` at `0.84` (safely behind Page 4 which covers the screen at `z-40`), ensuring the footer is pre-rendered and ready when Page 4 starts lifting at `0.88`.
+      3. In `Footer.tsx`, replaced `BlurText` with individual `.footer-magnm-char` character spans and structured `.footer-tagline-lets` / `.footer-tagline-word` spans.
+16. **Optical Left-Alignment Between Display MAGNM Heading and Tagline**:
+    - *Problem*: In both the Footer and Hero, the massive display heading `MAGNM` (`text-[clamp(4.25rem,16vw,15.5rem)]`) appeared indented to the right relative to the tagline (`LET'S CREATE.` / `WE MAKE COOL SHIT FOR...`). Because large-scale font glyphs carry built-in font side-bearings (left glyph margins of ~14px at 248px font size), the visible vertical stem of `M` did not align flush with the vertical line of `L` in `LET'S`.
+    - *Fix*:
+      1. Added `-ml-[0.055em]` to `.footer-magnm-heading` in `Footer.tsx` and `heroMagnmRef` in `Hero.tsx`. This optically offsets the font's internal side-bearing in direct proportion to the font-size (~13.6px on desktop), bringing the visible outer stem of `M` flush with the left alignment axis of the tagline.
+      2. Enforced consistent `font-['Familjen_Grotesk',sans-serif]` across both the headline and tagline elements for unified character geometries.
 
----
+17. **Restoration of Nav Brand Wordmark to Footer Font Expansion & Exact Left Optical Alignment**:
+    - *Problem*: In an earlier attempt to add a blur effect to footer text, `.nav-brand-text` was placed inside `navLeaveElements` to fade out at `0.96`, and its `fontSize` expansion tween was replaced with an in-situ duplicated text block (`.footer-magnm-char`). This broke the seamless visual continuity from commit `13bca99`. Furthermore, due to a hardcoded `x: -85` in the expansion tween and font glyph internal margins (`Familjen Grotesk` carries ~0.055em left side bearing on capital `M`), the outer stem of `M` was indented by 19px to the right relative to `LET'S BUILD.` and `DISCUSS YOUR PROJECT`.
+    - *Fix*:
+      1. In `use-desktop-timeline.ts`, removed `.nav-brand-text` from `navLeaveElements` so only `.nav-logo-container` and `.nav-brand-divider` fade out with optical blur at `0.96`.
+      2. In `animation-helpers.ts`, updated `getNavToFooterFontTargets` to compute dynamic optical compensation `opticalCompensation = targetFontSize * 0.055`, producing `x = (untransformedFooterLeft - untransformedNavLeft) - opticalCompensation`. This aligns the visible outer ink of `M` flush with the left padding axis across any desktop resolution.
+      3. In `use-desktop-timeline.ts`, wired `x` and `y` to use dynamic functions `x: () => getNavToFooterFontTargets(...).x` and `y: () => getNavToFooterFontTargets(...).y`.
+      4. In `Footer.tsx` and `Hero.tsx`, added `-ml-[0.055em]` to the tagline and mobile heading containers, pulling `LET'S` and `MAGNM` into exact flush vertical alignment with `DISCUSS YOUR PROJECT`.
+      5. **Zero-Contamination Layering for 3D Helix & Page 4**: Fixed the premature appearance of the 3D helix on Page 4. Previously, `#page-footer` was set to `visibility: visible` at `0.84` (before Page 4 lifted at `0.88`), and lifted to `zIndex: 55` at `0.96` (while Page 4 was still ~25% on screen). Now:
+         - `#page-footer` is strictly gated to `progress >= 0.88` (so it remains `visibility: hidden` throughout Page 4).
+         - `#page-footer` permanently stays at `z-38` strictly underneath Page 4 (`z-40`). As Page 4 lifts like a physical curtain from `0.88 -> 1.00`, it covers `#page-footer` completely. The helix can NEVER render on top of Page 4.
+         - At `0.96` (when navbar items blur out), `refs.navbarHeader.current` drops its z-index from `50` to `37` (underneath `#page-footer` at `z-38`, but above `#page-footer-bg` at `z-36`). This places the 3D helix in front of the expanding `MAGNM` text without ever jumping above Page 4.
+      6. Preserved all user-approved footer refinements: tuned 3D helix scale (210) & rotation (`tilt: 42, sideTilt: -38`, `translate-x-24`), and the big light MAGNM logo in the bottom right corner.
+
+18. **Footer Action Button Interactivity & Stacking Context Fix**:
+    - *Problem*: The "DISCUSS YOUR PROJECT" button in the footer was not responding to mouse clicks or hovers. This was caused by two compounding issues:
+      1. In `Footer.tsx`, the outer foreground wrapper had `relative z-10 w-full h-full pointer-events-none`. Because this container created a stacking context at `z-10`, all of its children (including the button with `relative z-30 pointer-events-auto`) were capped at stacking level 10 relative to siblings. The sibling 3D XylophoneHelix WebGL canvas container (`absolute inset-0 z-20 w-full h-full pointer-events-auto`) covered the entire screen at level 20, intercepting all clicks and pointer events across the viewport.
+      2. In `use-desktop-timeline.ts`, `isFooterInteractive` was previously gated strictly to `progress >= 0.95`. If the user scrolled to 0.88 - 0.94, `refs.footerWrapper.current.style.pointerEvents` was set to `'none'`.
+    - *Fix*:
+      1. In `Footer.tsx`, removed `z-10` from the outer foreground wrapper so it does not establish an isolated stacking context. Set `<header className="relative z-10 ...">` at `z-10` so text remains behind the 3D helix canvas (`z-20`). Set the bottom button row to `pointer-events-none relative z-30` (above the `z-20` helix canvas) with `pointer-events-auto` on the button container.
+      2. This ensures that:
+         - The "DISCUSS YOUR PROJECT" button sits at `z-30` above the WebGL canvas and is immediately responsive to hover and click events.
+         - Any click in empty spaces passes through transparently to the 3D XylophoneHelix at `z-20`.
+         - The 3D helix continues to render in front of the header text and the expanded `.nav-brand-text`.
+      3. In `use-desktop-timeline.ts`, aligned `isFooterInteractive` with `progress >= 0.88`, ensuring the footer is interactive as soon as Page 4 begins lifting. Also added `pointerEvents: 'none'` to Page 4 and hidden visibility when Page 4 has lifted fully off screen.
+
+19. **Footer Bottom Right: Developer Credits & Studio Info with Nav Button Hover Effect**:
+    - *Design*: Replaced the bottom right MAGNM logo image with a structured typographic editorial block:
+      1. **Studio Section**:
+         - Header: `STUDIO` (`Martian Mono` uppercase tracking).
+         - `Based in Indore`: With interactive `LetterSwapPingPong` and hover sound.
+         - `hello@magnm.com`: Mailto link with `LetterSwapPingPong`, baseline underline (`border-b border-[#cccccc]/25 group-hover:border-white`), and hover sound.
+      2. **Developer Credits Section** (Exact Match to User Reference Image):
+         - Header: `DEVELOPED BY` (`Martian Mono` uppercase tracking).
+         - `Pranav Dubey`: Link with `LetterSwapPingPong`, baseline underline (`border-b border-[#cccccc]/25 group-hover:border-white`), and hover sound.
+         - `Adarsh Pathade`: Link with `LetterSwapPingPong`, baseline underline (`border-b border-[#cccccc]/25 group-hover:border-white`), and hover sound.
+      3. Supported `<a>` and `<button>` tags within `letter-swap-pingpong-anim.tsx` via `scope.current?.closest('button') || scope.current?.closest('a') || scope.current?.parentElement`.
+
+20. **Application of Page 3's Text Blur Reveal Effect to Footer Text**:
+    - *Analysis of Page 3*:
+      1. Component-level text blur: In `OurWork.tsx` line 161, dynamic description text uses `<BlurText animateBy="words" direction="none" randomize={true} delay={24} stepDuration={0.2} trigger={true} />` with `exit={{ filter: 'blur(12px)', opacity: 0 }}`. It animates keyframes from `blur(18px), opacity: 0` -> `blur(8px), opacity: 0.55` -> `blur(0px), opacity: 1` with a randomized shuffled stagger.
+      2. Scroll-driven timeline text blur: In `use-desktop-timeline.ts` line 679, `scrollTl.fromTo(refs.page3Container.current, { opacity: 0, filter: 'blur(16px)', y: 0 }, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.08, ease: 'power2.out' }, 0.36)`.
+
+21. **Footer Refinements: Underline Removal, Elimination of Position-Up Reveal, and True Partial Blur Restoration**:
+    - *Underline Removal*: Stripped all baseline borders (`border-b border-[#cccccc]/25 group-hover:border-white`) from `Based in Indore`, `hello@magnm.com`, `Pranav Dubey`, and `Adarsh Pathade`, replacing with clean `py-0.5` padding.
+    - *Elimination of Vertical Position-Up Shift*:
+      1. Removed all `y: 8 -> 0` and `y: [8, 2, 0]` translation arrays from the cycling words in `Footer.tsx`.
+      2. Removed the `.footer-reveal-text` GSAP tween in `use-desktop-timeline.ts` (which had applied `y: 8 -> 0`), keeping all footer typography 100% stationary.
+      3. Removed `y: 10 -> 0` from `.footer-magnm-mobile` in `use-mobile-timeline.ts`.
+    - *Genuine Partial Blur Text Effect Restoration*:
+      1. Diagnosed why the partial blur effect was previously obscured: (a) a blanket container-level GSAP tween (`filter: blur(16px)`) was smothering the granular letter-by-letter blur; (b) an autonomous timer in `Footer.tsx` was running immediately on mount before the user scrolled to Section 5; and (c) a custom whole-word `<motion.span>` had temporarily replaced `<BlurText>`.
+      2. Restored Page 3's genuine `<BlurText>` on both `LET'S` and `DYNAMIC_WORDS[wordIndex]` with `animateBy="letters"`, `direction="none"` (`y: 0`), `randomize={true}`, `delay={24}`, and `stepDuration={0.2}`.
+      3. Gated the entrance with `triggerProp` (`hasRevealed`) at `progress >= 0.88`, ensuring characters transition individually through `{ filter: 'blur(18px)', opacity: 0 }` &rarr; `{ filter: 'blur(8px)', opacity: 0.55 }` (the signature partial blur) &rarr; `{ filter: 'blur(0px)', opacity: 1 }` in randomized order right as the footer is revealed.
+
+22. **Mobile Nav Cleanup, Contact Button Repositioning & Bottom-Right Credits Alignment**:
+    - *Mobile Navbar Action Removal*: In `use-mobile-timeline.ts`, added `refs.navActions.current` to `mobileFooterTl` (scrubbing out `opacity: 0, filter: blur(16px), y: -14` starting at progress 0.1) and `updateMobileNav` (`footerTop <= window.innerHeight * 0.75`), removing the floating "START A PROJECT" button in mobile view so it no longer overlaps the footer MAGNM heading.
+    - *Button Repositioning & Renaming*: Moved `KineticShiftButton` directly under `LET'S CREATE.` in the header with `text="CONTACT"` (`z-30 pointer-events-auto`), retaining full kinetic wave hover, chime sound, and instant modal trigger.
+    - *Bottom-Right Alignment*: Converted the footer bottom row to `flex justify-end items-end` with `items-end text-right`, placing `STUDIO` and `DEVELOPED BY` cleanly on the bottom-right corner across both mobile and desktop viewports.
+
+23. **Mobile View 3D Helix Adjustment**:
+    - *Vertical Shift*: Lifted the WebGL canvas container by `-translate-y-12 sm:-translate-y-8 md:translate-y-0`, moving the helix upward on mobile screens so its lower tip no longer crowds the bottom area.
+    - *Camera Tilt*: In `Footer.tsx`, dynamically set `cameraSettings` to `{ tilt: 44, sideTilt: -24 }` on mobile (< 640px) vs `{ tilt: 42, sideTilt: -38 }` on desktop, tilting the helix ~14° more to the right and centering its diagonal flow in the mobile viewport.
+
+24. **Mobile Hero Layout: Action Buttons Removal & Bottom-Right Metallic Logo Emblem**:
+    - *Action Buttons*: Hidden on mobile viewports (`hidden md:flex`) so they no longer crowd the lower mobile screen.
+    - *Light Logo Emblem*: Placed `/magnm light.png` on the bottom-right corner in mobile view (`flex md:hidden ml-auto`), scaled cleanly to `h-9 sm:h-10` (~36-40px height) with a smooth entrance blur reveal (`motion.div`) and automatic participation in `secondaryElements` scroll exit into Section 2.
+
+25. **Mobile-Only 3D Helix Scale-Up & Refined Positioning**:
+    - *Scale-Up*: Increased mobile helix scale from `130` to `185` (a ~42% boost) in `Footer.tsx`, giving each metallic bar greater visual weight, clarity, and bold presence on mobile screens without affecting desktop (`210`).
+    - *Natural Framing & Placement*: Adjusted the mobile container translation to `-translate-y-2 translate-x-2` with `cameraSettings` at `{ tilt: 42, sideTilt: -30 }`. This eliminates top clipping, centers the helix vertically in the mobile viewport, and flows diagonally between the top-left header (`MAGNM`, `LET'S CREATE.`, `CONTACT`) and the bottom-right credits.
+
+26. **Mobile Hero Bottom Row: Contact Action & Scaled-Up Metallic Emblem**:
+    - *Contact Button (Bottom-Left)*: Added a mobile-only `KineticShiftButton` with `text="CONTACT"` on the bottom-left (`flex md:hidden`), providing a single focused CTA matching the footer contact interaction with Web Audio hover feedback and modal opening.
+    - *Scaled-Up Metallic Emblem (Bottom-Right)*: Increased the mobile light MAGNM emblem size to `h-[52px] sm:h-[58px]` with `leave-blur-item` for smooth optical blur fade-out on scroll into Section 2, establishing a balanced baseline across the bottom of the mobile Hero stage.
+
+27. **Modal Cross Close Button Vertical Centering**:
+    - In both [ProjectModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ProjectModal.tsx) and [AboutModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutModal.tsx), increased the top spacing of the circular cross close button container from `mt-8 sm:mt-10` / `mt-10` to `mt-14 sm:mt-16`.
+    - This shifts the cross button downward so it sits directly in the vertical center of the blank area between the email footer text (`Prefer email? hello@magnm.com`) and the modal card's bottom border.
+
+28. **Comprehensive Claude SEO Suite Installation & Implementation**:
+    - *Skill Integration*: Cloned `claude-seo` (v2.4.1) and installed all 26 specialized SEO skills into `.agents/skills/` (and globally to `$env:USERPROFILE\.claude\skills`) for direct Antigravity access.
+    - *Metadata & Social Graph*: In [layout.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/layout.tsx), implemented production metadata including title templates, 174-character keyword-rich description, Open Graph images/tags, Twitter Card (`summary_large_image`), canonical URLs, viewport (`#0c0c0c` dark theme), and robot crawler instructions.
+    - *Schema.org JSON-LD*: Embedded server-rendered connected `@graph` (`Organization`, `WebSite`, `WebPage`, `ImageObject`, `PostalAddress`, `Person`) attributing founders Pranav Dubey and Adarsh Pathade and core studio capabilities.
+    - *Sitemap & Robots*: Created dynamic [sitemap.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/sitemap.ts) (`/sitemap.xml`) and [robots.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/robots.ts) (`/robots.txt`) with modern AI crawler governance (authorizing OAI-SearchBot, Claude-SearchBot, PerplexityBot).
+    - *GEO & AI Citability*: Added [llms.txt](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/public/llms.txt) for semantic grounding in LLM engines.
+    - *Image SEO*: Upgraded all image `alt` attributes in [Navbar.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Navbar.tsx) and [Hero.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Hero.tsx) to descriptive, keyword-rich labels.
+    - *Verification*: Zero build or TypeScript errors (`npx tsc --noEmit` passed code 0); zero visual or motion regressions.
+
+29. **Mobile View 3D Helix Drastic Rotation Speed Reduction**:
+    - In [Footer.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Footer.tsx), introduced dynamic `helixSpeed` state.
+    - On mobile viewports (`w < 640`), drastically reduced the continuous auto-rotation speed from `45` down to `4` (an ~91% decrease), while preserving desktop speed at `45` and tablet at `25`.
+    - This keeps the 3D helix in its elegant diagonal pose, providing a serene, subtle kinetic drift that prevents it from spinning rapidly away from its iconic composition.
 
 ## 8. Current State & Completed Roadmap
 
@@ -297,7 +417,29 @@ export const TIMINGS = {
 - [x] Implemented custom `AnimatePresence` dropdowns to replace native HTML `<select>` elements, maintaining the premium monochromatic aesthetic across all devices.
 - [x] Reused the `LetterSwapPingPong` component inside modal buttons for consistent kinetic hover effects.
 - [x] Removed unhooked/redundant "BOOK A 30-MINUTE CALL" and Budget inputs to adhere to the extreme minimalism requested by the user.
+- [x] Added circular cross close buttons centered in the bottom blank section with `Escape` keyboard dismissal and `rotate-90` hover animations.
+- [x] Vertically centered the cross button within the bottom blank space with `mt-14 sm:mt-16`.
 
-### Phase C: Final Performance & Visual Polish
-1. Verify all breakpoints (mobile 375px/390px/430px, tablet 768px/1024px, desktop 1440px/1920px).
-2. Ensure Three.js memory allocations and WebGL contexts remain clean and disposed on unmount.
+### Phase C: Mobile Responsive Architecture & Polish (COMPLETED)
+- [x] Hero mobile layout: added dedicated bottom-left `CONTACT` button with kinetic wave hover and modal opening.
+- [x] Hero mobile metallic emblem: scaled up `/magnm light.png` to `h-[52px] sm:h-[58px]` with `leave-blur-item` for optical blur scroll exit.
+- [x] Navbar mobile behavior: hides brand divider, wordmark, and action buttons, leaving only the enlarged logo cleanly displayed throughout Sections 2–4.
+- [x] Mobile navbar action cleanup: fades out floating "START A PROJECT" button upon reaching the footer to prevent overlapping MAGNM.
+- [x] Footer mobile layout: repositioned `CONTACT` button under `LET'S CREATE.` and anchored studio/credits to the bottom right.
+- [x] Footer 3D helix mobile tuning: scaled to `185` with camera `{ tilt: 42, sideTilt: -30 }` and `-translate-y-2 translate-x-2`.
+- [x] Footer 3D helix mobile rotation: drastically reduced continuous rotation speed from `45` down to `4` (a ~91% decrease) so the helix retains its iconic diagonal composition.
+
+### Phase D: Enterprise SEO, Schema & GEO Infrastructure (COMPLETED)
+- [x] Installed complete Claude SEO skill suite (26 specialized skills in `.agents/skills/` and global environment).
+- [x] Configured rich technical metadata in `layout.tsx`: title templates, 174-char description, keywords, authors, canonical URL, and `#0c0c0c` dark viewport tokens.
+- [x] Open Graph & Twitter Cards: added `summary_large_image` cards, preview image (`/magnm light.png`), and social graph tags.
+- [x] Schema.org JSON-LD: embedded connected `@graph` (`Organization`, `WebSite`, `WebPage`, `PostalAddress`, `Person`) in server-rendered SSR HTML.
+- [x] XML Sitemap: implemented dynamic `src/app/sitemap.ts` (`/sitemap.xml`) with weekly change frequency and priority 1.0.
+- [x] Robots Governance: implemented dynamic `src/app/robots.ts` (`/robots.txt`) authorizing AI search engines (`OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`) and restricting scraper bots.
+- [x] Generative Engine Optimization: created standardized `public/llms.txt` for AI search grounding.
+- [x] Image SEO: upgraded all brand logo and emblem `alt` attributes to descriptive, keyword-rich labels.
+
+### Phase E: Verification & Build Quality
+- [x] Zero TypeScript compilation errors (`npx tsc --noEmit` exited code 0).
+- [x] Verified endpoints: `/robots.txt` (200), `/sitemap.xml` (200), `/llms.txt` (200), and SSR HTML `<head>`/`<body>`.
+- [x] Preserved 100% of 3D WebGL scenes, GSAP ScrollTrigger timelines, and monochromatic design fidelity.

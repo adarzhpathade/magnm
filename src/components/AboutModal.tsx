@@ -13,12 +13,19 @@ export interface AboutModalProps {
 export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
   const [modalTheme, setModalTheme] = useState<'light' | 'dark'>('dark');
 
-  // Lock body scroll when modal is open
+  // Lock body scroll and listen for Escape key when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       // Play a subtle sound when opening
       chimeSynth.playButtonHover(0.2, 3);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
       
       // Determine theme based on the Navbar's logo opacity
       const navLogoDark = document.querySelector('.nav-logo-dark');
@@ -28,13 +35,18 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
       } else {
         setModalTheme('dark');
       }
+
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
     } else {
       document.body.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   const [mounted, setMounted] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -104,6 +116,34 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 >
                   hello@magnm.com
                 </a>
+
+                {/* Close Cross Button centered at the bottom */}
+                <div className="w-full mt-14 sm:mt-16 flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="group/close relative flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 group-data-[theme=dark]/modal:border-white/15 hover:border-black group-data-[theme=dark]/modal:hover:border-white/40 bg-transparent hover:bg-gray-100 group-data-[theme=dark]/modal:hover:bg-white/10 text-gray-400 group-data-[theme=dark]/modal:text-[#888888] hover:text-[#171717] group-data-[theme=dark]/modal:hover:text-white transition-all duration-200 focus:outline-none cursor-pointer"
+                    aria-label="Close modal"
+                    onMouseEnter={() => chimeSynth.playButtonHover(0.15, 2)}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="transition-transform duration-300 ease-out group-hover/close:rotate-90"
+                    >
+                      <path
+                        d="M1.5 1.5L10.5 10.5M1.5 10.5L10.5 1.5"
+                        stroke="currentColor"
+                        strokeWidth="1.25"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

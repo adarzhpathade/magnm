@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const familjenGrotesk = localFont({
   src: "../fonts/FamiljenGroteskVariable_Regular-s.p.04jxz-d23sc_e.woff2",
@@ -30,9 +30,157 @@ const martianMono = localFont({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#0c0c0c",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "MAGNM — Creative Studio",
-  description: "Turning vision into visual language.",
+  metadataBase: new URL("https://magnm.com"),
+  title: {
+    default: "MAGNM — Creative Studio | Digital Experiences & 3D Engineering",
+    template: "%s | MAGNM Creative Studio",
+  },
+  description:
+    "MAGNM is an experimental creative studio based in Indore. We engineer motion-driven websites, AI products, branding systems, and 3D digital flagships built for clarity, scale, and impact.",
+  applicationName: "MAGNM Creative Studio",
+  keywords: [
+    "MAGNM",
+    "Creative Studio",
+    "Digital Flagship",
+    "Motion-Driven Design",
+    "3D Web Experiences",
+    "WebGL",
+    "Three.js",
+    "Brand Identity",
+    "AI Products",
+    "Creative Engineering",
+    "Indore Design Studio",
+    "Next.js Development",
+  ],
+  authors: [
+    { name: "Pranav Dubey" },
+    { name: "Adarsh Pathade" },
+  ],
+  creator: "MAGNM",
+  publisher: "MAGNM",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://magnm.com",
+    siteName: "MAGNM Creative Studio",
+    title: "MAGNM — Creative Studio | Digital Experiences & 3D Engineering",
+    description:
+      "Turning bold vision into visual language. Motion-driven websites, AI products, and digital flagships built for clarity, scale, and impact.",
+    images: [
+      {
+        url: "/magnm light.png",
+        width: 1536,
+        height: 1024,
+        alt: "MAGNM Creative Studio Metallic Emblem",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MAGNM — Creative Studio | Digital Experiences & 3D Engineering",
+    description:
+      "Turning bold vision into visual language. Motion-driven websites, AI products, and 3D digital flagships.",
+    images: ["/magnm light.png"],
+    creator: "@magnm_studio",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/magnm light.png",
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://magnm.com/#organization",
+      "name": "MAGNM",
+      "alternateName": "MAGNM Creative Studio",
+      "url": "https://magnm.com",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://magnm.com/#logo",
+        "url": "https://magnm.com/magnm%20light.png",
+        "caption": "MAGNM Creative Studio Logo"
+      },
+      "image": "https://magnm.com/magnm%20light.png",
+      "email": "hello@magnm.com",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Indore",
+        "addressRegion": "Madhya Pradesh",
+        "addressCountry": "IN"
+      },
+      "founders": [
+        {
+          "@type": "Person",
+          "name": "Pranav Dubey"
+        },
+        {
+          "@type": "Person",
+          "name": "Adarsh Pathade"
+        }
+      ],
+      "knowsAbout": [
+        "Motion-Driven Web Experiences",
+        "3D WebGL Engineering",
+        "Brand Identity Systems",
+        "AI Product Design",
+        "Creative Web Development"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://magnm.com/#website",
+      "url": "https://magnm.com",
+      "name": "MAGNM",
+      "publisher": {
+        "@id": "https://magnm.com/#organization"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://magnm.com/#webpage",
+      "url": "https://magnm.com",
+      "name": "MAGNM — Creative Studio",
+      "isPartOf": {
+        "@id": "https://magnm.com/#website"
+      },
+      "about": {
+        "@id": "https://magnm.com/#organization"
+      },
+      "description": "Translating bold vision into lasting impact. Websites, AI products, brands, and systems built for clarity, scale and impact."
+    }
+  ]
 };
 
 export default function RootLayout({
@@ -55,6 +203,10 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col bg-[#0c0c0c] text-[#cccccc] font-sans selection:bg-[#4d4d4d] selection:text-white">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
       </body>
     </html>

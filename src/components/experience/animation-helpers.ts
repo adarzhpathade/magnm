@@ -163,6 +163,7 @@ export function getNavFontSizePx(navEl: HTMLElement | null): number {
 /**
  * Measure targets for navbar MAGNM fontSize growth + position shift to footer.
  * Returns { fontSize (px), x, y } — NO scale transform, only real fontSize change.
+ * Optically aligns the visible outer stem of 'M' flush with the container padding.
  */
 export function getNavToFooterFontTargets(
   navEl: HTMLElement | null,
@@ -170,16 +171,34 @@ export function getNavToFooterFontTargets(
 ): { fontSize: number; x: number; y: number } {
   const targetFontSize = getHeroFontSizePx();
 
-  if (!navEl) return { fontSize: targetFontSize, x: 0, y: 0 };
+  // Optical compensation for Familjen Grotesk's internal left glyph margin on 'M'
+  // (~0.055em left side bearing)
+  const opticalCompensation = targetFontSize * 0.055;
+
+  // The expanded font with lineHeight 0.8 inside flex items-center expands vertically
+  // navTarget is centered inside a container (~44px tall). As font grows to targetFontSize,
+  // half of the excess height pushes upward. We shift downward by that excess to align the top edge.
+  const expandedHeight = targetFontSize * 0.8;
+
+  if (!navEl) {
+    const fallbackFlexCenterOffsetY = (expandedHeight - 44) / 2;
+    return { fontSize: targetFontSize, x: -104, y: fallbackFlexCenterOffsetY };
+  }
 
   const navTarget = navEl.querySelector('.nav-brand-text') as HTMLElement | null;
-  if (!navTarget) return { fontSize: targetFontSize, x: 0, y: 0 };
+  if (!navTarget) {
+    const fallbackFlexCenterOffsetY = (expandedHeight - 44) / 2;
+    return { fontSize: targetFontSize, x: -104, y: fallbackFlexCenterOffsetY };
+  }
 
   const navRect = navTarget.getBoundingClientRect();
   const currentX = (gsap.getProperty(navTarget, 'x') as number) || 0;
   const currentY = (gsap.getProperty(navTarget, 'y') as number) || 0;
   const untransformedNavLeft = navRect.left - currentX;
   const untransformedNavTop = navRect.top - currentY;
+
+  const navContainerHeight = navRect.height > 0 ? navRect.height : 44;
+  const flexCenterOffsetY = (expandedHeight - navContainerHeight) / 2;
 
   // Footer slot position — the magnmRef div inside Footer
   if (footerEl) {
@@ -191,8 +210,8 @@ export function getNavToFooterFontTargets(
 
     return {
       fontSize: targetFontSize,
-      x: untransformedFooterLeft - untransformedNavLeft,
-      y: untransformedFooterTop - untransformedNavTop,
+      x: (untransformedFooterLeft - untransformedNavLeft) - opticalCompensation,
+      y: (untransformedFooterTop - untransformedNavTop) + flexCenterOffsetY,
     };
   }
 
@@ -203,10 +222,13 @@ export function getNavToFooterFontTargets(
   else if (width < 768) padLeft = 24;
   else if (width < 1024) padLeft = 32;
 
+  let padTop = 48; // lg:pt-12
+  if (width < 640) padTop = 32;
+  else if (width < 768) padTop = 40;
+
   return {
     fontSize: targetFontSize,
-    x: padLeft - untransformedNavLeft,
-    // Move from navbar top (~48px) down to footer header area (viewport height - some offset)
-    y: window.innerHeight * 0.08 - untransformedNavTop,
+    x: padLeft - opticalCompensation - untransformedNavLeft,
+    y: (padTop - untransformedNavTop) + flexCenterOffsetY,
   };
 }

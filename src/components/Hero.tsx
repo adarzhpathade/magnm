@@ -30,6 +30,7 @@ export interface HeroProps {
   showWheel?: boolean;
   triggerReveal?: boolean;
   onStartProject?: () => void;
+  onAboutClick?: () => void;
 }
 
 export default function Hero({
@@ -41,6 +42,7 @@ export default function Hero({
   showWheel = true,
   triggerReveal = true,
   onStartProject,
+  onAboutClick,
 }: HeroProps = {}) {
   const [wordIndex, setWordIndex] = React.useState(0);
   const [wheelScale, setWheelScale] = React.useState(90);
@@ -82,7 +84,7 @@ export default function Hero({
           <div
             ref={heroMagnmRef}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="pointer-events-auto relative z-10 flex items-center origin-top-left cursor-pointer select-none"
+            className="pointer-events-auto relative z-10 flex items-center origin-top-left cursor-pointer select-none -ml-[0.055em]"
             role="button"
             tabIndex={0}
             aria-label="MAGNM Home"
@@ -113,7 +115,7 @@ export default function Hero({
             >
               <Image
                 src="/magnm light.png"
-                alt="MAGNM Emblem"
+                alt="MAGNM Creative Studio Desktop Light Emblem"
                 width={1536}
                 height={1024}
                 className="h-8 sm:h-9 md:h-10 w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
@@ -178,7 +180,7 @@ export default function Hero({
           className="pointer-events-auto relative z-10 mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-0.5 sm:space-y-1"
         >
           {/* Line 1: Static permanent statement */}
-          <div className="min-h-[1.15em] flex justify-start">
+          <div className="min-h-[1.15em] flex justify-start -ml-[0.055em]">
             <BlurText
               text={TAGLINE_LINE_1}
               animateBy="words"
@@ -189,12 +191,12 @@ export default function Hero({
               stepDuration={0.4}
               trigger={triggerReveal}
               spanClassName="leave-blur-item"
-              className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
+              className="font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
             />
           </div>
 
           {/* Line 2: Static prefix + dynamic rotating last word */}
-          <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
+          <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] -ml-[0.055em]">
             <BlurText
               text={TAGLINE_LINE_2_PREFIX}
               animateBy="words"
@@ -205,7 +207,7 @@ export default function Hero({
               stepDuration={0.45}
               trigger={triggerReveal}
               spanClassName="leave-blur-item"
-              className="text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
+              className="font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] justify-start text-left"
             />
             <span className="inline-block relative ml-[0.28em] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
               <AnimatePresence mode="wait">
@@ -246,19 +248,54 @@ export default function Hero({
         </div>
       </header>
 
-      {/* Bottom Row: Action Buttons grounded at bottom-left */}
+      {/* Bottom Row: Desktop Action Buttons (Left) & Mobile Contact (Left) + Light MAGNM Logo (Right) */}
       <div
         ref={heroBottomRef}
-        className="pointer-events-auto relative z-50 w-full flex justify-start items-end pb-0.5 sm:pb-1"
+        className="pointer-events-auto relative z-50 w-full flex justify-between items-end pb-0.5 sm:pb-1"
       >
-        {/* Action Buttons: Single focused CTA */}
-        <div className="pointer-events-auto relative z-50 flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
+        {/* Desktop-only Action Buttons: Discuss Project & About Us */}
+        <div className="pointer-events-auto relative z-50 hidden md:flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
           <KineticShiftButton
             text="DISCUSS YOUR PROJECT"
             ariaLabel="Discuss your project"
             soundIndex={0}
             onClick={onStartProject}
           />
+          <KineticShiftButton
+            text="ABOUT US"
+            ariaLabel="About us"
+            soundIndex={1}
+            onClick={onAboutClick}
+          />
+        </div>
+
+        {/* Mobile-only Action Button on the bottom left: Contact */}
+        <div className="pointer-events-auto relative z-50 flex md:hidden items-center pb-0.5">
+          <KineticShiftButton
+            text="CONTACT"
+            ariaLabel="Contact MAGNM"
+            soundIndex={0}
+            onClick={onStartProject}
+          />
+        </div>
+
+        {/* Mobile-only: Scaled-up Light MAGNM Logo on the bottom right */}
+        <div className="pointer-events-auto relative z-50 flex md:hidden items-center justify-end pb-1">
+          <motion.div
+            initial={{ filter: 'blur(16px)', opacity: 0 }}
+            animate={triggerReveal ? { filter: 'blur(0px)', opacity: 1 } : { filter: 'blur(16px)', opacity: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="leave-blur-item relative shrink-0 flex items-center justify-end will-change-[filter,opacity]"
+          >
+            <Image
+              src="/magnm light.png"
+              alt="MAGNM Creative Studio Mobile Light Emblem"
+              width={1536}
+              height={1024}
+              className="h-[52px] sm:h-[58px] w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
+              priority
+            />
+          </motion.div>
         </div>
       </div>
 

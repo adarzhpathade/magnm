@@ -89,7 +89,7 @@ const LetterSwapPingPong = ({
 
   // Attach hover events to the parent button/container so padding triggers it
   useEffect(() => {
-    const parent = scope.current?.closest("button") || scope.current?.parentElement
+    const parent = scope.current?.closest("button") || scope.current?.closest("a") || scope.current?.parentElement
     if (!parent) return
 
     parent.addEventListener("mouseenter", hoverStart)

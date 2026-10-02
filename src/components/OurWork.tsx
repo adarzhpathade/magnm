@@ -135,7 +135,7 @@ export const OurWork = forwardRef<OurWorkHandle, OurWorkProps>(function OurWork(
   return (
     <div
       ref={containerRef}
-      className={`relative z-35 w-full h-full lg:min-h-screen flex items-center justify-center select-none pointer-events-auto px-5 sm:px-10 md:px-14 lg:px-16 py-8 sm:py-12 ${className}`}
+      className={`relative z-35 w-full h-full lg:min-h-screen flex items-center justify-center select-none px-5 sm:px-10 md:px-14 lg:px-16 py-8 sm:py-12 ${className}`}
     >
       {/* ===================== DESKTOP EXPERIENCE (OptionWheel) ===================== */}
       <div className="hidden md:flex w-full max-w-6xl mx-auto flex-row items-center justify-center gap-8 lg:gap-10">

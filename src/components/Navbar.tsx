@@ -43,7 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
           <div className="nav-logo-container relative shrink-0 flex items-center justify-center h-[34px] sm:h-[35px] md:h-[36px] aspect-[1.5/1] opacity-0">
             <Image
               src="/magnm light.png"
-              alt="MAGNM Logo"
+              alt="MAGNM Creative Studio Light Metallic Emblem"
               width={1536}
               height={1024}
               className="nav-logo-light absolute inset-0 w-full h-full object-contain select-none pointer-events-none brightness-105 contrast-105 transition-opacity duration-300 group-hover:brightness-125"
@@ -51,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
             />
             <Image
               src="/Magnm Dark Logo.png"
-              alt="MAGNM Logo Dark"
+              alt="MAGNM Creative Studio Dark Metallic Emblem"
               width={1536}
               height={1024}
               className="nav-logo-dark absolute inset-0 w-full h-full object-contain select-none pointer-events-none opacity-0 brightness-105 contrast-105 transition-opacity duration-300 group-hover:brightness-90"

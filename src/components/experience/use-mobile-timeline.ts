@@ -27,6 +27,7 @@ export interface MobileTimelineRefs {
   footerWrapper?: RefObject<HTMLDivElement | null>;
   footerMagnm?: RefObject<HTMLSpanElement | null>;
   navbarHeader?: RefObject<HTMLElement | null>;
+  onFooterRevealChange?: (revealed: boolean) => void;
 }
 
 export function useMobileTimeline(
@@ -120,6 +121,7 @@ export function useMobileTimeline(
       gsap.set(refs.footerMagnm.current, { clearProps: 'all' });
       refs.footerMagnm.current.style.opacity = '1';
     }
+    gsap.set('.footer-magnm-mobile', { opacity: 0, filter: 'blur(12px)', y: 0 });
 
     // Dedicated Mobile ScrollTrigger timeline for Hero -> About Wheel Transition
     const mobileCameraObj = {
@@ -355,6 +357,7 @@ export function useMobileTimeline(
         const p3Top = p3El.getBoundingClientRect().top;
         const footerTop = footerEl ? footerEl.getBoundingClientRect().top : Infinity;
         const isLightBg = p3Top <= 60 && footerTop > window.innerHeight * 0.5;
+        const isAtFooter = footerTop <= window.innerHeight * 0.75;
         
         const brandText = refs.navBrand.current.querySelector('.nav-brand-text') as HTMLElement | null;
         const logoLight = refs.navBrand.current.querySelector('.nav-logo-light') as HTMLElement | null;
@@ -369,15 +372,20 @@ export function useMobileTimeline(
           logoDark.style.opacity = isLightBg ? '1' : '0';
         }
         if (refs.navActions.current) {
-          const actionBtn = refs.navActions.current.querySelector('.nav-action-btn') as HTMLElement | null;
-          if (actionBtn) {
-            actionBtn.style.backgroundColor = isLightBg ? '#171717' : '#ffffff';
-            actionBtn.style.color = isLightBg ? '#ffffff' : '#171717';
-          }
-          const secondaryBtn = refs.navActions.current.querySelector('.nav-secondary-btn') as HTMLElement | null;
-          if (secondaryBtn) {
-            secondaryBtn.style.borderColor = isLightBg ? 'rgba(23, 23, 23, 0.25)' : 'rgba(255, 255, 255, 0.2)';
-            secondaryBtn.style.color = isLightBg ? '#171717' : '#cccccc';
+          if (isAtFooter) {
+            refs.navActions.current.style.opacity = '0';
+            refs.navActions.current.style.pointerEvents = 'none';
+          } else {
+            const actionBtn = refs.navActions.current.querySelector('.nav-action-btn') as HTMLElement | null;
+            if (actionBtn) {
+              actionBtn.style.backgroundColor = isLightBg ? '#171717' : '#ffffff';
+              actionBtn.style.color = isLightBg ? '#ffffff' : '#171717';
+            }
+            const secondaryBtn = refs.navActions.current.querySelector('.nav-secondary-btn') as HTMLElement | null;
+            if (secondaryBtn) {
+              secondaryBtn.style.borderColor = isLightBg ? 'rgba(23, 23, 23, 0.25)' : 'rgba(255, 255, 255, 0.2)';
+              secondaryBtn.style.color = isLightBg ? '#171717' : '#cccccc';
+            }
           }
         }
       }
@@ -394,6 +402,14 @@ export function useMobileTimeline(
           start: 'top 65%',
           end: 'top 10%',
           scrub: 0.3,
+          onUpdate: (self) => {
+            if (refs.onFooterRevealChange) {
+              refs.onFooterRevealChange(self.progress >= 0.85);
+            }
+            if (refs.navActions?.current) {
+              refs.navActions.current.style.pointerEvents = self.progress >= 0.15 ? 'none' : 'auto';
+            }
+          },
         },
       });
 
@@ -410,17 +426,23 @@ export function useMobileTimeline(
         );
       }
 
-      // 2. Mobile navbar logo leaves with partial optical blur (delayed so it doesn't leave prematurely)
+      // 2. Mobile navbar logo AND action buttons ("START A PROJECT") leave with optical blur
+      const mobileNavLeave: (string | HTMLElement)[] = ['.nav-logo-container'];
+      if (refs.navActions?.current) {
+        mobileNavLeave.push(refs.navActions.current);
+      } else {
+        mobileNavLeave.push('.nav-action-btn', '.nav-secondary-btn');
+      }
       mobileFooterTl.to(
-        '.nav-logo-container',
+        mobileNavLeave,
         {
           opacity: 0,
           filter: 'blur(16px)',
           y: -14,
-          duration: 0.5,
+          duration: 0.4,
           ease: 'power1.out',
         },
-        0.3
+        0.1
       );
 
       // 3. Footer MAGNM reveals smoothly behind the mobile 3D helix
@@ -429,7 +451,7 @@ export function useMobileTimeline(
         {
           opacity: 0,
           filter: 'blur(12px)',
-          y: 10,
+          y: 0,
         },
         {
           opacity: 1,

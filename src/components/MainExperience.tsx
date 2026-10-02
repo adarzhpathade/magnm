@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -33,9 +33,19 @@ export default function MainExperience() {
   const [isLoaded, setIsLoaded] = useState(true);
   const [loadProgress, setLoadProgress] = useState(100);
   const [triggerHeroReveal, setTriggerHeroReveal] = useState(true);
+  const [triggerFooterReveal, setTriggerFooterReveal] = useState(false);
+  const footerRevealedRef = useRef(false);
+
+  const handleFooterRevealChange = useCallback((revealed: boolean) => {
+    if (footerRevealedRef.current !== revealed) {
+      footerRevealedRef.current = revealed;
+      setTriggerFooterReveal(revealed);
+    }
+  }, []);
+
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
-  const [modalSource, setModalSource] = useState<'navbar' | 'hero'>('navbar');
+  const [modalSource, setModalSource] = useState<'navbar' | 'hero' | 'footer'>('navbar');
   const counterWrapperRef = useRef<HTMLDivElement>(null);
 
   // Pinned Stage & Layer Refs
@@ -119,6 +129,7 @@ export default function MainExperience() {
           footerWrapper: footerWrapperRef,
           footerMagnm: footerMagnmRef,
           navbarHeader: navbarHeaderRef,
+          onFooterRevealChange: handleFooterRevealChange,
         },
         mm
       );
@@ -146,6 +157,7 @@ export default function MainExperience() {
           footerWrapper: footerWrapperRef,
           footerMagnm: footerMagnmRef,
           navbarHeader: navbarHeaderRef,
+          onFooterRevealChange: handleFooterRevealChange,
         },
         mm
       );
@@ -158,15 +170,6 @@ export default function MainExperience() {
   return (
     <SmoothScroll>
       <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-clip lg:overflow-x-clip">
-        {/* Sticky Fixed Navbar (z-50) */}
-        <Navbar
-          headerRef={navbarHeaderRef}
-          navBrandRef={navBrandRef}
-          navActionsRef={navActionsRef}
-          onStartProject={() => { setModalSource('navbar'); setIsProjectModalOpen(true); }}
-          onAboutClick={() => setIsAboutModalOpen(true)}
-        />
-        
         {/* Global Project Modal */}
         <ProjectModal isOpen={isProjectModalOpen} source={modalSource} onClose={() => setIsProjectModalOpen(false)} />
 
@@ -203,6 +206,15 @@ export default function MainExperience() {
           ref={pinnedStageRef}
           className="relative w-full lg:h-screen lg:overflow-hidden bg-[#000000] shadow-[0_25px_80px_rgba(0,0,0,0.6)]"
         >
+          {/* Sticky Fixed Navbar (z-50) */}
+          <Navbar
+            headerRef={navbarHeaderRef}
+            navBrandRef={navBrandRef}
+            navActionsRef={navActionsRef}
+            onStartProject={() => { setModalSource('navbar'); setIsProjectModalOpen(true); }}
+            onAboutClick={() => setIsAboutModalOpen(true)}
+          />
+
           {/* Hero & About Combined Stage (Sticky on Mobile so Section 3 slides directly on to it) */}
           <div
             ref={heroAboutStageRef}
@@ -211,7 +223,7 @@ export default function MainExperience() {
             {/* Section 1: Hero */}
             <div
               ref={heroContainerRef}
-              className="absolute inset-0 z-30 w-full h-full pointer-events-none flex flex-col justify-between"
+              className="absolute inset-0 z-10 w-full h-full pointer-events-none flex flex-col justify-between"
             >
               <Hero
                 showWheel={false}
@@ -222,6 +234,7 @@ export default function MainExperience() {
                 heroEmblemRef={heroEmblemRef}
                 heroBottomRef={heroBottomRef}
                 onStartProject={() => { setModalSource('hero'); setIsProjectModalOpen(true); }}
+                onAboutClick={() => setIsAboutModalOpen(true)}
               />
             </div>
 
@@ -286,7 +299,7 @@ export default function MainExperience() {
           <div
             id="page-3"
             ref={page3WrapperRef}
-            className="sticky top-0 lg:absolute lg:inset-0 z-35 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none overflow-hidden bg-[#cccccc] text-[#171717] opacity-100 lg:opacity-0 will-change-transform flex items-center justify-center rounded-none shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-none"
+            className="sticky top-0 lg:absolute lg:inset-0 z-35 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none overflow-hidden bg-[#cccccc] text-[#171717] opacity-100 lg:opacity-0 will-change-transform flex items-center justify-center rounded-none shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-none lg:invisible"
           >
             <OurWork ref={ourWorkHandleRef} containerRef={page3ContainerRef} />
           </div>
@@ -302,28 +315,29 @@ export default function MainExperience() {
           <div
             id="page-4"
             ref={page4ContainerRef}
-            className="sticky top-0 lg:absolute lg:inset-0 z-40 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-hidden shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex items-center justify-center will-change-transform"
+            className="sticky top-0 lg:absolute lg:inset-0 z-40 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-hidden shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex items-center justify-center will-change-transform lg:invisible"
           >
             <Projects ref={projectsHandleRef} />
           </div>
 
-          {/* Section 5a: Footer Background — sits at z-38 on desktop, directly UNDERNEATH Page 4 (z-40) */}
+          {/* Section 5a: Footer Background — sits at z-36 on desktop, directly UNDERNEATH Page 4 (z-40) */}
           <div
             id="page-footer-bg"
-            className="sticky top-0 lg:absolute lg:inset-0 z-38 w-full h-[100svh] lg:h-full pointer-events-none bg-[#000000] lg:invisible"
+            className="sticky top-0 lg:absolute lg:inset-0 z-36 w-full h-[100svh] lg:h-full pointer-events-none bg-[#000000] lg:invisible"
             aria-hidden="true"
           />
 
-          {/* Section 5b: Footer Interactive Helix & Content — sits at z-55 on desktop, in FRONT of Navbar MAGNM text (z-50) */}
+          {/* Section 5b: Footer Interactive Helix & Content — sits at z-38 on desktop, directly UNDERNEATH Page 4 (z-40) */}
           <div
             id="page-footer"
             ref={footerWrapperRef}
-            className="sticky top-0 lg:absolute lg:inset-0 z-55 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform lg:invisible"
+            className="sticky top-0 lg:absolute lg:inset-0 z-38 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform lg:invisible"
           >
             <Footer
               ref={footerRef}
               magnmRef={footerMagnmRef}
-              onStartProject={() => { setModalSource('hero'); setIsProjectModalOpen(true); }}
+              triggerReveal={triggerFooterReveal}
+              onStartProject={() => { setModalSource('footer'); setIsProjectModalOpen(true); }}
             />
           </div>
 
