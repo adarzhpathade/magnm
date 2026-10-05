@@ -5,19 +5,24 @@
 ## About MAGNM
 MAGNM is an experimental creative studio and digital engineering firm based in Indore, India. We bridge the gap between aesthetic precision and robust software engineering, creating digital flagships that feel both intuitive and impactful.
 
-- **Website**: https://magnm.com
+- **Website**: https://magnm-org.vercel.app
 - **Inquiries & Contact**: hello@magnm.com
 - **Location**: Indore, Madhya Pradesh, India
 - **Founders & Creators**: Pranav Dubey & Adarsh Pathade
 
 ## Core Capabilities
-- **Motion-Driven Web Experiences**: Timeline-choreographed interactions, micro-interactions, and fluid transitions.
-- **3D & WebGL Engineering**: Real-time Three.js shaders, 3D kinetic elements, and WebGL carousel engines.
+- **Motion-Driven Web Experiences**: Timeline-choreographed interactions, micro-interactions, and fluid transitions via GSAP and Framer Motion.
+- **3D & WebGL Engineering**: Real-time Three.js shaders, 3D kinetic helix elements, and procedural WebGL rendering.
 - **Brand Identity Systems**: Monochromatic visual systems, typography hierarchy, and strategic brand positioning.
-- **AI Products & Interfaces**: Interface design and product architecture for artificial intelligence applications.
-- **Creative Web Development**: Full-stack Next.js, React, Tailwind CSS, and Web Audio API integration.
+- **AI Products & Interfaces**: Interface design, spatial tooling, and product architecture for artificial intelligence systems.
+- **Full-Stack Creative Engineering**: High-performance Next.js App Router, React Server Components, Tailwind CSS, and Web Audio API acoustics.
+
+## Selected Projects & Flagships
+- **Cero Terminal** (https://cero-magnm.vercel.app/): Cross-platform download studio and high-performance terminal digital experience.
+- **Adarsh'26** (https://adrz-26.vercel.app/): Design engineering and interactive digital portfolio showcase.
+- **Mirach Aerospace** (https://mirach-aerospace.vercel.app/): Defence deep-tech and drone intelligence digital flagship.
 
 ## Philosophy
 - **Exact Visual Fidelity**: Treating design as precision engineering with zero generic compromises.
 - **Intentional Motion**: Smooth, physics-guided transitions without unnecessary decorative noise.
-- **High Performance**: 60fps GPU-accelerated rendering, minimal DOM complexity, and fast load times.
+- **High Performance**: 60fps GPU-accelerated rendering, sub-second initial load, and 100/100 Core Web Vitals compliance.

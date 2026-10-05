@@ -165,7 +165,7 @@ export function getNavFontSizePx(navEl: HTMLElement | null): number {
 /**
  * Measure targets for navbar MAGNM fontSize growth + position shift to footer.
  * Returns { fontSize (px), x, y } — NO scale transform, only real fontSize change.
- * Optically aligns the visible outer stem of 'M' flush with the container padding.
+ * Aligns the MAGNM heading cleanly with page layout padding (40px left, 48px top on desktop).
  */
 export function getNavToFooterFontTargets(
   navEl: HTMLElement | null,
@@ -173,20 +173,44 @@ export function getNavToFooterFontTargets(
 ): { fontSize: number; x: number; y: number } {
   const targetFontSize = getHeroFontSizePx();
 
-  // The expanded font with lineHeight 0.8 inside flex items-center expands vertically
+  // The expanded font with lineHeight 0.8 inside flex items-center expands vertically.
   // navTarget is centered inside a container (~44px tall). As font grows to targetFontSize,
   // half of the excess height pushes upward. We shift downward by that excess to align the top edge.
   const expandedHeight = targetFontSize * 0.8;
 
+  // Standard responsive layout padding (matches px-4 sm:px-6 md:px-8 lg:px-10 and pt-8 sm:pt-10 md:pt-12)
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1920;
+  let padLeft = 40; // lg:px-10 (2.5rem = 40px)
+  if (width < 640) padLeft = 16;
+  else if (width < 768) padLeft = 24;
+  else if (width < 1024) padLeft = 32;
+
+  let padTop = 48; // lg:pt-12 (3rem = 48px)
+  if (width < 640) padTop = 32;
+  else if (width < 768) padTop = 40;
+
+  // Measure browser-computed padding from live navbar header if available
+  if (navEl && typeof window !== 'undefined') {
+    const navHeader = navEl.closest('header');
+    if (navHeader) {
+      const computed = window.getComputedStyle(navHeader);
+      const cPadLeft = parseFloat(computed.paddingLeft);
+      const cPadTop = parseFloat(computed.paddingTop);
+      if (cPadLeft > 0) padLeft = cPadLeft;
+      if (cPadTop > 0) padTop = cPadTop;
+    }
+  }
+
+  const navContainerHeight = 44;
+  const flexCenterOffsetY = (expandedHeight - navContainerHeight) / 2;
+
   if (!navEl) {
-    const fallbackFlexCenterOffsetY = (expandedHeight - 44) / 2;
-    return { fontSize: targetFontSize, x: -104, y: fallbackFlexCenterOffsetY };
+    return { fontSize: targetFontSize, x: padLeft - 123, y: flexCenterOffsetY };
   }
 
   const navTarget = navEl.querySelector('.nav-brand-text') as HTMLElement | null;
   if (!navTarget) {
-    const fallbackFlexCenterOffsetY = (expandedHeight - 44) / 2;
-    return { fontSize: targetFontSize, x: -104, y: fallbackFlexCenterOffsetY };
+    return { fontSize: targetFontSize, x: padLeft - 123, y: flexCenterOffsetY };
   }
 
   const navRect = navTarget.getBoundingClientRect();
@@ -195,10 +219,11 @@ export function getNavToFooterFontTargets(
   const untransformedNavLeft = navRect.left - currentX;
   const untransformedNavTop = navRect.top - currentY;
 
-  const navContainerHeight = navRect.height > 0 ? navRect.height : 44;
-  const flexCenterOffsetY = (expandedHeight - navContainerHeight) / 2;
+  // Footer target coordinates: default to computed layout padding
+  let targetLeft = padLeft;
+  let targetTop = padTop;
 
-  // Footer slot position — the magnmRef div inside Footer
+  // If footerEl is available and actively laid out in the DOM, measure its live coordinates
   if (footerEl) {
     const footerRect = footerEl.getBoundingClientRect();
     const footerFX = (gsap.getProperty(footerEl, 'x') as number) || 0;
@@ -206,27 +231,23 @@ export function getNavToFooterFontTargets(
     const untransformedFooterLeft = footerRect.left - footerFX;
     const untransformedFooterTop = footerRect.top - footerFY;
 
-    return {
-      fontSize: targetFontSize,
-      x: (untransformedFooterLeft - untransformedNavLeft),
-      y: (untransformedFooterTop - untransformedNavTop) + flexCenterOffsetY,
-    };
+    // Guard against unmeasured / display:none / zero-bounding-box states
+    if (footerRect.width > 0 && untransformedFooterLeft > 0 && untransformedFooterTop > 0) {
+      targetLeft = untransformedFooterLeft;
+      targetTop = untransformedFooterTop;
+    }
   }
 
-  // Fallback: position to left edge with standard padding
-  const width = typeof window !== 'undefined' ? window.innerWidth : 1920;
-  let padLeft = 40; // lg:px-10
-  if (width < 640) padLeft = 16;
-  else if (width < 768) padLeft = 24;
-  else if (width < 1024) padLeft = 32;
-
-  let padTop = 48; // lg:pt-12
-  if (width < 640) padTop = 32;
-  else if (width < 768) padTop = 40;
+  // Vertical alignment:
+  // When font grows with lineHeight 0.8 inside items-center flex container (height 44px),
+  // it expands upward by flexCenterOffsetY. To place the top edge at targetTop,
+  // we compensate for this offset.
+  const navContainerTop = untransformedNavTop - (navContainerHeight - (navRect.height > 0 ? navRect.height : 26.4)) / 2;
+  const targetY = (targetTop - (navContainerTop > 0 ? navContainerTop : padTop)) + flexCenterOffsetY;
 
   return {
     fontSize: targetFontSize,
-    x: padLeft - untransformedNavLeft,
-    y: (padTop - untransformedNavTop) + flexCenterOffsetY,
+    x: targetLeft - untransformedNavLeft,
+    y: targetY,
   };
 }

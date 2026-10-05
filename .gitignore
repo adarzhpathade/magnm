@@ -40,3 +40,4 @@ yarn-error.log*
 next-env.d.ts
 .originkit/
 claude-seo/
+_unused_archive/

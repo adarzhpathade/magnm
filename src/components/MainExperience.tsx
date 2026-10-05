@@ -117,10 +117,10 @@ export default function MainExperience() {
 
   const { wheelScale, isDesktop } = useResponsiveWheel();
 
-  // ── Loader Entrance Animation ──
-  // The 3D wheel starts small with top-down camera (tilt:90, sideTilt:0, scale:28)
-  // and smoothly transitions to the hero perspective (tilt:36, sideTilt:-35, scale:targetScale)
-  // while the hero text reveals with the signature partial blur effect.
+  // ── Asset-Aware Loader Entrance Animation ──
+  // The loader stays on screen until ALL fonts, critical images, and window resources
+  // have fully finished loading. Once assets resolve, the counter completes smoothly to 100,
+  // the 3D wheel transitions to hero view, hero text reveals, and interactions unlock.
   useEffect(() => {
     if (loaderDoneRef.current) return;
 
@@ -145,86 +145,155 @@ export default function MainExperience() {
       cameraControllerRef.current.interactive = false;
     }
 
-    const ctx = gsap.context(() => {
-      // 1. Progress counter animation 0 → 100
-      const progressObj = { value: 0 };
-      gsap.to(progressObj, {
-        value: 100,
-        duration: 0.95,
-        ease: 'power2.inOut',
-        onUpdate: () => setLoadProgress(Math.round(progressObj.value)),
-        onComplete: () => {
-          // Immediately fade out the counter as soon as it reaches 100
-          setIsCounterFaded(true);
-          setTimeout(() => {
-            setCounterVisible(false);
-          }, 320);
-        },
+    let isCancelled = false;
+
+    // 1. Critical asset verification
+    const preloadImage = (src: string) =>
+      new Promise<void>((resolve) => {
+        const img = new Image();
+        img.src = src;
+        if (img.complete) {
+          resolve();
+        } else {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // Prevent hang on network/blocking errors
+        }
       });
 
-      // 2. Camera proxy for smooth 3D transition from loader to hero perspective
-      const initDelay = 0.35;
-      const cameraProxy = {
-        tilt: LOADER_CAMERA.tilt,
-        sideTilt: LOADER_CAMERA.sideTilt,
-        scale: LOADER_CAMERA.scale,
-      };
+    const CRITICAL_IMAGES = [
+      '/magnm light.png',
+      '/Magnm Dark Logo.png',
+      '/mockup/CERO Cross-Platform Download Studio.webp',
+      "/mockup/Adarsh'26 Mockup.webp",
+      '/mockup/Mirach Drone Intelligence Studio Mockup.webp',
+    ];
 
-      gsap.to(cameraProxy, {
-        tilt: HERO_CAMERA.tilt,
-        sideTilt: HERO_CAMERA.sideTilt,
-        scale: targetScale,
-        duration: 1.25,
-        delay: initDelay,
-        ease: 'power3.inOut',
-        onUpdate: () => {
-          if (cameraControllerRef.current) {
-            cameraControllerRef.current.tilt = cameraProxy.tilt;
-            cameraControllerRef.current.sideTilt = cameraProxy.sideTilt;
-            cameraControllerRef.current.scale = cameraProxy.scale;
-          }
-        },
-        onComplete: () => {
-          if (cameraControllerRef.current) {
-            cameraControllerRef.current.tilt = HERO_CAMERA.tilt;
-            cameraControllerRef.current.sideTilt = HERO_CAMERA.sideTilt;
-            cameraControllerRef.current.scale = targetScale;
-            cameraControllerRef.current.interactive = true;
-          }
-        },
-      });
+    const imagePromises = CRITICAL_IMAGES.map(preloadImage);
 
-      // 3. Desktop wheelWrapper Y translation transition (from 0 to 36px)
-      if (isDesktop && wheelWrapperRef.current) {
-        gsap.to(wheelWrapperRef.current, {
-          y: 36,
-          duration: 1.25,
-          delay: initDelay,
-          ease: 'power3.inOut',
-        });
-      }
+    const fontsPromise =
+      typeof document !== 'undefined' && 'fonts' in document
+        ? document.fonts.ready.catch(() => {})
+        : Promise.resolve();
+
+    const windowLoadPromise =
+      typeof window !== 'undefined'
+        ? document.readyState === 'complete'
+          ? Promise.resolve()
+          : new Promise<void>((resolve) => {
+              window.addEventListener('load', () => resolve(), { once: true });
+            })
+        : Promise.resolve();
+
+    // Safety fallback timeout (5.5s) to guarantee the loader never locks the screen permanently on bad connections
+    const safetyTimeout = new Promise<void>((resolve) => {
+      setTimeout(resolve, 5500);
     });
 
-    // 4. Trigger hero text reveal smoothly as camera transitions (~700ms)
-    const revealTimer = setTimeout(() => {
-      setTriggerHeroReveal(true);
-    }, 700);
+    const allAssetsPromise = Promise.race([
+      Promise.all([...imagePromises, fontsPromise, windowLoadPromise]),
+      safetyTimeout,
+    ]);
 
-    // 5. Mark loading complete, unlock scroll, and enable interactions (~1550ms)
-    const completeTimer = setTimeout(() => {
-      setIsLoaded(true);
-      loaderDoneRef.current = true;
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      ScrollTrigger.refresh();
-    }, 1550);
+    const progressObj = { value: 0 };
+    let progressTween: gsap.core.Tween | null = null;
+    let cameraTween: gsap.core.Tween | null = null;
+    let wheelTween: gsap.core.Tween | null = null;
+
+    // Smoothly increment counter toward 88% while assets are downloading
+    progressTween = gsap.to(progressObj, {
+      value: 88,
+      duration: 0.9,
+      ease: 'power1.out',
+      onUpdate: () => {
+        if (!isCancelled) setLoadProgress(Math.round(progressObj.value));
+      },
+    });
+
+    // Once all assets (fonts, images, DOM window) are fully loaded:
+    allAssetsPromise.then(() => {
+      if (isCancelled || loaderDoneRef.current) return;
+
+      // Accelerate progress to 100% now that everything is guaranteed to be in memory
+      progressTween?.kill();
+      progressTween = gsap.to(progressObj, {
+        value: 100,
+        duration: 0.28,
+        ease: 'power2.out',
+        onUpdate: () => {
+          if (!isCancelled) setLoadProgress(Math.round(progressObj.value));
+        },
+        onComplete: () => {
+          if (isCancelled) return;
+
+          // 1. Immediately fade out the counter
+          setIsCounterFaded(true);
+          setTimeout(() => {
+            if (!isCancelled) setCounterVisible(false);
+          }, 320);
+
+          // 2. Camera proxy for smooth 3D transition from loader to hero perspective
+          const cameraProxy = {
+            tilt: LOADER_CAMERA.tilt,
+            sideTilt: LOADER_CAMERA.sideTilt,
+            scale: LOADER_CAMERA.scale,
+          };
+
+          cameraTween = gsap.to(cameraProxy, {
+            tilt: HERO_CAMERA.tilt,
+            sideTilt: HERO_CAMERA.sideTilt,
+            scale: targetScale,
+            duration: 1.25,
+            ease: 'power3.inOut',
+            onUpdate: () => {
+              if (cameraControllerRef.current) {
+                cameraControllerRef.current.tilt = cameraProxy.tilt;
+                cameraControllerRef.current.sideTilt = cameraProxy.sideTilt;
+                cameraControllerRef.current.scale = cameraProxy.scale;
+              }
+            },
+            onComplete: () => {
+              if (cameraControllerRef.current) {
+                cameraControllerRef.current.tilt = HERO_CAMERA.tilt;
+                cameraControllerRef.current.sideTilt = HERO_CAMERA.sideTilt;
+                cameraControllerRef.current.scale = targetScale;
+                cameraControllerRef.current.interactive = true;
+              }
+            },
+          });
+
+          // 3. Desktop wheelWrapper Y translation transition (from 0 to 36px)
+          if (isDesktop && wheelWrapperRef.current) {
+            wheelTween = gsap.to(wheelWrapperRef.current, {
+              y: 36,
+              duration: 1.25,
+              ease: 'power3.inOut',
+            });
+          }
+
+          // 4. Trigger hero text reveal smoothly as camera transitions (~350ms)
+          setTimeout(() => {
+            if (!isCancelled) setTriggerHeroReveal(true);
+          }, 350);
+
+          // 5. Mark loading complete, unlock scroll, and enable full interactions
+          setTimeout(() => {
+            if (!isCancelled) {
+              setIsLoaded(true);
+              loaderDoneRef.current = true;
+              document.documentElement.style.overflow = '';
+              document.body.style.overflow = '';
+              ScrollTrigger.refresh();
+            }
+          }, 1250);
+        },
+      });
+    });
 
     return () => {
-      if (!loaderDoneRef.current) {
-        ctx.revert();
-        clearTimeout(revealTimer);
-        clearTimeout(completeTimer);
-      }
+      isCancelled = true;
+      progressTween?.kill();
+      cameraTween?.kill();
+      wheelTween?.kill();
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
     };
@@ -467,7 +536,7 @@ export default function MainExperience() {
             {/* Section 5a: Footer Background */}
             <div
               id="page-footer-bg"
-              className="absolute inset-0 z-0 lg:z-36 w-full h-full pointer-events-none bg-[#000000] invisible hidden"
+              className="absolute inset-0 z-0 lg:z-36 w-full h-full pointer-events-none bg-[#000000] invisible hidden lg:block"
               aria-hidden="true"
             />
 
@@ -475,7 +544,7 @@ export default function MainExperience() {
             <div
               id="page-footer"
               ref={footerWrapperRef}
-              className="absolute inset-0 z-10 lg:z-38 w-full h-full pointer-events-none overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform invisible hidden"
+              className="absolute inset-0 z-10 lg:z-38 w-full h-full pointer-events-none overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform invisible hidden lg:flex"
             >
               <Footer
                 ref={footerRef}

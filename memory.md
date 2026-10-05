@@ -691,15 +691,65 @@ export const TIMINGS = {
   - Maintained **"DEVELOPED BY"** section with both Pranav Dubey and Adarsh Pathade pointing to their respective portfolios/githubs.
   - Removed the location ("Based in Indore") as requested.
 
+### Phase M: Perfectly Aligned Vertical Stepped Card Stack (COMPLETED)
+- [x] **Flush Horizontal Alignment with Vertical Stepping (`Projects.tsx`)**:
+  - Cards share identical horizontal width and alignment (`xP: 0`, `rot: 0`, `scale: 1`) with perfectly flush left and right edges.
+  - Stepped cleanly upward along the vertical axis (`depth 1: { yP: -6% }`, `depth 2: { yP: -12% }`, `depth 3: { yP: -18% }`) so back layers peek out cleanly at the top without any tilt, distortion, shadows, or 3D depth.
+  - Smoothly interpolates downward as active cards peel away during scroll.
+
+### Phase N: Asset-Aware Preloader Orchestrator (COMPLETED)
+- [x] **Asset-Gated Loading Screen (`MainExperience.tsx`)**:
+  - Replaced the previous fixed timer (`0.95s` mock) with real multi-asset tracking.
+  - The preloader actively awaits:
+    1. `document.fonts.ready` (guarantees zero FOUT for Familjen Grotesk, Neue Haas, Martian Mono, etc.).
+    2. Window `load` event / `document.readyState === 'complete'` (guarantees DOM, stylesheets, and scripts are ready).
+    3. Critical image preloading (`/magnm light.png`, `/Magnm Dark Logo.png`, and the 3 project mockup covers).
+  - Counter increments smoothly up to 88% while downloading assets, and immediately accelerates to 100% once all promises resolve.
+  - Only when all assets are loaded does the counter fade, the 3D wheel transition into the hero perspective, hero copy reveal, and scroll unlock. Includes a safety timeout fallback to prevent lockouts on offline/flaky connections.
+
+### Phase O: Codebase Architecture Reorganization & Archiving (COMPLETED)
+- [x] **Unused File Isolation into `_unused_archive/`**:
+  - Identified and moved all unused components, duplicate assets, legacy experiments, and scratch files into `_unused_archive/` for user review and safe deletion:
+    - Components: `FloatingRock.tsx`, `HeroContactButton.tsx`, `ProjectsHero.tsx`, `block/`, `effects/`, `fancy/`, `unlumen-ui/`, legacy `originkit/` carousels/particles, legacy `ui/` carousels/canvases.
+    - Hooks & Utils: `src/hooks/` (unused elastic line physics), `src/utils/` (`cn.ts` duplicate).
+    - Public & Root Assets: `public/animated-footer/`, `public/project thumbnail/`, duplicate `fonts/` folders, draft mockups (`adarsh-26.webp`, `mirach-cover.png`, `sentinel-terminal.webp`, `magnm dark.png`), root text scratch notes, and `claude-seo/` cloned repo.
+  - Excluded `_unused_archive/` from `tsconfig.json` so build tools ignore it.
+- [x] **Active Codebase Streamlined**:
+  - `src/` now contains strictly 4 core folders: `app/`, `components/`, `fonts/`, and `lib/`.
+  - Every file in `src/components/` is 100% active, essential, and clean.
+  - Zero broken imports, zero TypeScript errors (`npx tsc --noEmit` &rarr; 0 errors), and production build passes cleanly (`npm run build` &rarr; 0 errors).
+
+### Phase P: Enterprise SEO, Schema Knowledge Graph & GEO Citability (COMPLETED)
+- [x] **Semantic Heading Hierarchy (`Hero.tsx`)**:
+  - Assigned `as="h1"` to the primary MAGNM wordmark in `Hero.tsx`, creating an exact `h1 -> h2 -> h3` heading structure across the site.
+- [x] **Schema.org Knowledge Graph Expansion (`layout.tsx`)**:
+  - Upgraded structured data from basic Organization to a multi-entity graph:
+    - `Organization` & `ProfessionalService` with worldwide service areas, accepted currencies, and contact points.
+    - `OfferCatalog` indexing all 6 studio capabilities from Section 3.
+    - `BreadcrumbList` for Google SERP navigation trails.
+    - `WebPage` with `workExample` indexing the 3 live portfolio projects (Cero Terminal, Adarsh'26, Mirach Aerospace).
+- [x] **Google & AI Crawler Rules (`robots.ts`)**:
+  - Configured rules to explicitly allow Googlebot, Bingbot, Applebot, OAI-SearchBot, ChatGPT-User, Claude-SearchBot, and PerplexityBot while safeguarding private API endpoints.
+- [x] **Google Image Sitemap (`sitemap.ts`)**:
+  - Enriched sitemap with image metadata for the metallic branding emblem, dark logo, and WebP project mockups.
+- [x] **AI Overviews & GEO Citability (`public/llms.txt`)**:
+  - Upgraded `llms.txt` with direct portfolio URLs, technical capabilities, and self-contained studio definitions for LLM citations (ChatGPT Search, Perplexity, Gemini, Claude).
+
+- [x] **Live Domain Configuration to `https://magnm-org.vercel.app/`**:
+  - Synchronized `metadataBase`, OpenGraph URLs, Twitter card image links, Canonical tags, Schema.org `@id`s, `sitemap.xml`, and `robots.txt` directly to `https://magnm-org.vercel.app/` so Google indexes the live Vercel deployment without canonical confusion.
+
 ## 10. Current State & Next Steps
 
 **What Works**:
 - Hero entrance and kinetic button interactions.
+- Asset-aware preloader gates screen reveal until all fonts, mockups, and window resources are ready in memory.
 - Pinned section wipes (Desktop timeline perfectly scales Page 1 into Page 2, wipes 12 vertical slices to reveal Page 3, unpins to scroll through Option Wheel).
 - The Option Wheel is fully interactive and syncs 3D rotation with DOM text updates.
-- The Projects deck sequentially offsets its internal array of cards to simulate a physical stack, working seamlessly in both local and production.
+- The Projects deck sequentially offsets its internal array of cards to simulate a physical, perfectly aligned vertical stepped stack (0° tilt, flush horizontal edges), working seamlessly in both local and production.
 - The Footer orchestrates the 3D XylophoneHelix layout and reverse kinetic letter spacing effect natively.
+- Full-suite SEO, Google Search readiness, Schema.org Knowledge Graph, and AI search citability implemented and verified.
+- Production build passes cleanly with zero errors (`npm run build`).
 
 **Next Session Starts With**:
-- Waiting for further visual design polish requests or QA validation from the user regarding the stack spacing and footer alignment. 
+- Site is 100% production ready and SEO optimized. User can deploy to Vercel/production at any time.
 - No broken code or terminal errors exist. `npm run dev` and `npm run build` are 100% stable.

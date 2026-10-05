@@ -71,6 +71,44 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
     }, [triggerProp]);
 
 
+// Pure Vertical Stepped Stack resting poses for cards behind the active card:
+// Perfectly aligned horizontally (xP: 0, rot: 0) with flush left and right edges.
+// Stepped upward vertically so the stacked card layers peek out cleanly at the top.
+// depth 0: Active top card (yP: 0)
+// depth 1: First card behind (yP: -6.0% ~16px top peek)
+// depth 2: Second card behind (yP: -12.0% ~32px top peek)
+interface StackPose {
+  rot: number;
+  xP: number;
+  yP: number;
+}
+
+const STACK_POSES: StackPose[] = [
+  { rot: 0, xP: 0, yP: 0 },
+  { rot: 0, xP: 0, yP: -6.0 },
+  { rot: 0, xP: 0, yP: -12.0 },
+  { rot: 0, xP: 0, yP: -18.0 },
+];
+
+function getStackPose(depth: number): StackPose {
+  if (depth <= 0) return STACK_POSES[0];
+  const maxD = STACK_POSES.length - 1;
+  if (depth >= maxD) return STACK_POSES[maxD];
+
+  const lowerIdx = Math.floor(depth);
+  const upperIdx = Math.min(maxD, lowerIdx + 1);
+  const factor = depth - lowerIdx;
+
+  const p0 = STACK_POSES[lowerIdx];
+  const p1 = STACK_POSES[upperIdx];
+
+  return {
+    rot: p0.rot + (p1.rot - p0.rot) * factor,
+    xP: p0.xP + (p1.xP - p0.xP) * factor,
+    yP: p0.yP + (p1.yP - p0.yP) * factor,
+  };
+}
+
     const setScrollProgress = useCallback((progress: number) => {
       const maxIdx = PROJECTS.length - 1;
       const clamped = Math.max(0, Math.min(maxIdx, progress));
@@ -90,34 +128,41 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
         const cardProgress = clamped - i;
 
         if (cardProgress < 0) {
-          // Card is underneath the active one, waiting its turn.
-          // Scale down slightly and push up slightly to create a beautiful depth stacking feel.
-          const scale = 1 - Math.abs(cardProgress) * 0.05;
-          const yP = Math.abs(cardProgress) * -2; 
+          // Card is underneath the active one in the stack.
+          // Smoothly interpolate its organic stack tilt & position based on depth.
+          const depth = Math.abs(cardProgress);
+          const pose = getStackPose(depth);
+
           gsap.set(card, {
-            yPercent: yP,
-            rotationZ: 0,
-            scale: scale,
+            xPercent: pose.xP,
+            yPercent: pose.yP,
+            rotationZ: pose.rot,
+            scale: 1,
             opacity: 1,
             visibility: 'visible',
+            transformOrigin: '50% 50%',
           });
         } else if (cardProgress < 1.35) {
           // Active card (0) or peeling off (> 0)
           // Use quadratic curve for falling speed so it accelerates elegantly downwards
-          const fallEase = cardProgress * cardProgress; 
+          const fallEase = cardProgress * cardProgress;
           const yP = fallEase * 350;
-          
+
           gsap.set(card, {
+            xPercent: 0,
             yPercent: yP,
             rotationZ: 0,
             scale: 1,
             opacity: 1 - Math.max(0, (cardProgress - 0.85) * 4), // Fade out softly near the bottom
             visibility: 'visible',
+            transformOrigin: '50% 50%',
           });
         } else {
           // Fully departed off bottom
           gsap.set(card, {
+            xPercent: 0,
             yPercent: 450,
+            rotationZ: 0,
             visibility: 'hidden',
           });
         }

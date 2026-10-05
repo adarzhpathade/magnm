@@ -39,31 +39,35 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://magnm.com"),
+  metadataBase: new URL("https://magnm-org.vercel.app"),
   title: {
     default: "MAGNM — Creative Studio | Digital Experiences & 3D Engineering",
     template: "%s | MAGNM Creative Studio",
   },
   description:
-    "MAGNM is an experimental creative studio based in Indore. We engineer motion-driven websites, AI products, branding systems, and 3D digital flagships built for clarity, scale, and impact.",
+    "MAGNM is an experimental creative studio engineering motion-driven websites, AI products, branding systems, and 3D digital flagships built for clarity and scale.",
   applicationName: "MAGNM Creative Studio",
+  category: "Design & Technology",
   keywords: [
     "MAGNM",
+    "MAGNM Creative Studio",
     "Creative Studio",
     "Digital Flagship",
     "Motion-Driven Design",
     "3D Web Experiences",
-    "WebGL",
-    "Three.js",
-    "Brand Identity",
-    "AI Products",
+    "WebGL Studio",
+    "Three.js Agency",
+    "Brand Identity Systems",
+    "AI Product Design",
     "Creative Engineering",
     "Indore Design Studio",
     "Next.js Development",
+    "Interactive Websites",
+    "High-Performance Web Design",
   ],
   authors: [
     { name: "Pranav Dubey" },
-    { name: "Adarsh Pathade" },
+    { name: "Adarsh Pathade", url: "https://adrz-26.vercel.app/" },
   ],
   creator: "MAGNM",
   publisher: "MAGNM",
@@ -78,11 +82,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://magnm.com",
+    url: "https://magnm-org.vercel.app",
     siteName: "MAGNM Creative Studio",
     title: "MAGNM — Creative Studio | Digital Experiences & 3D Engineering",
     description:
-      "Turning bold vision into visual language. Motion-driven websites, AI products, and digital flagships built for clarity, scale, and impact.",
+      "Turning bold vision into visual language. Motion-driven websites, AI products, branding systems, and 3D digital flagships built for clarity, scale, and impact.",
     images: [
       {
         url: "/magnm light.png",
@@ -129,64 +133,169 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization",
-      "@id": "https://magnm.com/#organization",
+      "@type": ["Organization", "ProfessionalService"],
+      "@id": "https://magnm-org.vercel.app/#organization",
       "name": "MAGNM",
-      "alternateName": "MAGNM Creative Studio",
-      "url": "https://magnm.com",
+      "alternateName": ["MAGNM Creative Studio", "MAGNM Digital Flagships"],
+      "url": "https://magnm-org.vercel.app",
       "logo": {
         "@type": "ImageObject",
-        "@id": "https://magnm.com/#logo",
-        "url": "https://magnm.com/magnm%20light.png",
-        "caption": "MAGNM Creative Studio Logo"
+        "@id": "https://magnm-org.vercel.app/#logo",
+        "url": "https://magnm-org.vercel.app/magnm%20light.png",
+        "caption": "MAGNM Creative Studio Logo",
+        "width": 1536,
+        "height": 1024
       },
-      "image": "https://magnm.com/magnm%20light.png",
-      "email": "adarshpathade79@gmail.com",
+      "image": "https://magnm-org.vercel.app/magnm%20light.png",
+      "email": "hello@magnm.com",
+      "priceRange": "$$$$",
+      "currenciesAccepted": "USD, EUR, GBP, INR",
+      "paymentAccepted": "Wire Transfer, Credit Card",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Indore",
         "addressRegion": "Madhya Pradesh",
         "addressCountry": "IN"
       },
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Worldwide"
+      },
       "founders": [
         {
           "@type": "Person",
-          "name": "Pranav Dubey"
+          "name": "Pranav Dubey",
+          "jobTitle": "Co-Founder & Creative Technologist"
         },
         {
           "@type": "Person",
-          "name": "Adarsh Pathade"
+          "name": "Adarsh Pathade",
+          "jobTitle": "Co-Founder & Design Engineer",
+          "sameAs": "https://adrz-26.vercel.app/"
         }
       ],
       "knowsAbout": [
         "Motion-Driven Web Experiences",
         "3D WebGL Engineering",
         "Brand Identity Systems",
-        "AI Product Design",
-        "Creative Web Development"
-      ]
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://magnm.com/#website",
-      "url": "https://magnm.com",
-      "name": "MAGNM",
-      "publisher": {
-        "@id": "https://magnm.com/#organization"
+        "AI Product Design & Spatial Tooling",
+        "Creative Web Development",
+        "Next.js App Architecture",
+        "Three.js Real-time Shaders",
+        "GSAP Timeline Animation"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "MAGNM Capabilities & Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Spatial & Motion-Driven Web Experiences",
+              "description": "Timeline-choreographed digital flagships with micro-interactions, responsive physics, and smooth scroll synchronization."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "3D WebGL Digital Flagships & Interactive Environments",
+              "description": "Real-time Three.js rendering, custom GLSL shaders, and performant 60fps 3D canvas experiences."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Scalable Brand Systems & Monochromatic Identities",
+              "description": "Disciplined typography hierarchy, monochromatic visual identity, and strategic design guidelines."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Human-Centric AI Interfaces & Spatial Tooling",
+              "description": "Generative AI product architecture, tactile prompt engineering interfaces, and intuitive AI tool suites."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Full-Stack Creative Engineering",
+              "description": "High-performance Next.js development, React Server Components, Tailwind CSS, and Web Audio API acoustics."
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Technical Architecture & High-Performance Web",
+              "description": "Sub-second load times, 100/100 Core Web Vitals optimization, and enterprise SEO/GEO search infrastructure."
+            }
+          }
+        ]
       }
     },
     {
+      "@type": "WebSite",
+      "@id": "https://magnm-org.vercel.app/#website",
+      "url": "https://magnm-org.vercel.app",
+      "name": "MAGNM",
+      "publisher": {
+        "@id": "https://magnm-org.vercel.app/#organization"
+      },
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://magnm-org.vercel.app/#breadcrumbs",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://magnm-org.vercel.app"
+        }
+      ]
+    },
+    {
       "@type": "WebPage",
-      "@id": "https://magnm.com/#webpage",
-      "url": "https://magnm.com",
-      "name": "MAGNM — Creative Studio",
+      "@id": "https://magnm-org.vercel.app/#webpage",
+      "url": "https://magnm-org.vercel.app",
+      "name": "MAGNM — Creative Studio | Digital Experiences & 3D Engineering",
       "isPartOf": {
-        "@id": "https://magnm.com/#website"
+        "@id": "https://magnm-org.vercel.app/#website"
       },
       "about": {
-        "@id": "https://magnm.com/#organization"
+        "@id": "https://magnm-org.vercel.app/#organization"
       },
-      "description": "Translating bold vision into lasting impact. Websites, AI products, brands, and systems built for clarity, scale and impact."
+      "breadcrumb": {
+        "@id": "https://magnm-org.vercel.app/#breadcrumbs"
+      },
+      "description": "MAGNM is an experimental creative studio engineering motion-driven websites, AI products, branding systems, and 3D digital flagships built for clarity and scale.",
+      "workExample": [
+        {
+          "@type": "CreativeWork",
+          "name": "Cero Terminal",
+          "url": "https://cero-magnm.vercel.app/",
+          "description": "Cero Cross-Platform Download Studio and terminal digital experience."
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Adarsh'26",
+          "url": "https://adrz-26.vercel.app/",
+          "description": "Adarsh'26 design engineering and portfolio showcase."
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Mirach Aerospace",
+          "url": "https://mirach-aerospace.vercel.app/",
+          "description": "Mirach Aerospace defence deep-tech and drone intelligence digital studio."
+        }
+      ]
     }
   ]
 };

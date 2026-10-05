@@ -172,12 +172,11 @@ export function useDesktopTimeline(
     if (refs.footerWrapper?.current) {
       gsap.set(refs.footerWrapper.current, {
         visibility: 'hidden',
-        display: 'none',
         pointerEvents: 'none',
       });
       refs.footerWrapper.current.style.zIndex = '38';
     }
-    gsap.set('#page-footer-bg', { visibility: 'hidden', display: 'none', zIndex: 36 });
+    gsap.set('#page-footer-bg', { visibility: 'hidden', zIndex: 36 });
 
     // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 -> Page 4 transition
     const cameraObj = {
@@ -195,6 +194,7 @@ export function useDesktopTimeline(
         end: '+=1000%',
         pin: true,
         scrub: 0.3,
+        invalidateOnRefresh: true,
         snap: {
           snapTo: (progress: number) => {
             // Snap points for the 6 services in Phase 6
@@ -341,12 +341,10 @@ export function useDesktopTimeline(
               isFooterInteractive ? 'auto' : 'none';
             if (isFooterVisible) {
               refs.footerWrapper.current.style.visibility = 'visible';
-              refs.footerWrapper.current.style.display = 'flex';
-              gsap.set('#page-footer-bg', { visibility: 'visible', display: 'block' });
+              gsap.set('#page-footer-bg', { visibility: 'visible' });
             } else {
               refs.footerWrapper.current.style.visibility = 'hidden';
-              refs.footerWrapper.current.style.display = 'none';
-              gsap.set('#page-footer-bg', { visibility: 'hidden', display: 'none' });
+              gsap.set('#page-footer-bg', { visibility: 'hidden' });
             }
 
             if (refs.navbarHeader?.current) {

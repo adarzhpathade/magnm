@@ -4,7 +4,6 @@ import React from 'react';
 import Image from 'next/image';
 import BlurText from './BlurText';
 import XylophoneHelix from './originkit/ui/xylophone-helix';
-import { Letter3DSwap } from './ui/letter-3d-swap';
 import KineticShiftButton from './KineticShiftButton';
 
 import { AnimatePresence, motion } from 'motion/react';
@@ -130,6 +129,7 @@ export default function Hero({
           >
             <BlurText
               text="MAGNM"
+              as="h1"
               animateBy="letters"
               direction="none"
               randomize={true}
