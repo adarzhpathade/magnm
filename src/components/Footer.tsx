@@ -51,10 +51,10 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
     }, []);
 
     useEffect(() => {
-      if (isMobile || triggerProp || triggerProp === undefined) {
+      if (triggerProp || triggerProp === undefined) {
         setHasRevealed(true);
       }
-    }, [triggerProp, isMobile]);
+    }, [triggerProp]);
 
     useEffect(() => {
       if (!hasRevealed) return;
@@ -89,7 +89,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
       return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
-    const isInteractive = isMobile || Boolean(triggerProp || triggerProp === undefined);
+    const isInteractive = Boolean(triggerProp || triggerProp === undefined);
     const cameraControllerRef = useRef({
       tilt: cameraSettings.tilt,
       sideTilt: cameraSettings.sideTilt,
@@ -100,8 +100,8 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
     useEffect(() => {
       cameraControllerRef.current.tilt = cameraSettings.tilt;
       cameraControllerRef.current.sideTilt = cameraSettings.sideTilt;
-      cameraControllerRef.current.interactive = isMobile || Boolean(triggerProp || triggerProp === undefined);
-    }, [cameraSettings, triggerProp, isMobile]);
+      cameraControllerRef.current.interactive = Boolean(triggerProp || triggerProp === undefined);
+    }, [cameraSettings, triggerProp]);
 
     const [shouldMountHelix, setShouldMountHelix] = useState(false);
 

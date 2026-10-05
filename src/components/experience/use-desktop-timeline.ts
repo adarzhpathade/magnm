@@ -78,6 +78,7 @@ export function useDesktopTimeline(
     // About hidden at start (reveals on scroll)
     if (refs.aboutContainer.current) {
       refs.aboutContainer.current.style.opacity = '0';
+      refs.aboutContainer.current.style.visibility = 'hidden';
       refs.aboutContainer.current.style.transform = 'translateY(0px)';
       refs.aboutContainer.current.style.pointerEvents = 'none';
     }
@@ -171,11 +172,12 @@ export function useDesktopTimeline(
     if (refs.footerWrapper?.current) {
       gsap.set(refs.footerWrapper.current, {
         visibility: 'hidden',
+        display: 'none',
         pointerEvents: 'none',
       });
       refs.footerWrapper.current.style.zIndex = '38';
     }
-    gsap.set('#page-footer-bg', { visibility: 'hidden', zIndex: 36 });
+    gsap.set('#page-footer-bg', { visibility: 'hidden', display: 'none', zIndex: 36 });
 
     // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 -> Page 4 transition
     const cameraObj = {
@@ -192,7 +194,7 @@ export function useDesktopTimeline(
         start: 'top top',
         end: '+=1000%',
         pin: true,
-        scrub: 0.15,
+        scrub: 0.3,
         snap: {
           snapTo: (progress: number) => {
             // Snap points for the 6 services in Phase 6
@@ -234,8 +236,8 @@ export function useDesktopTimeline(
             refs.navActions.current.style.pointerEvents = progress > 0.16 ? 'auto' : 'none';
           }
 
-          // Strictly lock out Hero secondary elements (buttons, tagline, emblem) as soon as user scrolls past Hero
-          if (progress > 0.07) {
+          // Smoothly lock out Hero secondary elements (buttons, tagline, emblem) after full blur fade-out
+          if (progress > 0.09) {
             if (refs.heroBottom.current) {
               refs.heroBottom.current.style.visibility = 'hidden';
               refs.heroBottom.current.style.pointerEvents = 'none';
@@ -339,10 +341,12 @@ export function useDesktopTimeline(
               isFooterInteractive ? 'auto' : 'none';
             if (isFooterVisible) {
               refs.footerWrapper.current.style.visibility = 'visible';
-              gsap.set('#page-footer-bg', { visibility: 'visible' });
+              refs.footerWrapper.current.style.display = 'flex';
+              gsap.set('#page-footer-bg', { visibility: 'visible', display: 'block' });
             } else {
               refs.footerWrapper.current.style.visibility = 'hidden';
-              gsap.set('#page-footer-bg', { visibility: 'hidden' });
+              refs.footerWrapper.current.style.display = 'none';
+              gsap.set('#page-footer-bg', { visibility: 'hidden', display: 'none' });
             }
 
             if (refs.navbarHeader?.current) {
@@ -465,7 +469,7 @@ export function useDesktopTimeline(
           y: -14,
           opacity: 0,
           filter: 'blur(10px)',
-          duration: 0.06,
+          duration: 0.08,
           ease: 'power1.out',
           immediateRender: false,
         },
@@ -489,23 +493,23 @@ export function useDesktopTimeline(
       );
     }
 
-
-
     if (refs.aboutContainer.current) {
       scrollTl.fromTo(
         refs.aboutContainer.current,
         {
           opacity: 0,
+          visibility: 'hidden',
           y: 16,
         },
         {
           opacity: 1,
+          visibility: 'visible',
           y: 0,
           ease: 'power2.out',
-          duration: 0.10,
+          duration: 0.11,
           immediateRender: false,
         },
-        0.12
+        0.11
       );
     }
 
@@ -558,6 +562,7 @@ export function useDesktopTimeline(
         refs.aboutContainer.current,
         {
           opacity: 0,
+          visibility: 'hidden',
           filter: 'blur(20px)',
           y: -24,
           duration: 0.06,

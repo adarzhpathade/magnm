@@ -26,6 +26,7 @@ import { useMobileTimeline } from './experience/use-mobile-timeline';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
+  ScrollTrigger.config({ ignoreMobileResize: true });
 }
 
 // Loader camera settings
@@ -122,6 +123,13 @@ export default function MainExperience() {
   // while the hero text reveals with the signature partial blur effect.
   useEffect(() => {
     if (loaderDoneRef.current) return;
+
+    if (typeof window !== 'undefined') {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+    }
 
     // Lock scroll during loader
     document.documentElement.style.overflow = 'hidden';
@@ -301,7 +309,7 @@ export default function MainExperience() {
 
   return (
     <SmoothScroll>
-      <div ref={mainContainerRef} className="relative w-full min-h-screen bg-[#000000] text-[#cccccc] overflow-x-clip lg:overflow-x-clip">
+      <div ref={mainContainerRef} className="relative w-full min-h-[100svh] lg:min-h-screen bg-[#000000] text-[#cccccc] overflow-x-clip lg:overflow-x-clip">
         {/* Global Project Modal */}
         <ProjectModal isOpen={isProjectModalOpen} source={modalSource} onClose={() => setIsProjectModalOpen(false)} />
 
@@ -398,7 +406,7 @@ export default function MainExperience() {
             {/* Section 2: Centered About Manifesto */}
             <div
               ref={aboutContainerRef}
-              className="absolute inset-0 z-25 w-full h-full pointer-events-none opacity-0 bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform"
+              className="absolute inset-0 z-25 w-full h-full pointer-events-none opacity-0 invisible bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform"
             >
               <AboutManifesto skipInternalTrigger={true} />
             </div>
@@ -407,7 +415,7 @@ export default function MainExperience() {
           {/* Mobile Scroll Spacer: track for Hero -> About wheel transition and manifesto reveal */}
           <div
             ref={mobileHeroSpacerRef}
-            className="relative w-full h-[110svh] lg:hidden pointer-events-none"
+            className="relative w-full h-[150svh] lg:hidden pointer-events-none"
             aria-hidden="true"
           />
 
@@ -429,27 +437,20 @@ export default function MainExperience() {
             className="hidden lg:block absolute inset-0 z-32 w-full h-full bg-[#ffffff] pointer-events-none opacity-0 will-change-[opacity]"
           />
 
-          {/* Section 3 (Page 3): Our Work — sticky on mobile so Section 4 slides directly on to it */}
+          {/* Section 3 (Page 3): Our Work — on mobile, flows continuously with Section 4 (Projects) */}
           <div
             id="page-3"
             ref={page3WrapperRef}
-            className="sticky top-0 lg:absolute lg:inset-0 z-35 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none overflow-hidden bg-[#cccccc] text-[#171717] opacity-100 lg:opacity-0 will-change-transform flex items-center justify-center rounded-none shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-none lg:invisible"
+            className="relative lg:absolute lg:inset-0 z-35 w-full h-auto lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none overflow-visible lg:overflow-hidden bg-[#cccccc] text-[#171717] opacity-100 lg:opacity-0 will-change-transform flex flex-col lg:flex-row items-center justify-start lg:justify-center rounded-none shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-none lg:invisible"
           >
             <OurWork ref={ourWorkHandleRef} containerRef={page3ContainerRef} />
           </div>
 
-          {/* Mobile Scroll Spacer: track for Section 3 viewing before Section 4 slides on */}
-          <div
-            ref={mobilePage3SpacerRef}
-            className="relative w-full h-[85svh] lg:hidden pointer-events-none"
-            aria-hidden="true"
-          />
-
-          {/* Section 4 (Page 4): Projects Showcase — sits at z-40 on desktop directly on top of the Footer */}
+          {/* Section 4 (Page 4): Projects Showcase — continues seamlessly below Section 3 as one continuous light stage */}
           <div
             id="page-4"
             ref={page4ContainerRef}
-            className="relative lg:absolute lg:inset-0 z-40 w-full h-auto lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-visible lg:overflow-hidden border-t border-[#171717]/10 lg:border-none shadow-[0_-14px_35px_rgba(0,0,0,0.18)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex flex-col items-center justify-center will-change-transform lg:invisible lg:translate-y-full"
+            className="relative lg:absolute lg:inset-0 z-35 lg:z-40 w-full h-auto lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-visible lg:overflow-hidden rounded-none flex flex-col items-center justify-start lg:justify-center will-change-transform lg:invisible lg:translate-y-full lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)]"
           >
             <Projects ref={projectsHandleRef} triggerReveal={triggerProjectsReveal} />
           </div>
@@ -462,11 +463,11 @@ export default function MainExperience() {
           />
 
           {/* Section 5: Footer Wrapper (Fixed at bottom on mobile for parallax curtain reveal; absolute on desktop) */}
-          <div className="fixed bottom-0 left-0 lg:static z-10 w-full h-[100svh] lg:h-auto">
+          <div className="fixed bottom-0 left-0 lg:static z-30 w-full h-[100svh] lg:h-auto pointer-events-none">
             {/* Section 5a: Footer Background */}
             <div
               id="page-footer-bg"
-              className="absolute inset-0 z-0 lg:z-36 w-full h-full pointer-events-none bg-[#000000] invisible"
+              className="absolute inset-0 z-0 lg:z-36 w-full h-full pointer-events-none bg-[#000000] invisible hidden"
               aria-hidden="true"
             />
 
@@ -474,7 +475,7 @@ export default function MainExperience() {
             <div
               id="page-footer"
               ref={footerWrapperRef}
-              className="absolute inset-0 z-10 lg:z-38 w-full h-full pointer-events-auto overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform invisible"
+              className="absolute inset-0 z-10 lg:z-38 w-full h-full pointer-events-none overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform invisible hidden"
             >
               <Footer
                 ref={footerRef}

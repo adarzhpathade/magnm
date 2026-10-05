@@ -76,6 +76,7 @@ export function useMobileTimeline(
     if (refs.aboutContainer.current) {
       gsap.set(refs.aboutContainer.current, { clearProps: 'all' });
       refs.aboutContainer.current.style.opacity = '0';
+      refs.aboutContainer.current.style.visibility = 'hidden';
       refs.aboutContainer.current.style.pointerEvents = 'none';
     }
 
@@ -121,11 +122,16 @@ export function useMobileTimeline(
     }
     if (refs.footerWrapper?.current) {
       gsap.set(refs.footerWrapper.current, { clearProps: 'all' });
-      // Keep footer hidden initially on mobile so the 3D Helix WebGL scene does not run in background during Sections 1-4
+      // Keep footer strictly hidden and unrendered initially on mobile so the 3D Helix WebGL scene never bleeds into Sections 1-4
       refs.footerWrapper.current.style.visibility = 'hidden';
+      refs.footerWrapper.current.style.display = 'none';
       refs.footerWrapper.current.style.pointerEvents = 'none';
     }
-    gsap.set('#page-footer-bg', { visibility: 'hidden' });
+    const initFooterBg = document.getElementById('page-footer-bg');
+    if (initFooterBg) {
+      initFooterBg.style.visibility = 'hidden';
+      initFooterBg.style.display = 'none';
+    }
     if (refs.footerMagnm?.current) {
       gsap.set(refs.footerMagnm.current, { clearProps: 'all' });
       refs.footerMagnm.current.style.opacity = '1';
@@ -144,17 +150,17 @@ export function useMobileTimeline(
       scrollTrigger: {
         trigger: refs.pinnedStage.current,
         start: 'top top',
-        end: () => `+=${window.innerHeight * 1.1}px`,
+        end: () => `+=${window.innerHeight * 1.5}px`,
         scrub: 0.35,
         onUpdate: (self) => {
           chimeSynth.notifyScroll();
           const p = self.progress;
 
           if (refs.cameraController.current) {
-            refs.cameraController.current.interactive = p <= 0.2;
+            refs.cameraController.current.interactive = p <= 0.15;
           }
           if (refs.navActions.current) {
-            refs.navActions.current.style.pointerEvents = p >= 0.25 ? 'auto' : 'none';
+            refs.navActions.current.style.pointerEvents = p >= 0.22 ? 'auto' : 'none';
           }
           if (p >= 0.20) {
             if (refs.heroBottom.current) {
@@ -168,14 +174,14 @@ export function useMobileTimeline(
             }
           }
           if (refs.heroContainer.current && refs.aboutContainer.current) {
-            refs.heroContainer.current.style.pointerEvents = p < 0.4 ? 'auto' : 'none';
-            refs.aboutContainer.current.style.pointerEvents = p >= 0.4 ? 'auto' : 'none';
+            refs.heroContainer.current.style.pointerEvents = p < 0.35 ? 'auto' : 'none';
+            refs.aboutContainer.current.style.pointerEvents = p >= 0.35 ? 'auto' : 'none';
           }
         },
       },
     });
 
-    // 1. On mobile: Huge "MAGNM" blurs and fades out (0.0 -> 0.22)
+    // 1. On mobile: Huge "MAGNM" blurs and fades out smoothly (0.0 -> 0.20)
     // leaving ONLY the enlarged logo in the navbar on mobile
     if (refs.heroMagnm.current) {
       mobileTl.to(
@@ -184,22 +190,22 @@ export function useMobileTimeline(
           opacity: 0,
           filter: 'blur(12px)',
           y: -14,
-          duration: 0.22,
+          duration: 0.20,
           ease: 'power1.out',
         },
         0
       );
     }
 
-    // Logo fades in cleanly into the navbar (0.06 -> 0.20)
+    // Logo fades in cleanly into the navbar (0.04 -> 0.18)
     mobileTl.fromTo(
       '.nav-logo-container',
       { opacity: 0 },
-      { opacity: 1, duration: 0.16, ease: 'power1.out' },
-      0.06
+      { opacity: 1, duration: 0.14, ease: 'power1.out' },
+      0.04
     );
 
-    // 2. Hero secondary items wipe out with optical blur (0.0 -> 0.25)
+    // 2. Hero secondary items wipe out with optical blur (0.0 -> 0.20)
     const allLeaveItems = refs.heroSection.current?.querySelectorAll('.leave-blur-item');
     const leaveItems = allLeaveItems
       ? Array.from(allLeaveItems).filter((el) => !el.closest('button'))
@@ -211,10 +217,10 @@ export function useMobileTimeline(
           filter: 'blur(16px)',
           opacity: 0,
           stagger: {
-            amount: 0.08,
+            amount: 0.06,
             from: 'random',
           },
-          duration: 0.25,
+          duration: 0.20,
           ease: 'power1.out',
         },
         0
@@ -241,7 +247,7 @@ export function useMobileTimeline(
       );
     }
 
-    // 3. 3D Wheel rotates from hero tilt into upright vertical circle in center (0.0 -> 0.55)
+    // 3. 3D Wheel rotates from hero tilt into upright vertical circle in center (0.0 -> 0.48)
     mobileTl.to(
       mobileCameraObj,
       {
@@ -250,7 +256,7 @@ export function useMobileTimeline(
         scale: baseMobileScale * 0.74,
         opacity: 0.42,
         ease: 'power2.inOut',
-        duration: 0.55,
+        duration: 0.48,
         onUpdate: () => {
           if (refs.cameraController.current) {
             refs.cameraController.current.tilt = mobileCameraObj.tilt;
@@ -265,27 +271,27 @@ export function useMobileTimeline(
       0
     );
 
-    // 4. Section 2 Manifesto fades in (0.25 -> 0.55)
+    // 4. Section 2 Manifesto fades in with depth (0.20 -> 0.45)
     if (refs.aboutContainer.current) {
       mobileTl.fromTo(
         refs.aboutContainer.current,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, ease: 'power2.out', duration: 0.30 },
-        0.25
+        { opacity: 0, visibility: 'hidden', y: 16 },
+        { opacity: 1, visibility: 'visible', y: 0, ease: 'power2.out', duration: 0.25 },
+        0.20
       );
     }
 
-    // Navbar action button fades in as Hero section exits into Section 2 (0.25 -> 0.45)
+    // Navbar action button fades in as Hero section exits into Section 2 (0.20 -> 0.38)
     if (refs.navActions.current) {
       mobileTl.fromTo(
         refs.navActions.current,
         { opacity: 0 },
-        { opacity: 1, ease: 'power2.out', duration: 0.20 },
-        0.25
+        { opacity: 1, ease: 'power2.out', duration: 0.18 },
+        0.20
       );
     }
 
-    // 5. Manifesto words illuminate progressively across the 3D wheel (0.35 -> 0.85)
+    // 5. Manifesto words illuminate progressively across the 3D wheel (0.32 -> 0.85)
     if (words && words.length > 0) {
       mobileTl.to(
         words,
@@ -293,14 +299,12 @@ export function useMobileTimeline(
           opacity: 1,
           filter: 'blur(0px)',
           stagger: 0.015,
-          duration: 0.50,
+          duration: 0.53,
           ease: 'power1.out',
         },
-        0.35
+        0.32
       );
     }
-
-
 
     // Section 3 slides ON TO Page 2:
     // As Section 3's top moves from bottom of viewport to top of viewport,
@@ -310,7 +314,7 @@ export function useMobileTimeline(
         trigger: refs.page3Wrapper.current,
         start: 'top bottom',
         end: 'top top',
-        scrub: true,
+        scrub: 0.35,
         onUpdate: (self) => {
           if (refs.heroAboutStage.current) {
             // When Section 3 has fully covered Page 2, hide heroAboutStage to free GPU
@@ -327,36 +331,21 @@ export function useMobileTimeline(
         {
           scale: 0.94,
           opacity: 0.35,
-          ease: 'none',
+          ease: 'power1.out',
         },
         0
       );
     }
 
-    // Section 4 slides ON TO Page 3:
-    // Page 3 stays completely solid, static, and crisp while Section 4 smoothly slides over it
-    const slideOnP4Tl = gsap.timeline({
-      scrollTrigger: {
+    // Section 4 (Recent Work) flows naturally below Section 3 (Services) on mobile
+    if (refs.page4Container?.current && refs.onProjectsRevealChange) {
+      ScrollTrigger.create({
         trigger: refs.page4Container.current,
-        start: 'top bottom',
-        end: 'top top',
-        scrub: 0.35,
-        onUpdate: (self) => {
-          if (refs.page3Wrapper.current) {
-            // When Section 4 has fully covered Page 3, hide page3Wrapper to free GPU
-            refs.page3Wrapper.current.style.visibility =
-              self.progress >= 0.99 ? 'hidden' : 'visible';
-          }
-          if (refs.onProjectsRevealChange) {
-            const shouldReveal =
-              self.direction === -1
-                ? self.progress >= 0.72
-                : self.progress >= 0.65;
-            refs.onProjectsRevealChange(shouldReveal);
-          }
-        },
-      },
-    });
+        start: 'top 80%',
+        onEnter: () => refs.onProjectsRevealChange?.(true),
+        onLeaveBack: () => refs.onProjectsRevealChange?.(false),
+      });
+    }
 
     // Navbar dynamic color updater when scrolling through Section 3 & 4 (RAF-batched to avoid layout thrashing)
     let navRafId: number | null = null;
@@ -384,6 +373,13 @@ export function useMobileTimeline(
         if (logoDark) {
           logoDark.style.opacity = isLightBg ? '1' : '0';
         }
+        
+        // Update Mobile Taskbar (Theme Color) dynamically based on section
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute('content', isLightBg ? '#cccccc' : '#0c0c0c');
+        }
+
         if (refs.navActions.current) {
           const actionBtn = refs.navActions.current.querySelector('.nav-action-btn') as HTMLElement | null;
           if (actionBtn) {
@@ -424,11 +420,13 @@ export function useMobileTimeline(
             const isRevealed = self.progress >= 0.02;
             if (refs.footerWrapper?.current) {
               refs.footerWrapper.current.style.visibility = isRevealed ? 'visible' : 'hidden';
+              refs.footerWrapper.current.style.display = isRevealed ? 'flex' : 'none';
               refs.footerWrapper.current.style.pointerEvents = isRevealed ? 'auto' : 'none';
             }
             const footerBg = document.getElementById('page-footer-bg');
             if (footerBg) {
               footerBg.style.visibility = isRevealed ? 'visible' : 'hidden';
+              footerBg.style.display = isRevealed ? 'block' : 'none';
             }
             if (refs.onFooterRevealChange) {
               refs.onFooterRevealChange(self.progress >= 0.05);

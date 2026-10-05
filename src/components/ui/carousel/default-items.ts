@@ -8,7 +8,7 @@ export const liquidGlassCarouselDefaultItems: LiquidGlassCarouselItem[] = [
   {
     title: "Cero Terminal",
     desc: "We have created the official command interface and digital experience for Cero Terminal, showcasing high-density telemetry and open-source systems.",
-    liveUrl: "https://sentinal-ruby.vercel.app/",
+    liveUrl: "https://cero-magnm.vercel.app/",
     src: "/mockup/CERO Cross-Platform Download Studio.webp",
     aspect: HORIZONTAL_ASPECT,
   },
@@ -29,7 +29,7 @@ export const liquidGlassCarouselDefaultItems: LiquidGlassCarouselItem[] = [
   {
     title: "Cero Terminal",
     desc: "We have created the official command interface and digital experience for Cero Terminal, showcasing high-density telemetry and open-source systems.",
-    liveUrl: "https://sentinal-ruby.vercel.app/",
+    liveUrl: "https://cero-magnm.vercel.app/",
     src: "/mockup/CERO Cross-Platform Download Studio.webp",
     aspect: HORIZONTAL_ASPECT,
   },

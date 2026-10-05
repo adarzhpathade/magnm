@@ -209,6 +209,13 @@ export default function RootLayout({
         geist.variable
       )}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('scrollRestoration' in history){history.scrollRestoration='manual';}window.scrollTo(0,0);`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-[#0c0c0c] text-[#cccccc] font-sans selection:bg-[#4d4d4d] selection:text-white">
         <script
           type="application/ld+json"

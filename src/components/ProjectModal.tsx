@@ -375,8 +375,14 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
                   </button>
                 </div>
 
-                <div className="text-center text-[0.85rem] text-gray-500 group-data-[theme=dark]/modal:text-[#a3a3a3]">
-                  Prefer email? <a href="mailto:adarshpathade79@gmail.com" className="text-[#171717] hover:text-black group-data-[theme=dark]/modal:text-white hover:underline group-data-[theme=dark]/modal:hover:text-[#ccc] transition-colors">adarshpathade79@gmail.com</a>
+                <div className="text-center text-[0.85rem] text-gray-500 group-data-[theme=dark]/modal:text-[#a3a3a3] flex flex-col items-center gap-0.5">
+                  <span>Prefer email?</span>
+                  <a
+                    href="mailto:adarshpathade79@gmail.com"
+                    className="text-[#171717] hover:text-black group-data-[theme=dark]/modal:text-white hover:underline group-data-[theme=dark]/modal:hover:text-[#ccc] transition-colors"
+                  >
+                    adarshpathade79@gmail.com
+                  </a>
                 </div>
               </div>
             </div>

@@ -25,7 +25,7 @@ export const PROJECTS: ProjectItem[] = [
     id: 'cero-terminal',
     title: 'Cero Terminal',
     src: '/mockup/CERO Cross-Platform Download Studio.webp',
-    liveUrl: 'https://sentinal-ruby.vercel.app/',
+    liveUrl: 'https://cero-magnm.vercel.app/',
     alt: 'Cero Terminal Digital Experience',
   },
   {
@@ -150,10 +150,10 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
         ref={containerRef}
         id="page-4-content"
         aria-label="Projects Section"
-        className={`relative w-full h-auto lg:h-full lg:min-h-screen bg-[#cccccc] overflow-visible lg:overflow-hidden select-none flex flex-col items-center justify-center pt-8 sm:pt-12 pb-24 sm:pb-28 lg:py-24 px-5 sm:px-10 md:px-14 lg:px-8 ${className}`}
+        className={`relative w-full h-auto lg:h-full lg:min-h-screen bg-[#cccccc] overflow-visible lg:overflow-hidden select-none flex flex-col items-center justify-center pt-0 sm:pt-4 pb-24 sm:pb-28 lg:py-24 px-5 sm:px-10 md:px-14 lg:px-8 ${className}`}
       >
         {/* ===================== RECENT WORK HEADING BLOCK ===================== */}
-        <div className="page4-heading-block w-full max-w-md lg:max-w-5xl mx-auto flex flex-col items-start text-left lg:items-center lg:text-center pt-20 sm:pt-24 lg:pt-0 mb-8 sm:mb-10 lg:mb-0 gap-0 lg:gap-6 will-change-[filter,opacity,transform] shrink-0">
+        <div className="page4-heading-block w-full max-w-md lg:max-w-5xl mx-auto flex flex-col items-start text-left lg:items-center lg:text-center pt-8 sm:pt-12 lg:pt-0 mb-8 sm:mb-10 lg:mb-0 gap-0 lg:gap-6 will-change-[filter,opacity,transform] shrink-0">
           {/* Mobile View: Crisp, instant, solid typography (NO partial blur incoming effect) */}
           <div className="flex lg:hidden flex-col items-start text-left w-full">
             <h2
