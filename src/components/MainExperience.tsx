@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -14,8 +14,10 @@ import Counter from './Counter';
 import ParallaxStripTransition from './ParallaxStripTransition';
 import OurWork, { type OurWorkHandle } from './OurWork';
 import Projects, { type ProjectsHandle } from './Projects';
-import ProjectModal from './ProjectModal';
-import AboutModal from './AboutModal';
+import dynamic from 'next/dynamic';
+
+const ProjectModal = dynamic(() => import('./ProjectModal'), { ssr: false });
+const AboutModal = dynamic(() => import('./AboutModal'), { ssr: false });
 import Footer from './Footer';
 
 import { useResponsiveWheel } from './experience/use-responsive-wheel';
@@ -26,13 +28,19 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
+// Loader camera settings
+const LOADER_CAMERA = { tilt: 90, sideTilt: 0, scale: 28 };
+const HERO_CAMERA = { tilt: 36, sideTilt: -35 };
+
 export default function MainExperience() {
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
-  // Preloader state (temporarily disabled)
-  const [isLoaded, setIsLoaded] = useState(true);
-  const [loadProgress, setLoadProgress] = useState(100);
-  const [triggerHeroReveal, setTriggerHeroReveal] = useState(true);
+  // Preloader state
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [isCounterFaded, setIsCounterFaded] = useState(false);
+  const [triggerHeroReveal, setTriggerHeroReveal] = useState(false);
+  const [counterVisible, setCounterVisible] = useState(true);
   const [triggerFooterReveal, setTriggerFooterReveal] = useState(false);
   const footerRevealedRef = useRef(false);
 
@@ -99,13 +107,120 @@ export default function MainExperience() {
   // Persistent 3D Wheel refs and controllers
   const wheelWrapperRef = useRef<HTMLDivElement>(null);
   const cameraControllerRef = useRef<{ tilt: number; sideTilt: number; scale?: number; interactive?: boolean }>({
-    tilt: 36,
-    sideTilt: -35,
-    scale: 90,
-    interactive: true,
+    tilt: LOADER_CAMERA.tilt,
+    sideTilt: LOADER_CAMERA.sideTilt,
+    scale: LOADER_CAMERA.scale,
+    interactive: false,
   });
+  const loaderDoneRef = useRef(false);
 
-  const { wheelScale } = useResponsiveWheel();
+  const { wheelScale, isDesktop } = useResponsiveWheel();
+
+  // ── Loader Entrance Animation ──
+  // The 3D wheel starts small with top-down camera (tilt:90, sideTilt:0, scale:28)
+  // and smoothly transitions to the hero perspective (tilt:36, sideTilt:-35, scale:targetScale)
+  // while the hero text reveals with the signature partial blur effect.
+  useEffect(() => {
+    if (loaderDoneRef.current) return;
+
+    // Lock scroll during loader
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    const targetScale = isDesktop ? 90 : (window.innerWidth < 640 ? 54 : 70);
+
+    // Ensure camera controller starts at exact loader state
+    if (cameraControllerRef.current) {
+      cameraControllerRef.current.tilt = LOADER_CAMERA.tilt;
+      cameraControllerRef.current.sideTilt = LOADER_CAMERA.sideTilt;
+      cameraControllerRef.current.scale = LOADER_CAMERA.scale;
+      cameraControllerRef.current.interactive = false;
+    }
+
+    const ctx = gsap.context(() => {
+      // 1. Progress counter animation 0 → 100
+      const progressObj = { value: 0 };
+      gsap.to(progressObj, {
+        value: 100,
+        duration: 0.95,
+        ease: 'power2.inOut',
+        onUpdate: () => setLoadProgress(Math.round(progressObj.value)),
+        onComplete: () => {
+          // Immediately fade out the counter as soon as it reaches 100
+          setIsCounterFaded(true);
+          setTimeout(() => {
+            setCounterVisible(false);
+          }, 320);
+        },
+      });
+
+      // 2. Camera proxy for smooth 3D transition from loader to hero perspective
+      const initDelay = 0.35;
+      const cameraProxy = {
+        tilt: LOADER_CAMERA.tilt,
+        sideTilt: LOADER_CAMERA.sideTilt,
+        scale: LOADER_CAMERA.scale,
+      };
+
+      gsap.to(cameraProxy, {
+        tilt: HERO_CAMERA.tilt,
+        sideTilt: HERO_CAMERA.sideTilt,
+        scale: targetScale,
+        duration: 1.25,
+        delay: initDelay,
+        ease: 'power3.inOut',
+        onUpdate: () => {
+          if (cameraControllerRef.current) {
+            cameraControllerRef.current.tilt = cameraProxy.tilt;
+            cameraControllerRef.current.sideTilt = cameraProxy.sideTilt;
+            cameraControllerRef.current.scale = cameraProxy.scale;
+          }
+        },
+        onComplete: () => {
+          if (cameraControllerRef.current) {
+            cameraControllerRef.current.tilt = HERO_CAMERA.tilt;
+            cameraControllerRef.current.sideTilt = HERO_CAMERA.sideTilt;
+            cameraControllerRef.current.scale = targetScale;
+            cameraControllerRef.current.interactive = true;
+          }
+        },
+      });
+
+      // 3. Desktop wheelWrapper Y translation transition (from 0 to 36px)
+      if (isDesktop && wheelWrapperRef.current) {
+        gsap.to(wheelWrapperRef.current, {
+          y: 36,
+          duration: 1.25,
+          delay: initDelay,
+          ease: 'power3.inOut',
+        });
+      }
+    });
+
+    // 4. Trigger hero text reveal smoothly as camera transitions (~700ms)
+    const revealTimer = setTimeout(() => {
+      setTriggerHeroReveal(true);
+    }, 700);
+
+    // 5. Mark loading complete, unlock scroll, and enable interactions (~1550ms)
+    const completeTimer = setTimeout(() => {
+      setIsLoaded(true);
+      loaderDoneRef.current = true;
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      ScrollTrigger.refresh();
+    }, 1550);
+
+    return () => {
+      if (!loaderDoneRef.current) {
+        ctx.revert();
+        clearTimeout(revealTimer);
+        clearTimeout(completeTimer);
+      }
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, [isDesktop]);
 
   useGSAP(
     () => {
@@ -143,6 +258,7 @@ export default function MainExperience() {
           navbarHeader: navbarHeaderRef,
           onFooterRevealChange: handleFooterRevealChange,
           onProjectsRevealChange: handleProjectsRevealChange,
+          skipInitialCamera: true,
         },
         mm
       );
@@ -173,6 +289,7 @@ export default function MainExperience() {
           navbarHeader: navbarHeaderRef,
           onFooterRevealChange: handleFooterRevealChange,
           onProjectsRevealChange: handleProjectsRevealChange,
+          skipInitialCamera: true,
         },
         mm
       );
@@ -188,30 +305,32 @@ export default function MainExperience() {
         {/* Global Project Modal */}
         <ProjectModal isOpen={isProjectModalOpen} source={modalSource} onClose={() => setIsProjectModalOpen(false)} />
 
-        {/* Preloader Number (Positioned directly below the 20% centered wheel) */}
-        {!isLoaded && (
+        {/* Preloader Counter (Positioned at the bottom center of the screen) */}
+        {counterVisible && (
           <div
             ref={counterWrapperRef}
-            className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none select-none transition-opacity duration-300"
+            className="fixed inset-x-0 bottom-8 sm:bottom-10 md:bottom-12 z-30 flex items-center justify-center pointer-events-none select-none transition-opacity duration-300 ease-out"
+            style={{
+              opacity: isCounterFaded ? 0 : 1,
+            }}
           >
-            <div className="translate-y-[76px] sm:translate-y-[84px] font-['Martian_Mono',monospace] text-xs sm:text-sm tracking-[0.14em] text-[#cccccc] font-light tabular-nums flex items-baseline justify-center">
-              <Counter
-                value={loadProgress}
-                places={[100, 10, 1]}
-                fontSize={13}
-                padding={5}
-                gap={1}
-                textColor="#cccccc"
-                fontWeight={300}
-                gradientHeight={3}
-                gradientFrom="#000000"
-                gradientTo="transparent"
-                horizontalPadding={0}
-                containerStyle={{ display: 'inline-flex', alignItems: 'center' }}
-              />
-              <span className="text-[0.68rem] text-[#777777] font-light select-none ml-1">
-                %
-              </span>
+            <div className="flex items-center justify-center">
+              <div className="font-['Martian_Mono',monospace] text-xs sm:text-sm tracking-[0.16em] text-[#cccccc] font-light tabular-nums flex items-baseline justify-center">
+                <Counter
+                  value={loadProgress}
+                  places={[100, 10, 1]}
+                  fontSize={13}
+                  padding={5}
+                  gap={1}
+                  textColor="#cccccc"
+                  fontWeight={300}
+                  gradientHeight={3}
+                  gradientFrom="#000000"
+                  gradientTo="transparent"
+                  horizontalPadding={0}
+                  containerStyle={{ display: 'inline-flex', alignItems: 'center' }}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -267,10 +386,10 @@ export default function MainExperience() {
                   shape="wheel"
                   speed={59}
                   drag={100}
-                  scale={wheelScale}
+                  scale={LOADER_CAMERA.scale}
                   metal={{ reflect: 100, polish: 100 }}
                   hover={{ colors: ['#D8782B'], strength: 0, tint: 0, glow: 0 }}
-                  camera={{ tilt: 36, sideTilt: -35 }}
+                  camera={{ tilt: LOADER_CAMERA.tilt, sideTilt: LOADER_CAMERA.sideTilt }}
                   cameraControllerRef={cameraControllerRef}
                 />
               </div>

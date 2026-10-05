@@ -1,6 +1,6 @@
 # Memory — MAGNM Creative Studio Landing Page
 
-Last updated: 2026-10-05 08:10
+Last updated: 2026-10-05 14:42
 Repository: `https://github.com/adarzhpathade/magnm.git`
 Branch: `main`
 
@@ -645,4 +645,38 @@ export const TIMINGS = {
 - [x] Updated studio contact email to `adarshpathade79@gmail.com` across footer, modals, and JSON-LD schema.
 - [x] Updated developer credits link to `https://github.com/NetPranav`.
 - [x] Validated TypeScript compilation (`npx tsc --noEmit` -> 0 errors) and dev server stability.
+
+### Phase J: Official MAGNM Favicons, Updated Mockups, Reordered Projects & Live URL Integration (COMPLETED)
+- [x] **Official Favicon & App Icon Generation**:
+  - Extracted and centered the official metallic folded "M" emblem from `public/magnm light.png` on a transparent square canvas with optimal margin padding.
+  - Generated full multi-resolution icon suite:
+    - `src/app/icon.png` & `public/icon.png` (512×512)
+    - `src/app/apple-icon.png` & `public/apple-touch-icon.png` (180×180)
+    - `public/favicon-32x32.png` & `public/favicon-16x16.png`
+    - `src/app/favicon.ico` & `public/favicon.ico` (multi-resolution ICO with 48x48, 32x32, 16x16 mipmaps).
+  - Updated `src/app/layout.tsx` metadata with complete `icons` configuration. Verified HTTP 200 responses across all icon endpoints.
+- [x] **Project Mockup Pairings & Synchronization**:
+  - Replaced outdated mockup files with official assets in `public/mockup/`:
+    1. `CERO Cross-Platform Download Studio.webp` -> Paired with Cero Terminal
+    2. `Adarsh'26 Mockup.webp` -> Paired with Adarsh'26
+    3. `Mirach Drone Intelligence Studio Mockup.webp` -> Paired with Mirach Aerospace
+- [x] **Project Order Update**:
+  - Reordered `PROJECTS` in `src/components/Projects.tsx` and `src/components/ui/carousel/default-items.ts`:
+    1. `cero-terminal` (Cero Terminal)
+    2. `adarsh-26` (Adarsh'26)
+    3. `mirach-aerospace` (Mirach Aerospace)
+- [x] **Live Destination URLs Wired**:
+  - Cero Terminal: `https://sentinal-ruby.vercel.app/`
+  - Adarsh'26: `https://adrz-26.vercel.app/`
+  - Mirach Aerospace: `https://mirach-aerospace.vercel.app/`
+- [x] **Audio Autoplay & Interaction Architecture Documented**:
+  - Clarified browser Web Audio autoplay policy requiring initial user gesture to resume `AudioContext`.
+  - Explored options for drag / audio cues (hero bottom-right, floating glass pill, 3D wheel context hint).
+
+### Phase K: Mobile Experience Polish & Fine-Tuning (UPCOMING)
+- [ ] Review all section transitions on mobile viewports (<768px and <1024px).
+- [ ] Polish touch interactions, card swipe / scroll responsiveness on Page 4 stacked deck.
+- [ ] Verify 3D Xylophone Helix performance, scaling, and touch latency on mobile devices.
+- [ ] Ensure mobile navigation, contact drawer, and footer curtain reveal run at locked 60fps.
+
 

@@ -8,6 +8,7 @@ import { Letter3DSwap } from './ui/letter-3d-swap';
 import KineticShiftButton from './KineticShiftButton';
 
 import { AnimatePresence, motion } from 'motion/react';
+import gsap from 'gsap';
 
 const TAGLINE_LINE_1 = 'Translating bold vision';
 const TAGLINE_LINE_2_PREFIX = 'into lasting';
@@ -46,6 +47,44 @@ export default function Hero({
 }: HeroProps = {}) {
   const [wordIndex, setWordIndex] = React.useState(0);
   const [wheelScale, setWheelScale] = React.useState(90);
+
+  // Initial reveal animation for hero bottom action buttons via GSAP
+  // Runs once on triggerReveal with cinematic staggered blur-dissolve and upward glide
+  const hasRevealedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!triggerReveal || hasRevealedRef.current) return;
+    if (!heroBottomRef?.current) return;
+
+    const btns = heroBottomRef.current.querySelectorAll('.hero-reveal-btn');
+    if (btns.length === 0) return;
+
+    hasRevealedRef.current = true;
+
+    if (typeof window !== 'undefined' && window.scrollY > 50) {
+      gsap.set(btns, { opacity: 1, filter: 'blur(0px)', y: 0 });
+      return;
+    }
+
+    gsap.fromTo(
+      btns,
+      {
+        opacity: 0,
+        filter: 'blur(16px)',
+        y: 18,
+      },
+      {
+        opacity: 1,
+        filter: 'blur(0px)',
+        y: 0,
+        duration: 0.85,
+        delay: 0.22,
+        stagger: 0.12,
+        ease: 'power3.out',
+        immediateRender: true,
+      }
+    );
+  }, [triggerReveal, heroBottomRef]);
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -211,37 +250,39 @@ export default function Hero({
             />
             <span className="inline-block relative ml-[0.28em] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
               <AnimatePresence mode="wait">
-                <motion.span
-                  key={wordIndex}
-                  initial={{
-                    filter: 'blur(18px)',
-                    opacity: 0,
-                    y: 8,
-                  }}
-                  animate={{
-                    filter: ['blur(18px)', 'blur(8px)', 'blur(0px)'],
-                    opacity: [0, 0.6, 1],
-                    y: [8, 2, 0],
-                  }}
-                  exit={{
-                    filter: ['blur(0px)', 'blur(8px)', 'blur(18px)'],
-                    opacity: [1, 0.4, 0],
-                    y: [0, -2, -8],
-                  }}
-                  transition={{
-                    duration: 0.48,
-                    times: [0, 0.45, 1],
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  style={{
-                    display: 'inline-block',
-                    willChange: 'transform, filter, opacity',
-                  }}
-                >
-                  <span className="leave-blur-item inline-block will-change-[filter,opacity]">
-                    {DYNAMIC_TAGLINE_WORDS[wordIndex]}
-                  </span>
-                </motion.span>
+                {triggerReveal && (
+                  <motion.span
+                    key={wordIndex}
+                    initial={{
+                      filter: 'blur(18px)',
+                      opacity: 0,
+                      y: 8,
+                    }}
+                    animate={{
+                      filter: ['blur(18px)', 'blur(8px)', 'blur(0px)'],
+                      opacity: [0, 0.6, 1],
+                      y: [8, 2, 0],
+                    }}
+                    exit={{
+                      filter: ['blur(0px)', 'blur(8px)', 'blur(18px)'],
+                      opacity: [1, 0.4, 0],
+                      y: [0, -2, -8],
+                    }}
+                    transition={{
+                      duration: 0.48,
+                      times: [0, 0.45, 1],
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    style={{
+                      display: 'inline-block',
+                      willChange: 'transform, filter, opacity',
+                    }}
+                  >
+                    <span className="leave-blur-item inline-block will-change-[filter,opacity]">
+                      {DYNAMIC_TAGLINE_WORDS[wordIndex]}
+                    </span>
+                  </motion.span>
+                )}
               </AnimatePresence>
             </span>
           </div>
@@ -251,43 +292,45 @@ export default function Hero({
       {/* Bottom Row: Desktop Action Buttons (Left) & Mobile Contact (Left) + Light MAGNM Logo (Right) */}
       <div
         ref={heroBottomRef}
+        style={!triggerReveal ? { visibility: 'hidden', pointerEvents: 'none' } : undefined}
         className="pointer-events-auto relative z-50 w-full flex justify-between items-end pb-0.5 sm:pb-1"
       >
         {/* Desktop-only Action Buttons: Discuss Project & About Us */}
         <div className="pointer-events-auto relative z-50 hidden md:flex flex-row items-center gap-6 sm:gap-8 md:gap-10">
-          <KineticShiftButton
-            text="DISCUSS YOUR PROJECT"
-            ariaLabel="Discuss your project"
-            soundIndex={0}
-            onClick={onStartProject}
-          />
-          <KineticShiftButton
-            text="ABOUT US"
-            ariaLabel="About us"
-            soundIndex={1}
-            onClick={onAboutClick}
-          />
+          <div className="hero-reveal-btn opacity-0 filter blur-[16px] translate-y-4 will-change-[transform,filter,opacity]">
+            <KineticShiftButton
+              text="DISCUSS YOUR PROJECT"
+              ariaLabel="Discuss your project"
+              soundIndex={0}
+              onClick={onStartProject}
+            />
+          </div>
+          <div className="hero-reveal-btn opacity-0 filter blur-[16px] translate-y-4 will-change-[transform,filter,opacity]">
+            <KineticShiftButton
+              text="ABOUT US"
+              ariaLabel="About us"
+              soundIndex={1}
+              onClick={onAboutClick}
+            />
+          </div>
         </div>
 
         {/* Mobile-only Action Button on the bottom left: Contact */}
         <div className="pointer-events-auto relative z-50 flex md:hidden items-center pb-0.5">
-          <KineticShiftButton
-            text="CONTACT"
-            ariaLabel="Contact MAGNM"
-            soundIndex={0}
-            size="md"
-            onClick={onStartProject}
-          />
+          <div className="hero-reveal-btn opacity-0 filter blur-[16px] translate-y-4 will-change-[transform,filter,opacity]">
+            <KineticShiftButton
+              text="CONTACT"
+              ariaLabel="Contact MAGNM"
+              soundIndex={0}
+              size="md"
+              onClick={onStartProject}
+            />
+          </div>
         </div>
 
         {/* Mobile-only: Scaled-up Light MAGNM Logo on the bottom right */}
         <div className="pointer-events-auto relative z-50 flex md:hidden items-center justify-end pb-1">
-          <motion.div
-            initial={{ filter: 'blur(16px)', opacity: 0 }}
-            animate={triggerReveal ? { filter: 'blur(0px)', opacity: 1 } : { filter: 'blur(16px)', opacity: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="leave-blur-item relative shrink-0 flex items-center justify-end will-change-[filter,opacity]"
-          >
+          <div className="hero-reveal-btn opacity-0 filter blur-[16px] translate-y-4 will-change-[transform,filter,opacity] relative shrink-0 flex items-center justify-end">
             <Image
               src="/magnm light.png"
               alt="MAGNM Creative Studio Mobile Light Emblem"
@@ -296,7 +339,7 @@ export default function Hero({
               className="h-[38px] sm:h-[42px] w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
               priority
             />
-          </motion.div>
+          </div>
         </div>
       </div>
 

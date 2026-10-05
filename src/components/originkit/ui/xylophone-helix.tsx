@@ -45,7 +45,11 @@ type BarMesh = {
     halfLength: number
 }
 
+let cachedBarMesh: BarMesh | null = null
+
 function decodeBarMesh(): BarMesh {
+    if (cachedBarMesh) return cachedBarMesh
+
     const binary = atob(BAR_MESH_B64)
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
@@ -82,7 +86,7 @@ function decodeBarMesh(): BarMesh {
         normals[i * 3 + 2] = nz
     }
 
-    return {
+    cachedBarMesh = {
         positions,
         normals,
         indices,
@@ -91,6 +95,7 @@ function decodeBarMesh(): BarMesh {
         width: boxMax[0] - boxMin[0],
         halfLength: Math.max(Math.abs(boxMin[2]), boxMax[2]),
     }
+    return cachedBarMesh
 }
 
 const RING = {
@@ -1423,9 +1428,12 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
 
     live.current.dragTurns = (drag / 50) * DRAG_TURNS_AT_FIFTY
 
-    live.current.scaleFactor = Math.max(1, scale) / 100
-    live.current.tiltRad = (cameraResolved.tilt * Math.PI) / 180
-    live.current.rollRad = (cameraResolved.sideTilt * Math.PI) / 180
+    const initialScale = cameraControllerRef?.current?.scale !== undefined ? cameraControllerRef.current.scale : scale
+    live.current.scaleFactor = Math.max(1, initialScale) / 100
+    const initialTilt = cameraControllerRef?.current?.tilt !== undefined ? cameraControllerRef.current.tilt : cameraResolved.tilt
+    live.current.tiltRad = (initialTilt * Math.PI) / 180
+    const initialRoll = cameraControllerRef?.current?.sideTilt !== undefined ? cameraControllerRef.current.sideTilt : cameraResolved.sideTilt
+    live.current.rollRad = (initialRoll * Math.PI) / 180
     live.current.reflect = metalResolved.reflect / 100
     live.current.polish = metalResolved.polish / 100
     live.current.fluidStrength = hoverResolved.strength / 100

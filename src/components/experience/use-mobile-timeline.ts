@@ -30,6 +30,7 @@ export interface MobileTimelineRefs {
   navbarHeader?: RefObject<HTMLElement | null>;
   onFooterRevealChange?: (revealed: boolean) => void;
   onProjectsRevealChange?: (revealed: boolean) => void;
+  skipInitialCamera?: boolean;
 }
 
 export function useMobileTimeline(
@@ -39,7 +40,7 @@ export function useMobileTimeline(
   // Mobile & Tablet: < 1024px (Wheel transition between Hero and About + natural vertical flow for Pages 3 & 4)
   mm.add('(max-width: 1023px)', () => {
     const baseMobileScale = 54;
-    if (refs.cameraController.current) {
+    if (!refs.skipInitialCamera && refs.cameraController.current) {
       refs.cameraController.current.tilt = 36;
       refs.cameraController.current.sideTilt = -35;
       refs.cameraController.current.scale = baseMobileScale;
@@ -155,6 +156,17 @@ export function useMobileTimeline(
           if (refs.navActions.current) {
             refs.navActions.current.style.pointerEvents = p >= 0.25 ? 'auto' : 'none';
           }
+          if (p >= 0.20) {
+            if (refs.heroBottom.current) {
+              refs.heroBottom.current.style.visibility = 'hidden';
+              refs.heroBottom.current.style.pointerEvents = 'none';
+            }
+          } else if (p > 0.01) {
+            if (refs.heroBottom.current) {
+              refs.heroBottom.current.style.visibility = 'visible';
+              refs.heroBottom.current.style.pointerEvents = 'auto';
+            }
+          }
           if (refs.heroContainer.current && refs.aboutContainer.current) {
             refs.heroContainer.current.style.pointerEvents = p < 0.4 ? 'auto' : 'none';
             refs.aboutContainer.current.style.pointerEvents = p >= 0.4 ? 'auto' : 'none';
@@ -210,13 +222,20 @@ export function useMobileTimeline(
     }
 
     if (secondaryElements.length > 0) {
-      mobileTl.to(
+      mobileTl.fromTo(
         secondaryElements,
+        {
+          y: 0,
+          opacity: 1,
+          filter: 'blur(0px)',
+        },
         {
           y: -14,
           opacity: 0,
-          duration: 0.25,
+          filter: 'blur(10px)',
+          duration: 0.18,
           ease: 'power2.in',
+          immediateRender: false,
         },
         0
       );

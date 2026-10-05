@@ -43,6 +43,7 @@ export interface DesktopTimelineRefs {
   navbarHeader?: RefObject<HTMLElement | null>;
   onFooterRevealChange?: (revealed: boolean) => void;
   onProjectsRevealChange?: (revealed: boolean) => void;
+  skipInitialCamera?: boolean;
 }
 
 export function useDesktopTimeline(
@@ -54,8 +55,8 @@ export function useDesktopTimeline(
     const initialYOffset = 36;
 
     // 1. Initial State Setup:
-    // 3D Wheel starts directly at hero scale and position
-    if (refs.cameraController.current) {
+    // Skip camera init if the loader is managing it
+    if (!refs.skipInitialCamera && refs.cameraController.current) {
       refs.cameraController.current.tilt = 36;
       refs.cameraController.current.sideTilt = -35;
       refs.cameraController.current.scale = baseScale;
@@ -64,7 +65,9 @@ export function useDesktopTimeline(
 
     if (refs.wheelWrapper.current) {
       refs.wheelWrapper.current.style.opacity = '1';
-      refs.wheelWrapper.current.style.transform = `translateY(${initialYOffset}px)`;
+      if (!refs.skipInitialCamera) {
+        refs.wheelWrapper.current.style.transform = `translateY(${initialYOffset}px)`;
+      }
     }
 
     if (refs.heroContainer.current) {
@@ -201,13 +204,13 @@ export function useDesktopTimeline(
               const clamped = Math.max(0, Math.min(5, nearestIdx));
               return sStart + clamped * step;
             }
-            // Snap points for the 4 project cards in Phase 8b
+            // Snap points for the 3 project cards in Phase 8b
             const pStart = TIMINGS.projectsScroll.start;
             const pEnd = TIMINGS.projectsScroll.end;
             if (progress >= pStart - 0.015 && progress <= pEnd + 0.015) {
-              const step = (pEnd - pStart) / 3; // 4 cards, 3 intervals
+              const step = (pEnd - pStart) / 2; // 3 cards, 2 intervals
               const nearestCard = Math.round((progress - pStart) / step);
-              const clampedCard = Math.max(0, Math.min(3, nearestCard));
+              const clampedCard = Math.max(0, Math.min(2, nearestCard));
               return pStart + clampedCard * step;
             }
             // Snap to Footer
@@ -230,6 +233,36 @@ export function useDesktopTimeline(
           if (refs.navActions.current) {
             refs.navActions.current.style.pointerEvents = progress > 0.16 ? 'auto' : 'none';
           }
+
+          // Strictly lock out Hero secondary elements (buttons, tagline, emblem) as soon as user scrolls past Hero
+          if (progress > 0.07) {
+            if (refs.heroBottom.current) {
+              refs.heroBottom.current.style.visibility = 'hidden';
+              refs.heroBottom.current.style.pointerEvents = 'none';
+            }
+            if (refs.heroTagline.current) {
+              refs.heroTagline.current.style.visibility = 'hidden';
+              refs.heroTagline.current.style.pointerEvents = 'none';
+            }
+            if (refs.heroEmblem.current) {
+              refs.heroEmblem.current.style.visibility = 'hidden';
+              refs.heroEmblem.current.style.pointerEvents = 'none';
+            }
+          } else if (progress > 0.001) {
+            if (refs.heroBottom.current) {
+              refs.heroBottom.current.style.visibility = 'visible';
+              refs.heroBottom.current.style.pointerEvents = 'auto';
+            }
+            if (refs.heroTagline.current) {
+              refs.heroTagline.current.style.visibility = 'visible';
+              refs.heroTagline.current.style.pointerEvents = 'auto';
+            }
+            if (refs.heroEmblem.current) {
+              refs.heroEmblem.current.style.visibility = 'visible';
+              refs.heroEmblem.current.style.pointerEvents = 'auto';
+            }
+          }
+
           if (refs.heroContainer.current && refs.aboutContainer.current) {
             if (progress > 0.12 && progress < 0.35) {
               if (refs.aboutContainer.current.style.pointerEvents !== 'auto') {
@@ -237,7 +270,7 @@ export function useDesktopTimeline(
               }
               refs.heroContainer.current.style.pointerEvents = 'none';
               refs.aboutContainer.current.style.pointerEvents = 'auto';
-            } else if (progress <= 0.12) {
+            } else if (progress <= 0.08) {
               if (refs.heroContainer.current.style.pointerEvents !== 'auto') {
                 chimeSynth.suppressHover(600);
               }
@@ -421,23 +454,22 @@ export function useDesktopTimeline(
     ].filter(Boolean);
 
     if (secondaryHeroElements.length > 0) {
-      scrollTl.to(
+      scrollTl.fromTo(
         secondaryHeroElements,
+        {
+          y: 0,
+          opacity: 1,
+          filter: 'blur(0px)',
+        },
         {
           y: -14,
-          ease: 'power2.in',
-          duration: 0.10,
+          opacity: 0,
+          filter: 'blur(10px)',
+          duration: 0.06,
+          ease: 'power1.out',
+          immediateRender: false,
         },
         0
-      );
-      scrollTl.to(
-        secondaryHeroElements,
-        {
-          opacity: 0,
-          duration: 0.02,
-          ease: 'none',
-        },
-        0.10
       );
     }
 
@@ -799,12 +831,12 @@ export function useDesktopTimeline(
       );
     }
 
-    // Phase 8b: Projects Showcase — 4 Stacked Covers peel downwards with scroll (0.80 -> 0.93)
+    // Phase 8b: Projects Showcase — 3 Stacked Covers peel downwards with scroll (0.80 -> 0.93)
     const projectsScrollObj = { progress: 0 };
     scrollTl.to(
       projectsScrollObj,
       {
-        progress: 3,
+        progress: 2,
         ease: 'none',
         duration: TIMINGS.projectsScroll.duration,
         onUpdate: () => {

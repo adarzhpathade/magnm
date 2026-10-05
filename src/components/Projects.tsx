@@ -22,32 +22,25 @@ export interface ProjectItem {
 
 export const PROJECTS: ProjectItem[] = [
   {
-    id: 'adarsh-26',
-    title: "Adarsh'26",
-    src: '/adarsh-26.webp',
-    liveUrl: 'https://adrz-26.vercel.app',
-    alt: "Adarsh'26 Portfolio Showcase",
+    id: 'cero-terminal',
+    title: 'Cero Terminal',
+    src: '/mockup/CERO Cross-Platform Download Studio.webp',
+    liveUrl: 'https://sentinal-ruby.vercel.app/',
+    alt: 'Cero Terminal Digital Experience',
   },
   {
-    id: 'sentinel',
-    title: 'Sentinel',
+    id: 'adarsh-26',
+    title: "Adarsh'26",
     src: "/mockup/Adarsh'26 Mockup.webp",
-    liveUrl: 'https://github.com/adarzhpathade/sentinal-landing-page',
-    alt: 'Sentinel Digital Experience',
+    liveUrl: 'https://adrz-26.vercel.app/',
+    alt: "Adarsh'26 Portfolio Showcase",
   },
   {
     id: 'mirach-aerospace',
     title: 'Mirach Aerospace',
-    src: '/mockup/mirach-cover.webp',
-    liveUrl: 'https://www.mirachaerospace.com',
+    src: '/mockup/Mirach Drone Intelligence Studio Mockup.webp',
+    liveUrl: 'https://mirach-aerospace.vercel.app/',
     alt: 'Mirach Aerospace Defence Deep-Tech',
-  },
-  {
-    id: 'sentinel-terminal',
-    title: 'Sentinel Terminal',
-    src: '/mockup/sentinel-mockup (1).webp',
-    liveUrl: 'https://github.com/adarzhpathade/sentinal-landing-page',
-    alt: 'Sentinel Terminal Command System',
   },
 ];
 
@@ -78,10 +71,11 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
     }, [triggerProp]);
 
     const setScrollProgress = useCallback((progress: number) => {
-      const clamped = Math.max(0, Math.min(3, progress));
+      const maxIdx = PROJECTS.length - 1;
+      const clamped = Math.max(0, Math.min(maxIdx, progress));
 
-      // Calculate which card is active (0, 1, 2, or 3) with symmetric round threshold
-      const targetIdx = Math.min(3, Math.max(0, Math.round(clamped)));
+      // Calculate which card is active (0 to maxIdx) with symmetric round threshold
+      const targetIdx = Math.min(maxIdx, Math.max(0, Math.round(clamped)));
       if (targetIdx !== activeIndexRef.current) {
         activeIndexRef.current = targetIdx;
         setActiveIndex(targetIdx);
@@ -305,6 +299,8 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
                     src={proj.src}
                     alt={proj.alt}
                     draggable={false}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover select-none pointer-events-none filter grayscale-[35%] contrast-[1.03] transition-[filter] duration-500 hover:grayscale-0 rounded-none border-none shadow-none"
                   />
                 </div>

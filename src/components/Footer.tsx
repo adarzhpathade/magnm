@@ -103,6 +103,41 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
       cameraControllerRef.current.interactive = isMobile || Boolean(triggerProp || triggerProp === undefined);
     }, [cameraSettings, triggerProp, isMobile]);
 
+    const [shouldMountHelix, setShouldMountHelix] = useState(false);
+
+    useEffect(() => {
+      if (shouldMountHelix) return;
+
+      // 1. If footer is revealed by scroll trigger, mount immediately
+      if (triggerProp) {
+        setShouldMountHelix(true);
+        return;
+      }
+
+      // 2. If user begins scrolling down
+      const handleScroll = () => {
+        if (window.scrollY > 80) {
+          setShouldMountHelix(true);
+          window.removeEventListener('scroll', handleScroll);
+        }
+      };
+      window.addEventListener('scroll', handleScroll, { passive: true });
+
+      // 3. Defer background initialization until browser is idle after initial hero loader
+      const idleTimer = setTimeout(() => {
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => setShouldMountHelix(true), { timeout: 2000 });
+        } else {
+          setShouldMountHelix(true);
+        }
+      }, 2500);
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+        clearTimeout(idleTimer);
+      };
+    }, [triggerProp, shouldMountHelix]);
+
     return (
       <footer
         ref={ref}
@@ -116,23 +151,25 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
         <div
           className={cn(
             'absolute inset-0 z-20 w-full h-full flex items-center justify-center -translate-y-2 sm:-translate-y-4 md:translate-y-0 translate-x-2 sm:translate-x-8 md:translate-x-16 lg:translate-x-24 transition-opacity duration-300',
-            isInteractive ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'
+            isInteractive && shouldMountHelix ? 'pointer-events-auto opacity-100 visible' : 'pointer-events-none opacity-0 invisible'
           )}
         >
-          <XylophoneHelix
-            soundMode="vibraphone"
-            background="transparent"
-            baseColor="#171717"
-            bars={barsCount}
-            shape="helix"
-            speed={helixSpeed}
-            drag={100}
-            scale={helixScale}
-            metal={{ reflect: 90, polish: 100 }}
-            hover={{ colors: ['#cccccc'], strength: 0, tint: 0, glow: 0 }}
-            camera={cameraSettings}
-            cameraControllerRef={cameraControllerRef}
-          />
+          {shouldMountHelix && (
+            <XylophoneHelix
+              soundMode="vibraphone"
+              background="transparent"
+              baseColor="#171717"
+              bars={barsCount}
+              shape="helix"
+              speed={helixSpeed}
+              drag={100}
+              scale={helixScale}
+              metal={{ reflect: 90, polish: 100 }}
+              hover={{ colors: ['#cccccc'], strength: 0, tint: 0, glow: 0 }}
+              camera={cameraSettings}
+              cameraControllerRef={cameraControllerRef}
+            />
+          )}
         </div>
 
         {/* Foreground Content: Layout matches Hero precisely (header sits at z-10 behind helix; bottom row sits at z-30 above helix) */}

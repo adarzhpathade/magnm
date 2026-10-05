@@ -56,29 +56,35 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
       let isDark = source === 'footer' || source === 'hero';
 
       if (!isDark) {
-        // Check if footer element is currently visible in viewport
-        const footerEl = document.getElementById('page-footer') || document.querySelector('footer');
+        // Check if footer element is ACTUALLY visible and active in viewport
+        const footerEl = document.getElementById('page-footer');
         if (footerEl) {
-          const rect = footerEl.getBoundingClientRect();
-          if (rect.top <= window.innerHeight * 0.7 && rect.bottom > 0) {
+          const cs = window.getComputedStyle(footerEl);
+          if (cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0.3) {
             isDark = true;
           }
         }
       }
 
       if (!isDark) {
-        // Determine theme based on the Navbar's logo opacity (if logo is dark, page is light)
+        // Check if Navbar is in dark-elements mode (meaning current section has light background)
         const navLogoDark = document.querySelector('.nav-logo-dark');
-        if (navLogoDark) {
-          const opacity = parseFloat(window.getComputedStyle(navLogoDark).opacity);
-          isDark = opacity <= 0.5;
+        const isNavDarkLogo = navLogoDark ? parseFloat(window.getComputedStyle(navLogoDark).opacity) > 0.4 : false;
+
+        // Check if Section 3 (#page-3) or Section 4 (#page-4) is visible in view
+        const page3 = document.getElementById('page-3');
+        const isPage3Active = page3 ? (window.getComputedStyle(page3).visibility !== 'hidden' && parseFloat(window.getComputedStyle(page3).opacity || '1') > 0.3) : false;
+
+        // If either nav logo is dark or light page-3 is active, modal should match light surface
+        if (isNavDarkLogo || isPage3Active) {
+          isDark = false;
         } else {
           isDark = true;
         }
       }
 
       const newTheme = isDark ? 'dark' : 'light';
-      setModalTheme((prev) => (prev !== newTheme ? newTheme : prev));
+      setModalTheme(newTheme);
 
       return () => {
         document.body.style.overflow = '';
@@ -90,7 +96,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, sou
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, source]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
