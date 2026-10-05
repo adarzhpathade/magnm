@@ -673,10 +673,33 @@ export const TIMINGS = {
   - Clarified browser Web Audio autoplay policy requiring initial user gesture to resume `AudioContext`.
   - Explored options for drag / audio cues (hero bottom-right, floating glass pill, 3D wheel context hint).
 
-### Phase K: Mobile Experience Polish & Fine-Tuning (UPCOMING)
-- [ ] Review all section transitions on mobile viewports (<768px and <1024px).
-- [ ] Polish touch interactions, card swipe / scroll responsiveness on Page 4 stacked deck.
-- [ ] Verify 3D Xylophone Helix performance, scaling, and touch latency on mobile devices.
-- [ ] Ensure mobile navigation, contact drawer, and footer curtain reveal run at locked 60fps.
+### Phase K: Production & Layout Stability Fixes (COMPLETED)
+- [x] **Footer Optical Typography Gap**:
+  - Removed dynamic left margin (`-ml-[0.055em]`) applied to "LET'S CREATE." tagline in `Footer.tsx`. The font expansion from the Navbar to the Footer now respects the true CSS bounding box, correctly aligning the 'M' in MAGNM flush with the 'L' in LET'S CREATE.
+- [x] **Mobile Scroll Instability (Address Bar Retraction)**:
+  - Applied `ScrollTrigger.config({ ignoreMobileResize: true })` globally. 
+  - Forced `h-[100svh]` rather than `100vh` across all full-screen layout wrappers to prevent jank when the mobile browser chrome collapses.
+- [x] **Production Stack Initialization Bug (`Projects.tsx`)**:
+  - Fixed an issue where cards in the "Recent Work" section appeared flat and unstacked on initial load in production because GSAP `onUpdate` doesn't fire until the timeline playhead actually moves. Forced `setScrollProgress(0)` instantly inside a React `useEffect` on mount.
+- [x] **Next.js `<script>` Hydration Error**:
+  - Fixed Next.js App Router error `"Encountered a script tag while rendering React component"` in `src/app/layout.tsx` by replacing the raw HTML `<script>` tag for scroll restoration with the official `next/script` `<Script strategy="beforeInteractive">` component.
 
+### Phase L: Footer Credits Update (COMPLETED)
+- [x] **Footer Credits Division**:
+  - Properly separated Design and Development credits.
+  - Added **"DESIGNED BY"** section with "Adarsh Pathade" pointing to `https://adrz-26.vercel.app/`.
+  - Maintained **"DEVELOPED BY"** section with both Pranav Dubey and Adarsh Pathade pointing to their respective portfolios/githubs.
+  - Removed the location ("Based in Indore") as requested.
 
+## 10. Current State & Next Steps
+
+**What Works**:
+- Hero entrance and kinetic button interactions.
+- Pinned section wipes (Desktop timeline perfectly scales Page 1 into Page 2, wipes 12 vertical slices to reveal Page 3, unpins to scroll through Option Wheel).
+- The Option Wheel is fully interactive and syncs 3D rotation with DOM text updates.
+- The Projects deck sequentially offsets its internal array of cards to simulate a physical stack, working seamlessly in both local and production.
+- The Footer orchestrates the 3D XylophoneHelix layout and reverse kinetic letter spacing effect natively.
+
+**Next Session Starts With**:
+- Waiting for further visual design polish requests or QA validation from the user regarding the stack spacing and footer alignment. 
+- No broken code or terminal errors exist. `npm run dev` and `npm run build` are 100% stable.
