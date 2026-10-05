@@ -40,7 +40,6 @@ export function animateSheetSlideUp(
       boxShadow: '0 -25px 80px rgba(0, 0, 0, 0.22)',
       duration,
       ease: 'power2.out',
-      immediateRender: false,
     },
     start
   );

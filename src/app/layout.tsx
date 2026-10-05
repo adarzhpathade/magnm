@@ -133,7 +133,7 @@ const jsonLd = {
         "caption": "MAGNM Creative Studio Logo"
       },
       "image": "https://magnm.com/magnm%20light.png",
-      "email": "hello@magnm.com",
+      "email": "adarshpathade79@gmail.com",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Indore",

@@ -1,6 +1,6 @@
 # Memory — MAGNM Creative Studio Landing Page
 
-Last updated: 2026-10-02 18:00
+Last updated: 2026-10-05 08:10
 Repository: `https://github.com/adarzhpathade/magnm.git`
 Branch: `main`
 
@@ -411,6 +411,141 @@ export const TIMINGS = {
       4. Removed `p4EntryTriggered` logic from both desktop and mobile timeline loops.
     - *Result*: As the user scrolls past Section 3, Section 4 (with all cards and headings already seated) smoothly and physically slides up from the bottom of the viewport directly locked to the scroll wheel. When reversing, it slides smoothly down and exits below the viewport.
 
+33. **Page 3 to Page 4 Transition Synchronization, Scale-Down Depth & Optical Blur Gating**:
+    - *The Issue*:
+      1. Premature Heading Visibility: Page 4's heading and description were visible on top of Page 3 during the transition.
+      2. Early Page 3 Disappearance: Page 3 was abruptly vanishing from the background during the scale-down transition, leaving an empty white background behind the partially slid-up Page 4 (as observed in user screenshots at progress ~0.78).
+    - *Root Causes*:
+      1. Timeline Timing Collision: `TIMINGS.servicesScroll` had a hardcoded duration of `0.26` (running `0.44 -> 0.70`), while `page3ScaleDown` began at `0.66` (through `0.74`), and `page4SlideUp.start` was prematurely set to `0.70`. `onUpdate` activated `refs.page4Container` visibility at `progress >= 0.70` while Page 3's final service was still in view.
+      2. Early Visibility Cutoff on Page 3: In [use-desktop-timeline.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/use-desktop-timeline.ts), `const isPage3Active = progress > 0.38 && progress < 0.76` cut off Page 3's visibility at `0.76`. Because Page 4 only finishes its slide-up at `0.84`, Page 4 was only 20% slid up when Page 3 vanished, leaving a jarring empty white backdrop behind it.
+      3. GSAP `immediateRender: false` Reversion Trap: In `animateSheetSlideUp` ([animation-helpers.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/animation-helpers.ts)), `immediateRender: false` caused GSAP on reverse scrubs and pre-tween states to revert `y` to `0%` rather than holding `100%`, causing Page 4 to float at `top: 0` directly over Page 3.
+      4. Ungated Static Heading: The HTML heading block in `Projects.tsx` had no optical blur or opacity gating, making it instantly visible whenever the container was visible.
+      5. Mobile Spacer Deficiency: `mobilePage3SpacerRef` was only `25svh`, causing Section 4 to begin overlapping Section 3 too early on mobile.
+    - *The Solution*:
+      1. Recalibrated `TIMINGS`: `servicesScroll` strictly finishes at `0.66` (`duration: 0.22`), `page3ScaleDown` runs `0.66 -> 0.74`, and `page4SlideUp` begins strictly at `0.74` (`duration: 0.10`, completing at `0.84`).
+      2. Separated Visibility from Interactivity:
+         - `isPage3Visible = progress > 0.38 && progress < 0.85`: Page 3 remains pushed back at `scale: 0.8` in the background layer (`z-35`) behind Page 4 (`z-40`) throughout Page 4's entire slide-up (`0.74 -> 0.84`), only hiding once Page 4 fully docks at `0.85`.
+         - `isPage3Interactive = progress > 0.38 && progress < 0.66`: During scale-down and slide-up (`progress >= 0.66`), `pointerEvents` becomes `'none'` so scrolling does not trigger background hover audio or clicks.
+         - Reverse Scrubbing: Scrolling backwards immediately restores Page 3's visibility so as Page 4 slides down, Page 3 is sitting scaled down in the background.
+      3. Time-0 Timeline Locks: Added explicit `scrollTl.set` at time `0` locking `page4Container` to `{ y: '100%', visibility: 'hidden' }` and `.page4-heading-block` to `{ opacity: 0, filter: 'blur(12px)', y: 16 }`.
+      4. Removed `immediateRender: false` from `animateSheetSlideUp` in `animation-helpers.ts`.
+      5. Optical Blur Crystallization: Page 4's heading block un-blurs smoothly from `0.78` to `0.84` as the card docks, and fades/blurs out cleanly at `0.90` when Page 4 lifts into the Footer.
+      6. CSS Safety Net: Added `lg:translate-y-full` to `#page-4` in `MainExperience.tsx` and expanded `mobilePage3SpacerRef` to `75svh`.
+      7. Mobile Parity: Integrated `.page4-heading-block` blur reveals into `slideOnP4Tl` and `mobileFooterTl` in `use-mobile-timeline.ts`.
+
+34. **Projects Showcase Monochromatic Black & White WebGL Shader Filter**:
+    - *The Requirement*: Apply a black and white filter to project covers matching MAGNM's monochromatic aesthetic (`#000000`, `#171717`, `#4D4D4D`, `#cccccc`, `#ffffff`).
+    - *Implementation*:
+      1. Updated the WebGL fragment shader (`cardFragment`) in [flex-carousel.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ui/flex-carousel.tsx) with a hardware-accelerated luminance and contrast curve:
+         - Perceived luminance via Rec. 709 (`dot(image, vec3(0.2126, 0.7152, 0.0722))`).
+         - High-contrast editorial tone curve (`clamp((lum - 0.5) * 1.14 + 0.5, 0.0, 1.0)`) preserving deep `#171717` blacks, crisp whites, and architectural midtones.
+      2. Added `uMonochrome` uniform wired directly to the `monochrome` prop in `FlexCarousel`.
+      3. Enabled `monochrome={true}` in [Projects.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Projects.tsx), ensuring all project covers conform to the brand's grayscale visual identity with zero CPU/compositing overhead.
+
+35. **Page 4 Redesign Initiation & Blank Canvas Reset**:
+    - *User Direction*: "blank the projects page we will redesign it".
+    - *Action Taken*: Cleared the previous FlexCarousel implementation and placeholder contents from [Projects.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Projects.tsx).
+    - *Contract Preservation*: Preserved the container interface contracts (`ProjectsHandle`, `ProjectsProps`, `containerRef`, `className`, and `#page-4-content` on `#cccccc` background) to maintain 100% type safety and master timeline integration while preparing a clean surface for redesign.
+
+36. **Page 4 Redesign: Extrafarant-Inspired Header in Pure Familjen Grotesk**:
+    - *Design Reference Analysis*: User provided a reference image from creative studio Extrafarant featuring:
+      1. A 2-line editorial description centered above the headline.
+      2. A monumental "RECENT WERK" headline below it.
+    - *Typography Iterations & User Refinements*:
+      1. *Iteration 1 (Dual-Typeface)*: Tested Familjen Grotesk for "RECENT" and PP Editorial New Ultralight for "WORK" and description. User reviewed the screenshot and requested: *"what fonts u have used, use Frajimin Grotesk font"*.
+      2. *Iteration 2 (Familjen Grotesk Shift)*: Transitioned description and headline to Familjen Grotesk (`var(--font-familjen)`). Styled "RECENT" as `font-extrabold` and "WORK" as `font-light`.
+      3. *Iteration 3 (Unified Weight)*: User instructed: *"change the weight of the recesnt word eaxact same as the work word"*.
+    - *Final Implemented Header Specs in [Projects.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Projects.tsx)*:
+      1. **Description**:
+         - Typeface: `var(--font-familjen), "Familjen Grotesk", sans-serif`.
+         - Typography: `font-normal text-[0.95rem] sm:text-base md:text-lg lg:text-[1.18rem] leading-relaxed text-[#171717]/65 text-center max-w-[580px] mb-3 sm:mb-4 lg:mb-5 tracking-[-0.015em]`.
+         - Copy: *"A curated archive of selected spatial systems, tactile digital interfaces, and brand experiences."*
+      2. **Headline (`RECENT WORK`)**:
+         - Typeface: `var(--font-familjen), "Familjen Grotesk", sans-serif`.
+         - Sizing: `text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.8rem] leading-[0.92] tracking-[-0.03em] text-[#171717] m-0`.
+         - Unified Weight: Both `RECENT` and `WORK` styled with **Familjen Grotesk Light** (`font-light uppercase tracking-[-0.02em] text-[#171717]`), creating a clean, modern, architectural grotesque headline.
+      3. **Timeline Sync**:
+         - Enclosed in `.page4-heading-block` with `will-change-[filter,opacity,transform]`, participating in the master GSAP scroll timeline (optical blur docking at `0.78 -> 0.84`, exit at `0.90`).
+
+37. **Page 4 Partial Blur Text Reveal & Symmetrical Reverse Exit (Matching Hero MAGNM Text)**:
+    - *The Requirement*: Trigger the signature partial blur text reveal effect (identical to the Hero `MAGNM` display wordmark) when entering Page 4, AND ensure that when scrolling back up/out, the text leaves the screen with the exact same partial blur effect in reverse.
+    - *Implementation*:
+      1. **BlurText Enhancement**: Added `as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3'` and `style?: React.CSSProperties` to [BlurText.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/BlurText.tsx), enabling flexible semantic tag rendering without HTML validation issues.
+      2. **Bidirectional Keyframes & Dissolve Cycle**:
+         - *Entrance Keyframes*: `{ filter: 'blur(18px)', opacity: 0 }` &rarr; `{ filter: 'blur(8px)', opacity: 0.55 }` (signature partial blur) &rarr; `{ filter: 'blur(0px)', opacity: 1 }`.
+         - *Exit Keyframes*: `{ filter: 'blur(0px)', opacity: 1 }` &rarr; `{ filter: 'blur(8px)', opacity: 0.55 }` (signature partial blur) &rarr; `{ filter: 'blur(18px)', opacity: 0 }`.
+         - Managed via `hasEnteredRef` latch: stays stationary at `initial` before ever entering; transitions forward to `enterKeyframes` when triggered; and transitions in reverse to `exitKeyframes` when leaving/scrolling back.
+      3. **DOM Persistence in Projects.tsx**:
+         - Removed fluctuating `key={hasRevealed ? ...}` props from [Projects.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Projects.tsx) so React keeps the same component and DOM node mounted, allowing Framer Motion to smoothly animate between enter and exit keyframes.
+      4. **Direction-Aware Scroll Triggers**:
+         - In [use-desktop-timeline.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/use-desktop-timeline.ts), added direction-aware hysteresis: scrolling down (`self.direction === 1`) triggers reveal at `progress >= 0.78`; scrolling back up (`self.direction === -1`) triggers reverse exit at `progress < 0.82`, ensuring characters dissolve in reverse while Section 4 is still fully in view and starting its downward slide.
+         - In [use-mobile-timeline.ts](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/experience/use-mobile-timeline.ts), calibrated direction-aware threshold in `slideOnP4Tl` (`self.direction === -1 ? progress >= 0.45 : progress >= 0.35`).
+
+38. **Mobile WebGL Occluded Canvas Gating & Performance Preservation**:
+    - *Context*: On mobile devices, running multiple WebGL instances (Section 2 helix + Section 5 footer helix + Three.js project cards) can strain GPU memory and introduce frame pacing issues during fast touch gestures.
+    - *Implementation*:
+      - Integrated occlusion gating and viewport-aware animation loops.
+      - When sections are outside the visible viewport (`boundingClientRect` / scroll position check), their render iterations idle or pause, guaranteeing that the active interactive section commands the entire 60fps frame budget.
+
+39. **Page 4 Mobile Typography Alignment, Casing & Sizing Parity**:
+    - *Context*: On mobile viewports, the Page 4 header copy, metadata labels ("PROJECT", "VIEW PROJECT"), and project titles required exact casing and typography matching the desktop design language, without line-wrapping issues or awkward vertical spacing on smaller screens.
+    - *Implementation*:
+      - Unified font tokens using Familjen Grotesk Light and Regular.
+      - Sized mobile heading to prevent awkward line breaks (`text-3xl sm:text-4xl`).
+      - Formatted metadata rows with clear uppercase tracking (`tracking-wider`, `text-[10px] sm:text-xs`) and clean horizontal justification between project title and live link.
+      - Preserved high visual hierarchy without clutter.
+
+40. **Page 3 to Page 4 Mobile Transition: Zero Push-Back, Unaltered Opacity & Scaled Down Covers**:
+    - *Context*: Previously, when scrolling from Page 3 (Services / Accordion) into Page 4 (Projects) on mobile, Page 3 was undergoing a 3D perspective push-back / scale down (`scale: 0.88`, `opacity: 0.6`), causing jarring visual compounding. Additionally, the project cover images on mobile were too large, dominating the viewport.
+    - *Implementation*:
+      - Removed push-back scaling and opacity degradation on mobile view (`scale: 1`, `opacity: 1`), keeping Page 3 completely stationary and stable as Page 4 slides cleanly over it.
+      - Scaled down the project cover card dimensions in mobile view to `h-[200px]`, `w-full max-w-[280px]` (from `max-w-[460px]`), ensuring the card deck fits elegantly within mobile viewport heights alongside the header and metadata.
+      - Removed the partial blur text animation effect on mobile for Page 4 text, rendering solid, crisp typography directly to eliminate GPU shader latency and text reflow.
+
+41. **Mobile Modal Incoming Animation: GPU Layer Promotion, True Offscreen Numeric Float & Elimination of Filter Thrashing**:
+    - *Context*: When opening the Project Modal or About Modal on mobile devices, the drawer card was sliding in with a visible jitter/stutter instead of a buttery 60fps glide, even though the timing and speed (`duration: 0.7, ease: [0.16, 1, 0.3, 1]`) were desired.
+    - *Root Cause Analysis*:
+      1. The modal container was starting from `x: '100%'` with margins (`m-2` or `px-4`), which in CSS calc / percentage translation on mobile caused sub-pixel rounding jitter and slight visible overhang before entrance.
+      2. Over 30-50 child character spans inside the modal were running CSS `filter: blur(...)` animations (`BlurText`) simultaneously during the slide transition. In WebKit/Blink on mobile, rasterizing CSS filters on multiple DOM nodes inside a translating container forces continuous GPU texture recreation on every frame.
+      3. The modal card lacked explicit GPU compositing hints, causing composite paint operations on the main thread.
+    - *Implementation*:
+      1. **Strictly preserved animation curve and speed**: Maintained `duration: 0.7` and `ease: [0.16, 1, 0.3, 1]`.
+      2. **True Offscreen Numeric Float**: Set initial mobile `x` to `isMobile ? window.innerWidth : '100%'`, ensuring the card starts completely offscreen without sub-pixel snapping.
+      3. **GPU Layer Promotion**: Applied `willChange: 'transform, opacity'`, `transform: 'translateZ(0)'`, `backfaceVisibility: 'hidden'`, and `overflow-hidden` on the fixed modal backdrop and card wrapper, promoting the sliding panel to its own dedicated hardware composite layer.
+      4. **Solid Text on Mobile**: Rendered crisp, solid typography on mobile view (`lg:hidden`), reserving the CPU/GPU-intensive `BlurText` SVG filter animations exclusively for desktop (`hidden lg:inline-block`). This completely eliminated texture re-rasterization and delivered instant, buttery 60fps glide.
+
+42. **Footer Modal Dark Theme Enforcement & Desktop 3D Helix Stacking Hierarchy**:
+    - *Context 1 (Modal Theme)*: The modal card when opened from the footer was defaulting to light mode or incorrect contrast.
+    - *Context 2 (Desktop 3D Helix Layering)*: The 3D metallic Xylophone Helix in the footer was rendering behind the massive expanded "MAGNM" display text on desktop, whereas it was originally designed to render in front of the MAGNM text.
+    - *Root Cause Diagnosis (Desktop Stacking Trap)*:
+      - The Section 5 container wrapper in `MainExperience.tsx` had `lg:z-36`.
+      - In CSS, any child inside a container with `z-index: 36` cannot escape that stacking context relative to siblings.
+      - Meanwhile, `navbarHeader` (`.main-nav-header`) was given `zIndex: 37` at the footer stage in `use-desktop-timeline.ts` to display the expanded "MAGNM" wordmark.
+      - Because `navbarHeader` had `z-37`, it sat in front of the entire Section 5 container (`z-36`).
+      - Even though `#page-footer` had `z-38` inside Section 5, it was trapped inside the parent's `z-36`, forcing the 3D helix to render behind the navbar's MAGNM text.
+    - *Architectural Resolution*:
+      1. **Footer Modal Dark Mode**: In [ProjectModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ProjectModal.tsx) and [AboutModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutModal.tsx), enforced `dark` mode whenever `source === 'footer'`, when the footer is in viewport (`rect.top <= window.innerHeight * 0.7`), or when `source === 'hero'`.
+      2. **Breaking the Stacking Context**: Changed the Section 5 wrapper in `MainExperience.tsx` from `fixed bottom-0 left-0 w-full h-[100svh] z-10 lg:absolute lg:inset-0 lg:z-36` to `fixed bottom-0 left-0 lg:static z-10 w-full h-[100svh] lg:h-auto`.
+      3. **Desktop Stacking Order**:
+         - Background underlay `#page-footer-bg`: `lg:z-36`.
+         - Expanded MAGNM text (`navbarHeader`): `zIndex: 37`.
+         - 3D Xylophone Helix Canvas & Footer content (`#page-footer`): `lg:z-38`.
+         - Pinned Page 4 sliding covers overlay: `lg:z-40`.
+         - Result: The 3D Helix now renders in front of the MAGNM wordmark on desktop.
+      4. **Mobile Layout 100% Preserved**: On mobile (`<1024px`), the Section 5 wrapper retains its fixed bottom curtain reveal (`fixed bottom-0 left-0 z-10 w-full h-[100svh]`), ensuring mobile scroll behavior remained completely undisturbed.
+
+43. **Contact Details & Developer Credits Updates**:
+    - *Context*: User requested updating primary contact email to `adarshpathade79@gmail.com` and Pranav's developer GitHub profile link to `https://github.com/NetPranav`.
+    - *Implementation*:
+      - Updated email link and text in [Footer.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Footer.tsx) (`mailto:adarshpathade79@gmail.com`).
+      - Updated email link in [ProjectModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/ProjectModal.tsx) and [AboutModal.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/AboutModal.tsx).
+      - Updated structured schema metadata and author details in [layout.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/app/layout.tsx).
+      - Updated Pranav's GitHub link in [Footer.tsx](file:///e:/Projects/Landing%20Pages/magnm%20-%20creative%20studio/src/components/Footer.tsx) to `https://github.com/NetPranav`.
+
+44. **Codebase Hygiene & Zero Compiler Regressions**:
+    - Verified across all components: `npx tsc --noEmit` reports 0 errors.
+    - Zero hydration mismatches, zero global CSS collisions, and clean separation between mobile and desktop rendering pipelines.
+
 ## 8. Current State & Completed Roadmap
 
 ### Phase A: Core Experience & Section Implementation (COMPLETED)
@@ -458,7 +593,56 @@ export const TIMINGS = {
 - [x] Completely removed artificial incoming animations (`intro="none"`, no delayed `playEntry`, no 3-second blur delays).
 - [x] Diagnosed and fixed the desktop scroll pop-in bug: `#page-4` visibility is enabled at `0.70` (the start of slide-up) with full opacity and shadow, delivering a natural, scroll-synchronized physical card slide.
 
-### Phase F: Verification & Build Quality
-- [x] Zero TypeScript compilation errors (`npx tsc --noEmit` exited code 0).
-- [x] Verified endpoints: `/robots.txt` (200), `/sitemap.xml` (200), `/llms.txt` (200), and SSR HTML `<head>`/`<body>`.
-- [x] Preserved 100% of 3D WebGL scenes, GSAP ScrollTrigger timelines, and monochromatic design fidelity.
+### Phase F: Page 4 Stacked Project Covers Showcase (COMPLETED)
+- [x] Reset Page 4 to clean canvas while preserving timeline and interface contracts.
+- [x] Created Extrafarant-inspired header block with centered 2-line studio description.
+- [x] Unified monumental "RECENT WORK" headline in pure Familjen Grotesk Light typography.
+- [x] Engineered bidirectional partial blur reveal and reverse dissolve cycle on description and headline.
+- [x] Registered signature partial blur text effect patterns, tokens, and code recipes in `ui-registry.md`.
+- [x] Implemented 3-column desktop layout: Left project title, center stacked covers deck, right "View Project" link.
+- [x] Card dimensions scaled down by 50% with strictly sharp corners (`rounded-none`, `border-none`) and flat 2D elevation (`shadow-none`, zero 3D hover scale): `max-w-[460px] lg:max-w-[500px] xl:max-w-[530px]` with `aspect-[1672/941]`.
+- [x] Configured 4 project items:
+  1. `Adarsh'26` (`/adarsh-26.webp`, `https://adrz-26.vercel.app`)
+  2. `Sentinel` (`/mockup/Adarsh'26 Mockup.webp`, `https://github.com/adarzhpathade/sentinal-landing-page`)
+  3. `Mirach Aerospace` (`/mockup/mirach-cover.webp`, `https://www.mirachaerospace.com`)
+  4. `Sentinel Terminal` (`/mockup/sentinel-mockup (1).webp`, `https://github.com/adarzhpathade/sentinal-landing-page`)
+- [x] Followed user constraint: NO top borders or browser frames on cards; pure images with light grayscale filter (`filter: grayscale(35%) contrast(1.03)`).
+- [x] Implemented downward scroll peel animation: active card slides DOWN (`yPercent: 0 -> 118%`) and exits offscreen downwards, revealing the next card sitting directly beneath it.
+- [x] Bound side metadata (left project name and right "View Project" link) to update with the signature partial blur effect on card transitions with synchronized midpoint index detection (`Math.round(clamped)`).
+- [x] Clicking cards or "View Project" opens live URLs in a new tab.
+- [x] Master timeline integration: budgeted `projectsScroll` in `TIMINGS` (0.80 -> 0.93), increased desktop scroll to `+=1000%`, and added snap points in `snapTo`.
+- [x] Mobile responsiveness: clean meta row above card, dedicated scroll track with `mobilePage4SpacerRef` (180svh).
+
+### Phase H: Mobile Footer Parallax Curtain Reveal (COMPLETED)
+- [x] **Root Cause Diagnosis**:
+  1. The footer wrapper was previously placed before Page 4 with `-mt-[100svh] mb-[100svh]`. Because Page 4 is ~2600px tall and the footer was placed at the top of Page 4, by the time the user scrolled past the 4 project cards to the laptop, the footer had scrolled 1850px off the top of the screen (`footer.top: -749px`), leaving a pure black empty void.
+  2. The mobile footer MAGNM wordmark had been forced to `opacity: 0; filter: blur(12px)` in `use-mobile-timeline.ts` without an enter tween.
+  3. `Footer.tsx` required `triggerProp` from desktop timelines to be true before activating the 3D Xylophone Helix and `BlurText` tagline.
+- [x] **Clean Architecture Resolution**:
+  1. **DOM Order**: Section 4 (Page 4, `z-40`, `bg-[#cccccc]`) renders in natural flow, followed by a dedicated `100svh` scroll track (`mobilePageFooterSpacerRef`).
+  2. **Fixed Behind Curtain**: Section 5 Footer wrapper is styled with `fixed bottom-0 left-0 w-full h-[100svh] z-10 lg:absolute lg:inset-0 lg:z-36`. On mobile, it sits firmly locked to the bottom of the viewport underneath Page 4. As the user reaches the end of Page 4 (the laptop) and scrolls into the `100svh` spacer, Page 4 smoothly slides up and off the screen, revealing the fully rendered footer behind it like a curtain lifting.
+  3. **Full Content Availability**:
+     - `.footer-magnm-mobile` has `clearProps: 'all'`, rendering at full opacity and sharpness.
+     - `Footer.tsx` has `isMobile` check (`<1024px`), initializing `hasRevealed: true` and `isInteractive: true`. The 3D metallic Xylophone Helix renders immediately at `speed: 4`, the tagline "LET'S CREATE / EXPLORE / BUILD / SHIP" cycles with partial blur, the `CONTACT` button is active, and studio/developer credits are displayed.
+  4. **Desktop Preservation**: Desktop retains `lg:absolute lg:inset-0 lg:z-36` with Phase 9 pinned GSAP timeline, completely intact.
+- [x] Zero TypeScript errors and visual validation confirmed via browser subagents across mobile and desktop.
+
+### Phase I: Mobile Polish, Transition Stability, Modal Optimization & Desktop 3D Helix Hierarchy (COMPLETED)
+- [x] Disabled Section 3 (Services) push-back scaling (`scale: 1`, `opacity: 1`) on mobile view for rock-solid transition into Page 4.
+- [x] Scaled down Page 4 project cover card dimensions on mobile (`h-[200px]`, `w-full max-w-[280px]`).
+- [x] Removed partial blur text transitions on mobile Page 4 text, rendering solid typography to eliminate GPU texture re-rasterization.
+- [x] Optimized mobile modal incoming card animation for buttery 60fps smoothness:
+  - Preserved incoming speed and curve: `duration: 0.7, ease: [0.16, 1, 0.3, 1]`.
+  - Added hardware compositing: `willChange: 'transform, opacity'`, `transform: 'translateZ(0)'`, `backfaceVisibility: 'hidden'`.
+  - Resolved sub-pixel jitter with true offscreen numeric float: `isMobile ? window.innerWidth : '100%'`.
+  - Bypassed multi-span `BlurText` SVG filters on mobile drawer content.
+- [x] Enforced dark mode theme for Project and About modals when opened from the footer or while footer is visible.
+- [x] Fixed desktop 3D Xylophone Helix layering:
+  - Removed desktop stacking context trap on Section 5 wrapper (`lg:static`).
+  - Coordinated z-index ladder: `#page-footer-bg` (`z-36`), `navbarHeader` MAGNM text (`z-37`), `#page-footer` 3D helix (`z-38`), `#page-4` (`z-40`).
+  - 3D metallic helix now renders in front of the MAGNM display text on desktop.
+  - Mobile fixed-bottom curtain reveal left 100% untouched.
+- [x] Updated studio contact email to `adarshpathade79@gmail.com` across footer, modals, and JSON-LD schema.
+- [x] Updated developer credits link to `https://github.com/NetPranav`.
+- [x] Validated TypeScript compilation (`npx tsc --noEmit` -> 0 errors) and dev server stability.
+

@@ -32,29 +32,82 @@ Last updated: 2026-09-21
 
 ---
 
-### BlurText
+### BlurText / Signature Partial Blur Text Reveal & Reverse Exit
 
 File: `src/components/BlurText.tsx`  
-Last updated: 2026-09-21  
+Last updated: 2026-10-04  
 
 | Property         | Class / Value                                |
 | ---------------- | -------------------------------------------- |
 | Background       | Transparent / parent inherited               |
 | Border           | None                                         |
 | Border radius    | None                                         |
-| Text — primary   | Inherits container text styling              |
-| Text — secondary | N/A                                          |
-| Spacing          | Inherits container spacing; `flex flex-wrap` |
-| Hover state      | None                                         |
+| Text — primary   | Inherits container text styling (`#cccccc` dark / `#171717` light) |
+| Text — secondary | Inherits container text styling (`#171717]/65`, `text-[#cccccc]/70`) |
+| Typography       | `Familjen Grotesk` (`var(--font-familjen)`) or `Martian Mono` |
+| Spacing          | Inherits container spacing; `flex flex-wrap` (or `!inline-flex`) |
+| Motion Library   | `motion/react` (`motion.span`)               |
+| Keyframes (Enter)| `filter: ['blur(18px)', 'blur(8px)', 'blur(0px)']`, `opacity: [0, 0.55, 1]`, `y: 0` |
+| Keyframes (Exit) | `filter: ['blur(0px)', 'blur(8px)', 'blur(18px)']`, `opacity: [1, 0.55, 0]`, `y: 0` |
+| Keyframe Times   | `times: [0, 0.5, 1]`, `ease: [0.22, 1, 0.36, 1]` |
+| Hover state      | None (pure scroll/view-driven crystallization & dissolve effect) |
 | Shadow           | None                                         |
-| Accent usage     | None (monochromatic default)                 |
+| Accent usage     | Strictly monochromatic (`#000000`, `#171717`, `#4D4D4D`, `#cccccc`, `#ffffff`) |
 
 **Pattern notes:**
-- Imported from React Bits, driven by `motion/react`.
-- Client component (`'use client'`) utilizing `IntersectionObserver` for viewport-triggered blur-in text transitions.
-- Supports both word-level and letter-level animations (`animateBy`).
-- Configured with `direction="none"` (no vertical/horizontal translation) and `randomize={true}` for organic in-place random word blur materialization.
-- Custom color and typography classes can be passed through `className` according to the MAGNM design system.
+- **Signature Visual Identity**: This is MAGNM's core atmospheric typography motion signature, first established on the Hero monolithic `MAGNM` wordmark, and extended to the Footer and Page 4 `RECENT WORK` header.
+- **Three-Stage Optical Blur Curve**: Text crystallizes (or dissolves in reverse) through a calibrated 3-stage keyframe array:
+  1. *Complete Blur*: `filter: 'blur(18px)'`, `opacity: 0`
+  2. *Signature Partial Blur*: `filter: 'blur(8px)'`, `opacity: 0.55` (creates the milky, tactile frosted glass lens emergence)
+  3. *Sharp Focus*: `filter: 'blur(0px)'`, `opacity: 1`
+- **Zero Vertical Drift**: Configured with `direction="none"` (`y: 0`), ensuring letters and words stay 100% stationary and crystallize purely through optical clarity rather than mechanical sliding or layout shifts.
+- **Organic Shuffled Materialization**: When `randomize={true}`, character/word entrance and exit sequences are randomly shuffled so the text crystallizes dynamically and non-linearly across the screen.
+- **Symmetrical Reverse Exit**:
+  - The component tracks `hasEnteredRef`. When `trigger` flips from `true` to `false` (e.g. scrolling backwards out of a section), it automatically plays the reverse exit animation (`blur(0px)` &rarr; `blur(8px)` &rarr; `blur(18px)`).
+  - Exit timing uses `exitDuration = stepDuration * 0.65` and `exitDelays = delay * 0.5` for a responsive, agile dissolve that completes before the section leaves the viewport.
+- **DOM Persistence Requirement**:
+  - **CRITICAL**: Do NOT pass fluctuating keys (e.g. `key={isRevealed ? 'a' : 'b'}`) to `<BlurText>`. A fluctuating key causes React to unmount the component immediately, killing the reverse exit animation. Keep keys stable (or omit `key`) so Framer Motion can execute the reverse keyframes smoothly.
+- **Semantic Rendering (`as` & `style` props)**:
+  - Supports `as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3'` and `style?: React.CSSProperties` to render clean semantic HTML inside parent headings (e.g. `as="span"` inside `<h2>`) without invalid DOM nesting.
+- **Standard Configurations**:
+  - *Monumental / Display Headlines*:
+    ```tsx
+    <BlurText
+      text="HEADLINE"
+      animateBy="letters"
+      direction="none"
+      randomize={true}
+      delay={50}
+      stepDuration={0.38}
+      trigger={isRevealed}
+      as="span"
+      className="!inline-flex uppercase font-light justify-center"
+      spanClassName="font-light uppercase tracking-[-0.02em] text-[#171717]"
+    />
+    ```
+  - *Editorial Descriptions / Paragraphs*:
+    ```tsx
+    <BlurText
+      text="A curated archive of selected spatial systems, tactile digital interfaces, and brand experiences."
+      animateBy="words"
+      direction="none"
+      randomize={true}
+      delay={28}
+      stepDuration={0.30}
+      trigger={isRevealed}
+      as="p"
+      className="font-normal text-base md:text-lg leading-relaxed text-[#171717]/65 text-center max-w-[580px] justify-center"
+      spanClassName="font-normal leading-relaxed text-[#171717]/65 tracking-[-0.015em]"
+    />
+    ```
+- **Timeline Coordination Pattern**:
+  - In GSAP `ScrollTrigger` timelines, use direction-aware hysteresis:
+    ```ts
+    const shouldReveal = self.direction === -1
+      ? progress >= 0.82 && progress < 0.94 // Exit earlier on reverse scroll
+      : progress >= 0.78 && progress < 0.94; // Enter on forward scroll
+    onProjectsRevealChange(shouldReveal);
+    ```
 
 ---
 
@@ -295,31 +348,18 @@ Last updated: 2026-09-26
 
 ---
 
-### LiquidGlassCarousel & Projects Showcase (Page 4)
+### Stacked Project Covers Showcase (Page 4)
 
-Files: `src/components/ui/liquid-glass-carousel.tsx`, `src/components/Projects.tsx`  
-Last updated: 2026-09-26  
+Files: `src/components/Projects.tsx`, `src/components/BlurText.tsx`, `src/components/experience/timings.ts`, `src/components/experience/use-desktop-timeline.ts`  
+Last updated: 2026-10-04  
 
 | Property         | Class / Value                                |
-| Heading          | Top center: `Our Projects` in `Familjen Grotesk` (`text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem]`, `font-normal tracking-[-0.035em] text-[#171717]`) |
-| Card Orientation | Horizontal (`aspect: 16 / 10`), landscape aspect ratio with 1600x1000 imagery |
-| Background       | `#cccccc` (matching Page 3 light surface)    |
-| Border radius    | Strictly none (`rounded-none`, sharp corners)|
-| WebGL Rendering  | Direct crisp card rendering (lens removed — zero distortion/blur/chromatic aberrations) with inertial drag physics |
-| Incoming Motion  | Triggered synchronously via GSAP ScrollTrigger at scroll `0.80` the moment Page 4 elevates: horizontal cards rise from below and expand outward |
-| Interaction      | Mouse/touch inertial drag, click-to-focus expansion with drop-away physics, keyboard left/right arrow navigation, Escape to close |
-| Scroll Behavior  | Non-blocking vertical wheel: page continues smooth scrolling into & out of Page 4; Shift+Wheel and trackpad horizontal gestures scroll the carousel |
-| Stacking Context | `z-40`, slides up over scaled Page 3 (0.8 scale at `z-35`) with elevated drop shadow `shadow-[0_-25px_80px_rgba(0,0,0,0.22)]` |
-
-**Pattern notes:**
-- Top center heading **"Our Projects"** rendered in a little big size font matching the grotesque typography of Page 3.
-- Imported `@componentry/liquid-glass-carousel` rendered raw on Page 4 with the lens shader removed.
-- Cards are horizontal rectangles (`16 / 10` widescreen format).
-- Sharp rectangular panels with zero rounded corners as mandated by design specifications.
-- Incoming animation is triggered by `MainExperience.tsx` at scroll 0.80 so the cards rise and expand outward right as Page 4 comes into view.
-
-
-
-
-
-
+|------------------|----------------------------------------------|
+| Layout           | Desktop 3-column composition: Left project title (`w-[180px] to [220px]`), center stacked card deck (`max-w-[460px] to [550px] aspect-[1672/941]`), right `View Project` link (`w-[180px] to [220px]`). Mobile: stacked with top meta row. |
+| Header           | Top description: Familjen Grotesk `text-[0.95rem] to [1.18rem] text-[#171717]/65` + Monumental `RECENT WORK` in Familjen Grotesk Light (`text-5xl to [6.8rem] text-[#171717] leading-[0.92]`). |
+| Card Deck        | 4 items: `Adarsh'26` (`/adarsh-26.webp`), `Sentinel` (`/mockup/Adarsh'26 Mockup.webp`), `Mirach Aerospace` (`/mockup/mirach-cover.webp`), `Sentinel Terminal` (`/mockup/sentinel-mockup (1).webp`). |
+| Visual Styling   | Strictly NO corner borders, NO corner radius (`rounded-none`, `border-none`). Zero shadows and zero 3D depth (`shadow-none`, no hover scale elevation). Cards sit completely flat with light grayscale filter (`filter: grayscale(35%) contrast(1.03)`), transitioning to `grayscale(0%) contrast(1.05)` on hover. |
+| Scroll Peel      | As user scrolls downwards, the active card slides DOWN (`yPercent: 0% -> 122%`) and leaves the screen downwards, unmasking the next card sitting directly beneath it. |
+| Side Blur Effect | Left project title and right `View Project` link transition with signature letter-by-letter randomized optical partial blur (`BlurText` with `filter: blur(12px) -> blur(4px) -> blur(0px)`). |
+| Redirect Action  | Clicking any card or clicking `View Project` opens the live URL in a new tab (`window.open(url, '_blank')`). |
+| Timeline Budget  | `TIMINGS.projectsScroll: { start: 0.80, end: 0.93, duration: 0.13 }`, total scroll length `+=1000%`, with soft snap points in `snapTo` at each of the 4 card resting positions. |

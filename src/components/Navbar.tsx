@@ -88,7 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
             }
           }}
           onMouseEnter={() => playHoverSound(0)}
-          className="nav-secondary-btn group cursor-pointer hidden sm:inline-flex items-center justify-center text-center px-3 sm:px-3.5 md:px-4 h-[27px] sm:h-[28px] md:h-[29px] rounded-full border border-white/20 bg-transparent text-[#cccccc] hover:text-white hover:border-white/50 text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.05em] uppercase select-none transition-all duration-200 active:scale-[0.98] focus:outline-none"
+          className="relative before:absolute before:-inset-3 before:content-[''] nav-secondary-btn group cursor-pointer hidden sm:inline-flex items-center justify-center text-center px-3 sm:px-3.5 md:px-4 h-[27px] sm:h-[28px] md:h-[29px] rounded-full border border-white/20 bg-transparent text-[#cccccc] hover:text-white hover:border-white/50 text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.05em] uppercase select-none transition-all duration-200 active:scale-[0.98] focus:outline-none"
           aria-label="About Us"
         >
           <LetterSwapPingPong
@@ -113,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ headerRef, navActionsRef, navBra
             }
           }}
           onMouseEnter={() => playHoverSound(2)}
-          className="nav-action-btn group cursor-pointer inline-flex items-center justify-center text-center px-3 sm:px-3.5 md:px-4 h-[27px] sm:h-[28px] md:h-[29px] rounded-full bg-white text-[#171717] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.05em] uppercase select-none transition-all duration-200 hover:opacity-90 active:scale-[0.98] focus:outline-none"
+          className="relative before:absolute before:-inset-3 before:content-[''] nav-action-btn group cursor-pointer inline-flex items-center justify-center text-center px-3 sm:px-3.5 md:px-4 h-[27px] sm:h-[28px] md:h-[29px] rounded-full bg-white text-[#171717] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.05em] uppercase select-none transition-all duration-200 hover:opacity-90 active:scale-[0.98] focus:outline-none"
           aria-label="Start a project"
         >
           <LetterSwapPingPong

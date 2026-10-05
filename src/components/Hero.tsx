@@ -275,6 +275,7 @@ export default function Hero({
             text="CONTACT"
             ariaLabel="Contact MAGNM"
             soundIndex={0}
+            size="md"
             onClick={onStartProject}
           />
         </div>
@@ -292,7 +293,7 @@ export default function Hero({
               alt="MAGNM Creative Studio Mobile Light Emblem"
               width={1536}
               height={1024}
-              className="h-[52px] sm:h-[58px] w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
+              className="h-[38px] sm:h-[42px] w-auto object-contain select-none pointer-events-none brightness-105 contrast-105"
               priority
             />
           </motion.div>

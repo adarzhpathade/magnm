@@ -2263,6 +2263,14 @@ export default function XylophoneHelix(props: XylophoneHelixProps) {
             const now = performance.now()
             const delta = Math.min((now - lastFrame) / 1e3, MAX_DELTA)
             lastFrame = now
+
+            // Performance guard: halt GPU draw calls and vertex calculations when container is hidden
+            if (root && typeof root.checkVisibility === "function") {
+                if (!root.checkVisibility({ checkVisibilityCSS: true })) {
+                    return
+                }
+            }
+
             time += delta
             if (!reduceMotion) autoplayAngle += delta * AUTOPLAY_SPEED
 

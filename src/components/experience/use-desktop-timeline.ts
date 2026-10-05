@@ -42,6 +42,7 @@ export interface DesktopTimelineRefs {
   footerMagnm?: RefObject<HTMLSpanElement | null>;
   navbarHeader?: RefObject<HTMLElement | null>;
   onFooterRevealChange?: (revealed: boolean) => void;
+  onProjectsRevealChange?: (revealed: boolean) => void;
 }
 
 export function useDesktopTimeline(
@@ -157,6 +158,11 @@ export function useDesktopTimeline(
       refs.page4Container.current.style.visibility = 'hidden';
       refs.page4Container.current.style.opacity = '1';
     }
+    gsap.set('.page4-heading-block', {
+      opacity: 1,
+      filter: 'none',
+      y: 0,
+    });
 
     // Footer initial state: strictly hidden so it NEVER covers Hero on load
     if (refs.footerWrapper?.current) {
@@ -166,7 +172,7 @@ export function useDesktopTimeline(
       });
       refs.footerWrapper.current.style.zIndex = '38';
     }
-    gsap.set('#page-footer-bg', { visibility: 'hidden' });
+    gsap.set('#page-footer-bg', { visibility: 'hidden', zIndex: 36 });
 
     // 3. ScrollTrigger timeline for Hero -> Section 2 -> Parallax Strips -> Page 3 -> Page 4 transition
     const cameraObj = {
@@ -181,7 +187,7 @@ export function useDesktopTimeline(
       scrollTrigger: {
         trigger: refs.pinnedStage.current,
         start: 'top top',
-        end: '+=850%',
+        end: '+=1000%',
         pin: true,
         scrub: 0.15,
         snap: {
@@ -195,12 +201,17 @@ export function useDesktopTimeline(
               const clamped = Math.max(0, Math.min(5, nearestIdx));
               return sStart + clamped * step;
             }
-            // Snap to fully docked Page 4
-            if (progress >= 0.78 && progress <= 0.89) {
-              return 0.84;
+            // Snap points for the 4 project cards in Phase 8b
+            const pStart = TIMINGS.projectsScroll.start;
+            const pEnd = TIMINGS.projectsScroll.end;
+            if (progress >= pStart - 0.015 && progress <= pEnd + 0.015) {
+              const step = (pEnd - pStart) / 3; // 4 cards, 3 intervals
+              const nearestCard = Math.round((progress - pStart) / step);
+              const clampedCard = Math.max(0, Math.min(3, nearestCard));
+              return pStart + clampedCard * step;
             }
             // Snap to Footer
-            if (progress >= 0.94) {
+            if (progress >= 0.96) {
               return 1.0;
             }
             // Before services zone or during card transition — let it flow freely
@@ -251,20 +262,25 @@ export function useDesktopTimeline(
 
           // Section 3 (Our Work)
           if (refs.page3Wrapper.current) {
-            const isPage3Active = progress > 0.38 && progress < 0.78;
-            if (isPage3Active && refs.page3Wrapper.current.style.pointerEvents !== 'auto') {
+            // Keep Page 3 visible throughout its display, scale-down (0.66-0.74),
+            // and while Page 4 is sliding up in front of it (0.74-0.84), hiding only once Page 4 fully docks at 0.85
+            const isPage3Visible = progress > 0.38 && progress < 0.85;
+            const isPage3Interactive = progress > 0.38 && progress < 0.66;
+            if (isPage3Interactive && refs.page3Wrapper.current.style.pointerEvents !== 'auto') {
               chimeSynth.suppressHover(600);
             }
             refs.page3Wrapper.current.style.pointerEvents =
-              isPage3Active ? 'auto' : 'none';
+              isPage3Interactive ? 'auto' : 'none';
             refs.page3Wrapper.current.style.visibility =
-              isPage3Active ? 'visible' : 'hidden';
+              isPage3Visible ? 'visible' : 'hidden';
           }
 
           // Section 4 (Page 4 Projects Card)
           if (refs.page4Container.current) {
-            const isPage4Active = progress >= 0.70 && progress < 0.995;
-            const isPage4Interactive = progress >= 0.78 && progress < 0.90;
+            const isPage4Active = progress >= TIMINGS.page4SlideUp.start && progress < 0.995;
+            const isPage4Interactive =
+              progress >= TIMINGS.page4SlideUp.start + TIMINGS.page4SlideUp.duration &&
+              progress < TIMINGS.footerReveal.start;
             if (isPage4Interactive && refs.page4Container.current.style.pointerEvents !== 'auto') {
               chimeSynth.suppressHover(600);
             }
@@ -272,12 +288,20 @@ export function useDesktopTimeline(
               isPage4Interactive ? 'auto' : 'none';
             refs.page4Container.current.style.visibility =
               isPage4Active ? 'visible' : 'hidden';
+
+            if (refs.onProjectsRevealChange) {
+              const shouldReveal =
+                self.direction === -1
+                  ? progress >= TIMINGS.page4SlideUp.start + 0.02 && progress < TIMINGS.footerReveal.start
+                  : progress >= TIMINGS.page4SlideUp.start && progress < TIMINGS.footerReveal.start;
+              refs.onProjectsRevealChange(shouldReveal);
+            }
           }
 
           // Section 5 (Footer)
           if (refs.footerWrapper?.current) {
-            const isFooterVisible = progress >= 0.90;
-            const isFooterInteractive = progress >= 0.90;
+            const isFooterVisible = progress >= TIMINGS.footerReveal.start;
+            const isFooterInteractive = progress >= TIMINGS.footerReveal.start;
             refs.footerWrapper.current.style.pointerEvents =
               isFooterInteractive ? 'auto' : 'none';
             if (isFooterVisible) {
@@ -297,7 +321,7 @@ export function useDesktopTimeline(
             }
 
             if (refs.onFooterRevealChange) {
-              refs.onFooterRevealChange(progress >= 0.88);
+              refs.onFooterRevealChange(progress >= TIMINGS.footerReveal.start - 0.02);
             }
           }
         },
@@ -307,6 +331,35 @@ export function useDesktopTimeline(
     // Initial transform origin for pixel-perfect top-left scaling
     if (refs.heroMagnm.current) {
       gsap.set(refs.heroMagnm.current, { transformOrigin: '0 0' });
+    }
+
+    // Timeline locks at time 0 to enforce initial offscreen pose across scrubbing
+    if (refs.page4Container.current) {
+      scrollTl.set(
+        refs.page4Container.current,
+        {
+          y: '100%',
+          opacity: 1,
+          scale: 1,
+          boxShadow: '0 -25px 80px rgba(0, 0, 0, 0.22)',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+        },
+        0
+      );
+    }
+    scrollTl.set(
+      '.page4-heading-block',
+      {
+        opacity: 1,
+        filter: 'none',
+        y: 0,
+      },
+      0
+    );
+
+    if (refs.projectsHandle.current) {
+      refs.projectsHandle.current.setScrollProgress(0);
     }
 
     // Phase 1: Huge "MAGNM" scales down and docks prominently into the fixed Navbar (0.0 -> 0.16)
@@ -686,7 +739,7 @@ export function useDesktopTimeline(
       scrollTl.set('#page-3', { visibility: 'visible', pointerEvents: 'auto' }, 0.36);
     }
 
-    // Phase 6: Pinned Services Scroll (0.44 -> 0.70)
+    // Phase 6: Pinned Services Scroll (0.44 -> 0.66)
     // User scrolls through each and every service sequentially while section remains pinned!
     const servicesScrollObj = { index: 0 };
     scrollTl.to(
@@ -694,12 +747,12 @@ export function useDesktopTimeline(
       {
         index: 5,
         ease: 'none',
-        duration: 0.26,
+        duration: TIMINGS.servicesScroll.duration,
         onUpdate: () => {
           refs.ourWorkHandle.current?.setPositionDirect(servicesScrollObj.index);
         },
       },
-      0.44
+      TIMINGS.servicesScroll.start
     );
 
     // Phase 7: Page 3 Zoom-out / Scale-down to 80% & Pure White Backdrop Reveal
@@ -723,7 +776,7 @@ export function useDesktopTimeline(
       TIMINGS.page3ScaleDown.duration
     );
 
-    // Phase 8: Page 4 (Projects Card) slides up from bottom
+    // Phase 8: Page 4 (Projects Card) slides up from bottom (0.74 -> 0.84)
     if (refs.page4Container.current) {
       scrollTl.set(
         refs.page4Container.current,
@@ -738,6 +791,7 @@ export function useDesktopTimeline(
         TIMINGS.page4SlideUp.duration
       );
 
+      // Section 4 card settled and interactive
       scrollTl.set(
         refs.page4Container.current,
         { pointerEvents: 'auto' },
@@ -745,7 +799,22 @@ export function useDesktopTimeline(
       );
     }
 
-    // Phase 9: Page 4 slides UP & OFF to reveal Footer underneath (0.90 -> 1.00)
+    // Phase 8b: Projects Showcase — 4 Stacked Covers peel downwards with scroll (0.80 -> 0.93)
+    const projectsScrollObj = { progress: 0 };
+    scrollTl.to(
+      projectsScrollObj,
+      {
+        progress: 3,
+        ease: 'none',
+        duration: TIMINGS.projectsScroll.duration,
+        onUpdate: () => {
+          refs.projectsHandle.current?.setScrollProgress(projectsScrollObj.progress);
+        },
+      },
+      TIMINGS.projectsScroll.start
+    );
+
+    // Phase 9: Page 4 slides UP & OFF to reveal Footer underneath (0.94 -> 1.00)
     // 0. Ensure Footer background and helix are visible right as Page 4 lifts, and interactive
     if (refs.footerWrapper?.current) {
       scrollTl.set(
@@ -757,6 +826,19 @@ export function useDesktopTimeline(
     if (refs.page4Container?.current) {
       scrollTl.set(refs.page4Container.current, { pointerEvents: 'none' }, TIMINGS.footerReveal.start);
     }
+
+    // Fade and blur out Page 4 heading block right as Page 4 starts lifting off into the footer
+    scrollTl.to(
+      '.page4-heading-block',
+      {
+        opacity: 0,
+        filter: 'blur(12px)',
+        y: -16,
+        duration: 0.04,
+        ease: 'power1.out',
+      },
+      TIMINGS.footerReveal.start
+    );
 
     // 1. Page 4 slides up and off the top of the viewport like a physical curtain
     scrollTl.to(

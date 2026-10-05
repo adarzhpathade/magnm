@@ -20,6 +20,8 @@ type BlurTextProps = {
   onAnimationComplete?: () => void;
   stepDuration?: number;
   trigger?: boolean;
+  as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3';
+  style?: React.CSSProperties;
 };
 
 const buildKeyframes = (
@@ -52,10 +54,12 @@ const BlurText: React.FC<BlurTextProps> = ({
   onAnimationComplete,
   stepDuration = 0.35,
   trigger,
+  as = 'p',
+  style,
 }) => {
   const elements = animateBy === 'words' ? text.split(' ') : text.split('');
   const [inView, setInView] = useState(false);
-  const ref = useRef<HTMLParagraphElement>(null);
+  const ref = useRef<any>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -124,20 +128,66 @@ const BlurText: React.FC<BlurTextProps> = ({
 
   const stepCount = toSnapshots.length + 1;
   const totalDuration = stepDuration * (stepCount - 1);
+  const exitDuration = stepDuration * 0.65 * (stepCount - 1);
   const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
 
+  const enterKeyframes = useMemo(
+    () => buildKeyframes(fromSnapshot, toSnapshots),
+    [fromSnapshot, toSnapshots]
+  );
+
+  const exitKeyframes = useMemo(() => {
+    const finalState = toSnapshots[toSnapshots.length - 1];
+    const intermediateReversed = [...toSnapshots.slice(0, -1)].reverse();
+    return buildKeyframes(finalState, [...intermediateReversed, fromSnapshot]);
+  }, [fromSnapshot, toSnapshots]);
+
+  const exitElementDelays = useMemo(() => {
+    const count = elements.length;
+    if (!randomize) {
+      return Array.from({ length: count }, (_, i) => (i * (delay * 0.5)) / 1000);
+    }
+    const order = Array.from({ length: count }, (_, i) => i);
+    for (let i = count - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    const delays = new Array<number>(count);
+    order.forEach((origIndex, step) => {
+      delays[origIndex] = (step * (delay * 0.5)) / 1000;
+    });
+    return delays;
+  }, [elements.length, delay, randomize]);
+
   const isTriggered = trigger !== undefined ? trigger : inView;
+  const hasEnteredRef = useRef(false);
+
+  useEffect(() => {
+    if (isTriggered) {
+      hasEnteredRef.current = true;
+    }
+  }, [isTriggered]);
+
+  const Component = (as || 'p') as any;
 
   return (
-    <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
+    <Component ref={ref} style={style} className={`blur-text ${className} flex flex-wrap`}>
       {elements.map((segment, index) => {
-        const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
+        const isExiting = !isTriggered && hasEnteredRef.current;
+        const activeKeyframes = isTriggered
+          ? enterKeyframes
+          : isExiting
+          ? exitKeyframes
+          : fromSnapshot;
+
+        const currentDelays = isExiting ? exitElementDelays : elementDelays;
+        const currentDuration = isExiting ? exitDuration : totalDuration;
 
         const spanTransition: Transition = {
-          duration: totalDuration,
+          duration: currentDuration,
           times,
-          delay: elementDelays[index] ?? (startDelay + index * delay) / 1000,
-          ease: easing
+          delay: currentDelays[index] ?? (index * (delay * 0.5)) / 1000,
+          ease: easing,
         };
 
         return (
@@ -145,7 +195,7 @@ const BlurText: React.FC<BlurTextProps> = ({
             key={index}
             className="inline-block"
             initial={fromSnapshot}
-            animate={isTriggered ? animateKeyframes : fromSnapshot}
+            animate={activeKeyframes}
             transition={spanTransition}
             onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
             style={{
@@ -163,7 +213,7 @@ const BlurText: React.FC<BlurTextProps> = ({
           </motion.span>
         );
       })}
-    </p>
+    </Component>
   );
 };
 

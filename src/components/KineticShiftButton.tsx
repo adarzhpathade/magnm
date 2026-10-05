@@ -14,7 +14,9 @@ export interface KineticShiftButtonProps {
   className?: string;
   /** Color theme: 'dark' (default for dark backgrounds) or 'light' (for light canvases) */
   theme?: 'dark' | 'light';
-  /** Extra space in pixels between the text and the right '+' at rest (default: 32) */
+  /** Size variant: 'sm', 'md', or 'lg' (default: 'sm') */
+  size?: 'sm' | 'md' | 'lg';
+  /** Extra space in pixels between the text and the right '+' at rest */
   gapPx?: number;
   /** Whether to play acoustic hover sound (default: true) */
   enableSound?: boolean;
@@ -42,7 +44,8 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
   ariaLabel,
   className = '',
   theme = 'dark',
-  gapPx = 32,
+  size = 'sm',
+  gapPx,
   enableSound = true,
   soundVolume = 0.35,
   soundIndex = 0,
@@ -52,9 +55,26 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
   const words = text.split(' ');
   const isLight = theme === 'light';
 
+  const defaultGap = size === 'lg' ? 44 : size === 'md' ? 38 : 32;
+  const effectiveGapPx = gapPx !== undefined ? gapPx : defaultGap;
+
+  const bodyTextClass =
+    size === 'lg'
+      ? 'text-[clamp(0.88rem,1.25vw,1.05rem)]'
+      : size === 'md'
+      ? 'text-[clamp(0.78rem,1.1vw,0.92rem)]'
+      : 'text-[clamp(0.68rem,0.85vw,0.82rem)]';
+
+  const plusTextClass =
+    size === 'lg'
+      ? 'text-[0.92rem]'
+      : size === 'md'
+      ? 'text-[0.82rem]'
+      : 'text-[0.72rem]';
+
   const rowRef = useRef<HTMLDivElement>(null);
   const wordsRef = useRef<HTMLSpanElement>(null);
-  const [shiftPx, setShiftPx] = useState(gapPx);
+  const [shiftPx, setShiftPx] = useState(effectiveGapPx);
   const mountedAtRef = useRef(0);
 
   useEffect(() => {
@@ -137,7 +157,7 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
       >
         {/* Left Plus: Slides in & rotates on hover at the extreme left */}
         <span
-          className={`font-['Martian_Mono',monospace] text-[0.72rem] select-none absolute left-0 top-1/2 inline-block pointer-events-none ${
+          className={`font-['Martian_Mono',monospace] ${plusTextClass} select-none absolute left-0 top-1/2 inline-block pointer-events-none ${
             isLight ? 'text-[#171717]' : 'text-white'
           }`}
           style={{
@@ -155,7 +175,7 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
         {/* Text Words: Shift to the extreme right of the line on hover */}
         <span
           ref={wordsRef}
-          className="inline-flex items-center gap-1.5 font-['Martian_Mono',monospace] font-light text-[clamp(0.68rem,0.85vw,0.82rem)] tracking-[0.06em] select-none"
+          className={`inline-flex items-center gap-1.5 font-['Martian_Mono',monospace] font-light ${bodyTextClass} tracking-[0.06em] select-none`}
           style={{
             color: isLight
               ? (isHovered ? '#000000' : '#171717')
@@ -182,9 +202,9 @@ export const KineticShiftButton: React.FC<KineticShiftButtonProps> = ({
 
         {/* Right Plus: Visible at rest on the extreme right, slides out & fades on hover */}
         <span
-          className="leave-blur-item font-['Martian_Mono',monospace] text-[0.72rem] select-none relative inline-block will-change-[transform,filter,opacity]"
+          className={`leave-blur-item font-['Martian_Mono',monospace] ${plusTextClass} select-none relative inline-block will-change-[transform,filter,opacity]`}
           style={{
-            marginLeft: `${gapPx}px`,
+            marginLeft: `${effectiveGapPx}px`,
             color: isLight
               ? (isHovered ? '#000000' : '#666666')
               : (isHovered ? '#ffffff' : '#666666'),

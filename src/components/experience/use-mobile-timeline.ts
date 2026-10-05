@@ -23,11 +23,13 @@ export interface MobileTimelineRefs {
   wheelWrapper: RefObject<HTMLDivElement | null>;
   cameraController: MutableRefObject<CameraController>;
   projectsHandle: MutableRefObject<ProjectsHandle | null>;
+  mobilePage4Spacer?: RefObject<HTMLDivElement | null>;
   footer?: RefObject<HTMLDivElement | null>;
   footerWrapper?: RefObject<HTMLDivElement | null>;
   footerMagnm?: RefObject<HTMLSpanElement | null>;
   navbarHeader?: RefObject<HTMLElement | null>;
   onFooterRevealChange?: (revealed: boolean) => void;
+  onProjectsRevealChange?: (revealed: boolean) => void;
 }
 
 export function useMobileTimeline(
@@ -112,16 +114,22 @@ export function useMobileTimeline(
       refs.page4Container.current.style.visibility = 'visible';
       refs.page4Container.current.style.pointerEvents = 'auto';
     }
+    gsap.set('.page4-heading-block', { opacity: 1, filter: 'none', y: 0 });
+    if (refs.projectsHandle.current) {
+      refs.projectsHandle.current.setScrollProgress(0);
+    }
     if (refs.footerWrapper?.current) {
       gsap.set(refs.footerWrapper.current, { clearProps: 'all' });
-      refs.footerWrapper.current.style.visibility = 'visible';
-      refs.footerWrapper.current.style.pointerEvents = 'auto';
+      // Keep footer hidden initially on mobile so the 3D Helix WebGL scene does not run in background during Sections 1-4
+      refs.footerWrapper.current.style.visibility = 'hidden';
+      refs.footerWrapper.current.style.pointerEvents = 'none';
     }
+    gsap.set('#page-footer-bg', { visibility: 'hidden' });
     if (refs.footerMagnm?.current) {
       gsap.set(refs.footerMagnm.current, { clearProps: 'all' });
       refs.footerMagnm.current.style.opacity = '1';
     }
-    gsap.set('.footer-magnm-mobile', { opacity: 0, filter: 'blur(12px)', y: 0 });
+    gsap.set('.footer-magnm-mobile', { clearProps: 'all' });
 
     // Dedicated Mobile ScrollTrigger timeline for Hero -> About Wheel Transition
     const mobileCameraObj = {
@@ -306,48 +314,44 @@ export function useMobileTimeline(
       );
     }
 
-    // Section 4 slides ON TO Page 3 in the exact same way:
-    // As Section 4's top moves from bottom of viewport to top of viewport,
-    // Page 3 underneath subtly scales down and dims, while remaining held at top: 0
+    // Section 4 slides ON TO Page 3:
+    // Page 3 stays completely solid, static, and crisp while Section 4 smoothly slides over it
     const slideOnP4Tl = gsap.timeline({
       scrollTrigger: {
         trigger: refs.page4Container.current,
         start: 'top bottom',
         end: 'top top',
-        scrub: true,
+        scrub: 0.35,
         onUpdate: (self) => {
           if (refs.page3Wrapper.current) {
             // When Section 4 has fully covered Page 3, hide page3Wrapper to free GPU
             refs.page3Wrapper.current.style.visibility =
               self.progress >= 0.99 ? 'hidden' : 'visible';
           }
+          if (refs.onProjectsRevealChange) {
+            const shouldReveal =
+              self.direction === -1
+                ? self.progress >= 0.72
+                : self.progress >= 0.65;
+            refs.onProjectsRevealChange(shouldReveal);
+          }
         },
       },
     });
 
-    if (refs.page3Wrapper.current) {
-      slideOnP4Tl.to(
-        refs.page3Wrapper.current,
-        {
-          scale: 0.94,
-          opacity: 0.35,
-          ease: 'none',
-        },
-        0
-      );
-    }
-
-    ScrollTrigger.refresh();
-
-    // Navbar dynamic color updater when scrolling through Section 3 & 4
+    // Navbar dynamic color updater when scrolling through Section 3 & 4 (RAF-batched to avoid layout thrashing)
+    let navRafId: number | null = null;
     const updateMobileNav = () => {
       const p3El = refs.page3Wrapper.current;
-      const footerEl = refs.footer?.current;
+      const p4El = refs.page4Container.current;
+      
       if (p3El && refs.navBrand.current) {
         const p3Top = p3El.getBoundingClientRect().top;
-        const footerTop = footerEl ? footerEl.getBoundingClientRect().top : Infinity;
-        const isLightBg = p3Top <= 60 && footerTop > window.innerHeight * 0.5;
-        const isAtFooter = footerTop <= window.innerHeight * 0.75;
+        const p4Top = p4El ? p4El.getBoundingClientRect().top : Infinity;
+        const p4Bottom = p4El ? p4El.getBoundingClientRect().bottom : -Infinity;
+        
+        // We are on a light background if EITHER Page 3 OR Page 4 is in the upper half of the viewport
+        const isLightBg = (p3Top <= 100 || p4Top <= 100) && p4Bottom > window.innerHeight * 0.4;
         
         const brandText = refs.navBrand.current.querySelector('.nav-brand-text') as HTMLElement | null;
         const logoLight = refs.navBrand.current.querySelector('.nav-logo-light') as HTMLElement | null;
@@ -362,39 +366,53 @@ export function useMobileTimeline(
           logoDark.style.opacity = isLightBg ? '1' : '0';
         }
         if (refs.navActions.current) {
-          if (isAtFooter) {
-            refs.navActions.current.style.opacity = '0';
-            refs.navActions.current.style.pointerEvents = 'none';
-          } else {
-            const actionBtn = refs.navActions.current.querySelector('.nav-action-btn') as HTMLElement | null;
-            if (actionBtn) {
-              actionBtn.style.backgroundColor = isLightBg ? '#171717' : '#ffffff';
-              actionBtn.style.color = isLightBg ? '#ffffff' : '#171717';
-            }
-            const secondaryBtn = refs.navActions.current.querySelector('.nav-secondary-btn') as HTMLElement | null;
-            if (secondaryBtn) {
-              secondaryBtn.style.borderColor = isLightBg ? 'rgba(23, 23, 23, 0.25)' : 'rgba(255, 255, 255, 0.2)';
-              secondaryBtn.style.color = isLightBg ? '#171717' : '#cccccc';
-            }
+          const actionBtn = refs.navActions.current.querySelector('.nav-action-btn') as HTMLElement | null;
+          if (actionBtn) {
+            actionBtn.style.backgroundColor = isLightBg ? '#171717' : '#ffffff';
+            actionBtn.style.color = isLightBg ? '#ffffff' : '#171717';
+          }
+          const secondaryBtn = refs.navActions.current.querySelector('.nav-secondary-btn') as HTMLElement | null;
+          if (secondaryBtn) {
+            secondaryBtn.style.borderColor = isLightBg ? 'rgba(23, 23, 23, 0.25)' : 'rgba(255, 255, 255, 0.2)';
+            secondaryBtn.style.color = isLightBg ? '#171717' : '#cccccc';
           }
         }
       }
     };
 
-    window.addEventListener('scroll', updateMobileNav, { passive: true });
+    const onScroll = () => {
+      if (navRafId !== null) return;
+      navRafId = requestAnimationFrame(() => {
+        navRafId = null;
+        updateMobileNav();
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
     updateMobileNav();
 
-    const footerTriggerTarget = refs.footerWrapper?.current || refs.footer?.current;
+    // The footer now physically sits behind page 4 (parallax CSS reveal).
+    // The reveal begins when the bottom of page-4 enters the viewport.
+    const footerTriggerTarget = refs.page4Container?.current;
     if (footerTriggerTarget) {
       const mobileFooterTl = gsap.timeline({
         scrollTrigger: {
           trigger: footerTriggerTarget,
-          start: 'top 65%',
-          end: 'top 10%',
+          start: 'bottom 85%',
+          end: 'bottom 20%',
           scrub: 0.3,
           onUpdate: (self) => {
+            const isRevealed = self.progress >= 0.02;
+            if (refs.footerWrapper?.current) {
+              refs.footerWrapper.current.style.visibility = isRevealed ? 'visible' : 'hidden';
+              refs.footerWrapper.current.style.pointerEvents = isRevealed ? 'auto' : 'none';
+            }
+            const footerBg = document.getElementById('page-footer-bg');
+            if (footerBg) {
+              footerBg.style.visibility = isRevealed ? 'visible' : 'hidden';
+            }
             if (refs.onFooterRevealChange) {
-              refs.onFooterRevealChange(self.progress >= 0.85);
+              refs.onFooterRevealChange(self.progress >= 0.05);
             }
             if (refs.navActions?.current) {
               refs.navActions.current.style.pointerEvents = self.progress >= 0.15 ? 'none' : 'auto';
@@ -403,59 +421,39 @@ export function useMobileTimeline(
         },
       });
 
-      // 1. Page 4 slides up and off the screen
-      if (refs.page4Container?.current) {
-        mobileFooterTl.to(
-          refs.page4Container.current,
-          {
-            y: '-100%',
-            duration: 1,
-            ease: 'power2.inOut',
-          },
-          0
-        );
-      }
-
-      // 2. Mobile navbar logo AND action buttons ("START A PROJECT") leave with optical blur
+      // Mobile navbar logo AND action buttons ("START A PROJECT") leave with optical blur
       const mobileNavLeave: (string | HTMLElement)[] = ['.nav-logo-container'];
       if (refs.navActions?.current) {
         mobileNavLeave.push(refs.navActions.current);
       } else {
         mobileNavLeave.push('.nav-action-btn', '.nav-secondary-btn');
       }
-      mobileFooterTl.to(
+      mobileFooterTl.fromTo(
         mobileNavLeave,
+        {
+          opacity: 1,
+          filter: 'blur(0px)',
+          y: 0,
+        },
         {
           opacity: 0,
           filter: 'blur(16px)',
           y: -14,
           duration: 0.4,
           ease: 'power1.out',
+          immediateRender: false,
         },
         0.1
       );
-
-      // 3. Footer MAGNM reveals smoothly behind the mobile 3D helix
-      mobileFooterTl.fromTo(
-        '.footer-magnm-mobile',
-        {
-          opacity: 0,
-          filter: 'blur(12px)',
-          y: 0,
-        },
-        {
-          opacity: 1,
-          filter: 'blur(0px)',
-          y: 0,
-          duration: 0.8,
-          ease: 'power2.out',
-        },
-        0.2
-      );
     }
 
+    ScrollTrigger.refresh();
+
     return () => {
-      window.removeEventListener('scroll', updateMobileNav);
+      window.removeEventListener('scroll', onScroll);
+      if (navRafId !== null) {
+        cancelAnimationFrame(navRafId);
+      }
     };
   });
 }

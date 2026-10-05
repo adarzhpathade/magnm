@@ -43,10 +43,22 @@ export default function MainExperience() {
     }
   }, []);
 
+  const [triggerProjectsReveal, setTriggerProjectsReveal] = useState(false);
+  const projectsRevealedRef = useRef(false);
+
+  const handleProjectsRevealChange = useCallback((revealed: boolean) => {
+    if (projectsRevealedRef.current !== revealed) {
+      projectsRevealedRef.current = revealed;
+      setTriggerProjectsReveal(revealed);
+    }
+  }, []);
+
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
   const [modalSource, setModalSource] = useState<'navbar' | 'hero' | 'footer'>('navbar');
   const counterWrapperRef = useRef<HTMLDivElement>(null);
+
+
 
   // Pinned Stage & Layer Refs
   const pinnedStageRef = useRef<HTMLDivElement>(null);
@@ -130,6 +142,7 @@ export default function MainExperience() {
           footerMagnm: footerMagnmRef,
           navbarHeader: navbarHeaderRef,
           onFooterRevealChange: handleFooterRevealChange,
+          onProjectsRevealChange: handleProjectsRevealChange,
         },
         mm
       );
@@ -153,11 +166,13 @@ export default function MainExperience() {
           wheelWrapper: wheelWrapperRef,
           cameraController: cameraControllerRef,
           projectsHandle: projectsHandleRef,
+          mobilePage4Spacer: mobilePage4SpacerRef,
           footer: footerRef,
           footerWrapper: footerWrapperRef,
           footerMagnm: footerMagnmRef,
           navbarHeader: navbarHeaderRef,
           onFooterRevealChange: handleFooterRevealChange,
+          onProjectsRevealChange: handleProjectsRevealChange,
         },
         mm
       );
@@ -307,7 +322,7 @@ export default function MainExperience() {
           {/* Mobile Scroll Spacer: track for Section 3 viewing before Section 4 slides on */}
           <div
             ref={mobilePage3SpacerRef}
-            className="relative w-full h-[25svh] lg:hidden pointer-events-none"
+            className="relative w-full h-[85svh] lg:hidden pointer-events-none"
             aria-hidden="true"
           />
 
@@ -315,45 +330,41 @@ export default function MainExperience() {
           <div
             id="page-4"
             ref={page4ContainerRef}
-            className="sticky top-0 lg:absolute lg:inset-0 z-40 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-hidden shadow-[0_-25px_60px_rgba(0,0,0,0.35)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex items-center justify-center will-change-transform lg:invisible"
+            className="relative lg:absolute lg:inset-0 z-40 w-full h-auto lg:h-full lg:min-h-0 pointer-events-auto lg:pointer-events-none opacity-100 lg:opacity-0 bg-[#cccccc] text-[#171717] overflow-visible lg:overflow-hidden border-t border-[#171717]/10 lg:border-none shadow-[0_-14px_35px_rgba(0,0,0,0.18)] lg:shadow-[0_-25px_80px_rgba(0,0,0,0.22)] rounded-none flex flex-col items-center justify-center will-change-transform lg:invisible lg:translate-y-full"
           >
-            <Projects ref={projectsHandleRef} />
+            <Projects ref={projectsHandleRef} triggerReveal={triggerProjectsReveal} />
           </div>
 
-          {/* Section 5a: Footer Background — sits at z-36 on desktop, directly UNDERNEATH Page 4 (z-40) */}
-          <div
-            id="page-footer-bg"
-            className="sticky top-0 lg:absolute lg:inset-0 z-36 w-full h-[100svh] lg:h-full pointer-events-none bg-[#000000] lg:invisible"
-            aria-hidden="true"
-          />
-
-          {/* Section 5b: Footer Interactive Helix & Content — sits at z-38 on desktop, directly UNDERNEATH Page 4 (z-40) */}
-          <div
-            id="page-footer"
-            ref={footerWrapperRef}
-            className="sticky top-0 lg:absolute lg:inset-0 z-38 w-full h-[100svh] lg:h-full lg:min-h-0 pointer-events-auto overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform lg:invisible"
-          >
-            <Footer
-              ref={footerRef}
-              magnmRef={footerMagnmRef}
-              triggerReveal={triggerFooterReveal}
-              onStartProject={() => { setModalSource('footer'); setIsProjectModalOpen(true); }}
-            />
-          </div>
-
-          {/* Mobile Scroll Spacer: allows Section 4 to stay docked at top: 0 comfortably */}
-          <div
-            ref={mobilePage4SpacerRef}
-            className="relative w-full h-[25svh] lg:hidden pointer-events-none"
-            aria-hidden="true"
-          />
-
-          {/* Mobile Scroll Spacer: track for Footer reveal */}
+          {/* Mobile Footer Reveal Scroll Track */}
           <div
             ref={mobilePageFooterSpacerRef}
-            className="relative w-full h-[35svh] lg:hidden pointer-events-none"
+            className="relative w-full h-[100svh] lg:hidden pointer-events-none"
             aria-hidden="true"
           />
+
+          {/* Section 5: Footer Wrapper (Fixed at bottom on mobile for parallax curtain reveal; absolute on desktop) */}
+          <div className="fixed bottom-0 left-0 lg:static z-10 w-full h-[100svh] lg:h-auto">
+            {/* Section 5a: Footer Background */}
+            <div
+              id="page-footer-bg"
+              className="absolute inset-0 z-0 lg:z-36 w-full h-full pointer-events-none bg-[#000000] invisible"
+              aria-hidden="true"
+            />
+
+            {/* Section 5b: Footer Interactive Helix & Content */}
+            <div
+              id="page-footer"
+              ref={footerWrapperRef}
+              className="absolute inset-0 z-10 lg:z-38 w-full h-full pointer-events-auto overflow-hidden bg-transparent text-[#cccccc] flex items-center justify-center will-change-transform invisible"
+            >
+              <Footer
+                ref={footerRef}
+                magnmRef={footerMagnmRef}
+                triggerReveal={triggerFooterReveal}
+                onStartProject={() => { setModalSource('footer'); setIsProjectModalOpen(true); }}
+              />
+            </div>
+          </div>
         </div>
       </div>
       

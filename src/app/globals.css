@@ -22,3 +22,16 @@ body,
   height: 0px !important;
   background: transparent !important;
 }
+
+/* ==========================================================================
+   Mobile Performance & Touch Optimization (< 1024px)
+   Eliminates tap delay and tap flicker on smartphones without desktop impact.
+   ========================================================================== */
+@media (max-width: 1023px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, a {
+    touch-action: manipulation;
+  }
+}

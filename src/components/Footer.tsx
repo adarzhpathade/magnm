@@ -36,13 +36,25 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
     const [helixScale, setHelixScale] = useState(210);
     const [cameraSettings, setCameraSettings] = useState({ tilt: 42, sideTilt: -38 });
     const [helixSpeed, setHelixSpeed] = useState(45);
+    const [barsCount, setBarsCount] = useState(48);
     const [hasRevealed, setHasRevealed] = useState(false);
 
+    const [isMobile, setIsMobile] = useState(false);
+
     useEffect(() => {
-      if (triggerProp || triggerProp === undefined) {
+      const checkMobile = () => {
+        setIsMobile(window.innerWidth < 1024);
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    useEffect(() => {
+      if (isMobile || triggerProp || triggerProp === undefined) {
         setHasRevealed(true);
       }
-    }, [triggerProp]);
+    }, [triggerProp, isMobile]);
 
     useEffect(() => {
       if (!hasRevealed) return;
@@ -58,15 +70,18 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
         if (w < 640) {
           setHelixScale(185);
           setCameraSettings({ tilt: 42, sideTilt: -30 });
-          setHelixSpeed(4); // Drastically decreased rotation in mobile view only
+          setHelixSpeed(40); // Optimized fluid rotation on mobile (visible, elegant, continuous)
+          setBarsCount(42);  // Lightweight GPU optimization for mobile WebGL
         } else if (w < 1024) {
           setHelixScale(175);
           setCameraSettings({ tilt: 43, sideTilt: -34 });
-          setHelixSpeed(25);
+          setHelixSpeed(38);
+          setBarsCount(46);
         } else {
           setHelixScale(210);
           setCameraSettings({ tilt: 42, sideTilt: -38 });
           setHelixSpeed(45);
+          setBarsCount(48);
         }
       };
       updateDimensions();
@@ -74,7 +89,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
       return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
-    const isInteractive = Boolean(triggerProp || triggerProp === undefined);
+    const isInteractive = isMobile || Boolean(triggerProp || triggerProp === undefined);
     const cameraControllerRef = useRef({
       tilt: cameraSettings.tilt,
       sideTilt: cameraSettings.sideTilt,
@@ -85,8 +100,8 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
     useEffect(() => {
       cameraControllerRef.current.tilt = cameraSettings.tilt;
       cameraControllerRef.current.sideTilt = cameraSettings.sideTilt;
-      cameraControllerRef.current.interactive = Boolean(triggerProp || triggerProp === undefined);
-    }, [cameraSettings, triggerProp]);
+      cameraControllerRef.current.interactive = isMobile || Boolean(triggerProp || triggerProp === undefined);
+    }, [cameraSettings, triggerProp, isMobile]);
 
     return (
       <footer
@@ -108,7 +123,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
             soundMode="vibraphone"
             background="transparent"
             baseColor="#171717"
-            bars={48}
+            bars={barsCount}
             shape="helix"
             speed={helixSpeed}
             drag={100}
@@ -135,7 +150,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
               {/* Mobile-only: visible MAGNM text (on desktop, the nav-brand-text grows via fontSize animation instead) */}
               <span
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="footer-magnm-mobile lg:hidden font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] uppercase opacity-0 pointer-events-auto cursor-pointer -ml-[0.055em]"
+                className="footer-magnm-mobile lg:hidden font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] uppercase opacity-100 pointer-events-auto cursor-pointer -ml-[0.055em]"
                 role="button"
                 tabIndex={0}
                 aria-label="MAGNM Home"
@@ -194,6 +209,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                   ariaLabel="Contact MAGNM"
                   soundType="vibraphone"
                   soundIndex={2}
+                  size="md"
                   onClick={onStartProject}
                 />
               </div>
@@ -234,14 +250,14 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                   </div>
 
                   <a
-                    href="mailto:hello@magnm.com"
+                    href="mailto:adarshpathade79@gmail.com"
                     onMouseEnter={() => chimeSynth.playWoodTap(0.22)}
                     className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
-                    aria-label="Email hello@magnm.com"
+                    aria-label="Email adarshpathade79@gmail.com"
                   >
                     <div className="flex items-center py-0.5">
                       <LetterSwapPingPong
-                        label="hello@magnm.com"
+                        label="adarshpathade79@gmail.com"
                         className="font-['Familjen_Grotesk',sans-serif] text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.01em] text-[#cccccc] group-hover:text-white transition-colors duration-200 leading-none"
                       />
                     </div>
@@ -256,7 +272,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                 </span>
                 <div className="flex flex-col items-end gap-1">
                   <a
-                    href="https://github.com/pranavdubey"
+                    href="https://github.com/NetPranav"
                     target="_blank"
                     rel="noopener noreferrer"
                     onMouseEnter={() => chimeSynth.playWoodTap(0.18)}

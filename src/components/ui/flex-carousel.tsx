@@ -135,6 +135,7 @@ uniform float uReady;
 uniform float uShift;
 uniform float uDpr;
 uniform vec3 uPlaceholder;
+uniform float uMonochrome;
 in vec2 vUv;
 in vec2 vLocal;
 out vec4 fragColor;
@@ -156,7 +157,18 @@ void main() {
   uv = (uv - 0.5) * scale + 0.5;
   uv.x += uShift * (1.0 - scale.x) * 0.5;
   vec3 image = texture(tMap, uv).rgb;
-  vec3 color = mix(uPlaceholder, image, uReady);
+
+  // MAGNM Monochromatic Black & White Filter
+  // 1. Rec.709 perceived luminance calculation
+  float lum = dot(image, vec3(0.2126, 0.7152, 0.0722));
+  // 2. High-contrast editorial tone curve (deep #171717 blacks, sharp whites, rich grayscale depth)
+  float bw = clamp((lum - 0.5) * 1.14 + 0.5, 0.0, 1.0);
+  vec3 finalImage = mix(image, vec3(bw), uMonochrome);
+
+  vec3 placeholderBW = vec3(dot(uPlaceholder, vec3(0.2126, 0.7152, 0.0722)));
+  vec3 placeholder = mix(uPlaceholder, placeholderBW, uMonochrome);
+
+  vec3 color = mix(placeholder, finalImage, uReady);
   float alpha = mask * uAlpha;
   fragColor = vec4(color * alpha, alpha);
 }
@@ -287,7 +299,8 @@ export const FlexCarousel = forwardRef<any, any>(({
   onFocusChange,
   className = '',
   style,
-  entry = false // custom prop to defer animation
+  entry = false, // custom prop to defer animation
+  monochrome = true // Black and white filter matching MAGNM style
 }, ref) => {
   const containerRef = useRef(null);
   const settingsRef = useRef(null);
@@ -340,7 +353,8 @@ export const FlexCarousel = forwardRef<any, any>(({
       focusOnClick,
       autoplay,
       interval,
-      captureWheel
+      captureWheel,
+      monochrome: monochrome ? 1.0 : 0.0
     };
     engineRef.current?.wake();
   });
@@ -390,7 +404,8 @@ export const FlexCarousel = forwardRef<any, any>(({
         uReady: { value: 0 },
         uShift: { value: 0 },
         uDpr: { value: 1 },
-        uPlaceholder: { value: [0.5, 0.5, 0.5] }
+        uPlaceholder: { value: [0.5, 0.5, 0.5] },
+        uMonochrome: { value: 1.0 }
       }
     });
     cardProgram.setBlendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -953,6 +968,7 @@ export const FlexCarousel = forwardRef<any, any>(({
         cardProgram.uniforms.uResolution.value = [width, height];
         cardProgram.uniforms.uDpr.value = dpr;
         cardProgram.uniforms.uRadius.value = s.radius;
+        cardProgram.uniforms.uMonochrome.value = s.monochrome !== undefined ? s.monochrome : 1.0;
         const shrink = 1 - clamp01(s.squeeze) * energy;
         const draws = [];
         for (let i = 0; i < n; i++) {
