@@ -187,7 +187,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
               {/* Mobile-only: visible MAGNM text (on desktop, the nav-brand-text grows via fontSize animation instead) */}
               <span
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="footer-magnm-mobile lg:hidden font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] uppercase opacity-100 pointer-events-auto cursor-pointer -ml-[0.055em]"
+                className="footer-magnm-mobile lg:hidden font-['Familjen_Grotesk',sans-serif] text-[clamp(4.25rem,16vw,15.5rem)] font-normal tracking-[-0.035em] leading-[0.8] text-[#cccccc] uppercase opacity-100 pointer-events-auto cursor-pointer"
                 role="button"
                 tabIndex={0}
                 aria-label="MAGNM Home"
@@ -198,7 +198,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
 
             {/* Tagline matching Hero Tagline positioning exactly with Page 3's signature BlurText effect */}
             <div className="relative z-30 mt-3.5 sm:mt-4 md:mt-5 flex flex-col items-start text-left space-y-2 sm:space-y-2.5">
-              <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc] -ml-[0.055em]">
+              <div className="min-h-[1.15em] flex items-baseline justify-start flex-nowrap whitespace-nowrap font-['Familjen_Grotesk',sans-serif] text-[clamp(1.15rem,2.4vw,2.25rem)] font-normal tracking-[-0.035em] leading-[1.05] text-[#cccccc]">
                 <BlurText
                   key={hasRevealed ? 'lets-revealed' : 'lets-idle'}
                   text="LET'S"
@@ -268,23 +268,27 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
 
             {/* Right: Studio Location & Email + Developer Credits */}
             <div className="pointer-events-auto flex flex-col sm:flex-row items-end gap-6 sm:gap-8 md:gap-12 text-right select-none ml-auto">
-              {/* Studio Info: Based in Indore & Contact Email */}
+              {/* Designed By Info: Adarsh Pathade & Contact Email */}
               <div className="flex flex-col items-end gap-1.5">
                 <span className="font-['Martian_Mono',monospace] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.14em] uppercase text-[#777777]">
-                  STUDIO
+                  DESIGNED BY
                 </span>
                 <div className="flex flex-col items-end gap-1">
-                  <div
+                  <a
+                    href="https://adrz-26.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     onMouseEnter={() => chimeSynth.playWoodTap(0.18)}
-                    className="group relative inline-flex flex-col items-end cursor-default"
+                    className="group relative inline-flex flex-col items-end cursor-pointer focus:outline-none"
+                    aria-label="Designer Adarsh Pathade"
                   >
                     <div className="flex items-center py-0.5">
                       <LetterSwapPingPong
-                        label="Based in Indore"
+                        label="Adarsh Pathade"
                         className="font-['Familjen_Grotesk',sans-serif] text-[13px] sm:text-[14px] md:text-[14.5px] font-normal tracking-[-0.01em] text-[#cccccc] group-hover:text-white transition-colors duration-200 leading-none"
                       />
                     </div>
-                  </div>
+                  </a>
 
                   <a
                     href="mailto:adarshpathade79@gmail.com"
@@ -302,7 +306,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                 </div>
               </div>
 
-              {/* Developer Credits — Matches Reference Design */}
+              {/* Developer Credits */}
               <div className="flex flex-col items-end gap-1.5">
                 <span className="font-['Martian_Mono',monospace] text-[9.5px] sm:text-[10px] md:text-[10.5px] font-medium tracking-[0.14em] uppercase text-[#777777]">
                   DEVELOPED BY
@@ -325,7 +329,7 @@ const Footer = forwardRef<HTMLDivElement, FooterProps>(
                   </a>
 
                   <a
-                    href="https://github.com/adarzhpathade"
+                    href="https://adrz-26.vercel.app/"
                     target="_blank"
                     rel="noopener noreferrer"
                     onMouseEnter={() => chimeSynth.playWoodTap(0.18)}

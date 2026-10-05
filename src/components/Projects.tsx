@@ -70,6 +70,7 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
       }
     }, [triggerProp]);
 
+
     const setScrollProgress = useCallback((progress: number) => {
       const maxIdx = PROJECTS.length - 1;
       const clamped = Math.max(0, Math.min(maxIdx, progress));
@@ -122,6 +123,11 @@ export const Projects = forwardRef<ProjectsHandle, ProjectsProps>(
         }
       }
     }, []);
+
+    // Ensure the stack is visually initialized on mount (fixes production issue where GSAP hasn't called onUpdate yet)
+    useEffect(() => {
+      setScrollProgress(0);
+    }, [setScrollProgress]);
 
     useImperativeHandle(
       ref,

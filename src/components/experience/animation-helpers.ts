@@ -173,10 +173,6 @@ export function getNavToFooterFontTargets(
 ): { fontSize: number; x: number; y: number } {
   const targetFontSize = getHeroFontSizePx();
 
-  // Optical compensation for Familjen Grotesk's internal left glyph margin on 'M'
-  // (~0.055em left side bearing)
-  const opticalCompensation = targetFontSize * 0.055;
-
   // The expanded font with lineHeight 0.8 inside flex items-center expands vertically
   // navTarget is centered inside a container (~44px tall). As font grows to targetFontSize,
   // half of the excess height pushes upward. We shift downward by that excess to align the top edge.
@@ -212,7 +208,7 @@ export function getNavToFooterFontTargets(
 
     return {
       fontSize: targetFontSize,
-      x: (untransformedFooterLeft - untransformedNavLeft) - opticalCompensation,
+      x: (untransformedFooterLeft - untransformedNavLeft),
       y: (untransformedFooterTop - untransformedNavTop) + flexCenterOffsetY,
     };
   }
@@ -230,7 +226,7 @@ export function getNavToFooterFontTargets(
 
   return {
     fontSize: targetFontSize,
-    x: padLeft - opticalCompensation - untransformedNavLeft,
+    x: padLeft - untransformedNavLeft,
     y: (padTop - untransformedNavTop) + flexCenterOffsetY,
   };
 }
